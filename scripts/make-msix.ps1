@@ -89,11 +89,10 @@ Copy-Item -LiteralPath $executable, $mpvLibrary, $ytdlp -Destination $stagingDir
 Copy-Item -LiteralPath $twitchResolver -Destination $stagingDirectory -Recurse
 $assetsDirectory = Join-Path $stagingDirectory 'Assets'
 New-Item -ItemType Directory -Path $assetsDirectory -Force | Out-Null
-$assetNames = @(
-  'StoreLogo.png', 'Square44x44Logo.png', 'Square150x150Logo.png'
-)
-foreach ($assetName in $assetNames) {
-  Copy-Item -LiteralPath (Join-Path $tauriDirectory "icons\\$assetName") -Destination $assetsDirectory
+$assetFiles = Get-ChildItem -Path (Join-Path $tauriDirectory 'icons') -Filter '*.png' |
+  Where-Object { $_.Name -match '^(StoreLogo|Square44x44Logo|Square150x150Logo)' }
+foreach ($asset in $assetFiles) {
+  Copy-Item -LiteralPath $asset.FullName -Destination $assetsDirectory
 }
 $manifest = Get-Content -Raw $manifestTemplate
 $manifest = $manifest.Replace('{{VERSION}}', $msixVersion)

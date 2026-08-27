@@ -60,17 +60,40 @@ jobs:
           name: movena-msix
           path: store-artifacts/*.msix
           if-no-files-found: error
-      - name: Publish to Microsoft Store
-        if: inputs.publish_to_store && env.STORE_TENANT_ID != '' && env.STORE_CLIENT_ID != '' && env.STORE_CLIENT_SECRET != ''
+      - name: Validate Microsoft Store credentials
+        id: check-store-credentials
+        if: inputs.publish_to_store
+        shell: pwsh
         env:
           STORE_TENANT_ID: ${{ secrets.STORE_TENANT_ID }}
           STORE_CLIENT_ID: ${{ secrets.STORE_CLIENT_ID }}
           STORE_CLIENT_SECRET: ${{ secrets.STORE_CLIENT_SECRET }}
-        uses: microsoft/store-action@v1
-        with:
-          tenant-id: ${{ secrets.STORE_TENANT_ID }}
-          client-id: ${{ secrets.STORE_CLIENT_ID }}
-          client-secret: ${{ secrets.STORE_CLIENT_SECRET }}
-          product-id: ${{ secrets.STORE_PRODUCT_ID || '9P2T0QGGHQGQ' }}
-          package-path: store-artifacts/*.msix
-          skip-submitting: false
+        run: |
+          $configured = (-not [string]::IsNullOrWhiteSpace($env:STORE_TENANT_ID)) -and `
+                        (-not [string]::IsNullOrWhiteSpace($env:STORE_CLIENT_ID)) -and `
+                        (-not [string]::IsNullOrWhiteSpace($env:STORE_CLIENT_SECRET))
+          if ($configured) {
+            "has_credentials=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            "has_credentials=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+      - name: Setup Microsoft Store Developer CLI
+        if: inputs.publish_to_store && steps.check-store-credentials.outputs.has_credentials == 'true'
+        uses: microsoft/microsoft-store-apppublisher@v1
+      - name: Publish to Microsoft Store
+        if: inputs.publish_to_store && steps.check-store-credentials.outputs.has_credentials == 'true'
+        shell: pwsh
+        env:
+          STORE_TENANT_ID: ${{ secrets.STORE_TENANT_ID }}
+          STORE_CLIENT_ID: ${{ secrets.STORE_CLIENT_ID }}
+          STORE_CLIENT_SECRET: ${{ secrets.STORE_CLIENT_SECRET }}
+          STORE_SELLER_ID: ${{ secrets.STORE_SELLER_ID }}
+          STORE_PRODUCT_ID: ${{ secrets.STORE_PRODUCT_ID || '9P2T0QGGHQGQ' }}
+        run: |
+          $reconfigArgs = @('reconfigure', '--tenantId', $env:STORE_TENANT_ID, '--clientId', $env:STORE_CLIENT_ID, '--clientSecret', $env:STORE_CLIENT_SECRET)
+          if ($env:STORE_SELLER_ID) { $reconfigArgs += @('--sellerId', $env:STORE_SELLER_ID) }
+          & msstore @reconfigArgs
+          $msix = (Get-ChildItem -Path "store-artifacts" -Filter "*.msix" | Select-Object -First 1).FullName
+          & msstore publish $msix -id $env:STORE_PRODUCT_ID
+
+

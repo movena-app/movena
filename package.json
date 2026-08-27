@@ -33,6 +33,8 @@
     "desktop:e2e:all": "npm run desktop:e2e:build && npm run desktop:e2e",
     "readme:screenshots": "node scripts/generate-readme-screenshots.mjs && npm run readme:social-preview",
     "readme:social-preview": "node scripts/generate-social-preview.mjs",
+    "store:assets": "node scripts/generate-store-assets.mjs",
+    "store:screenshots": "node scripts/generate-store-screenshots.mjs",
     "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
     "test:all": "npm run test:coverage && npm run test:rust",
     "design:check": "node scripts/check-design-system.mjs",

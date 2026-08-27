@@ -13,9 +13,13 @@ const surfaces = [
   { id: 'hero', name: '01_Home_Dashboard.png' },
   { id: 'live-tv', name: '02_Live_TV_Player.png' },
   { id: 'live-epg', name: '03_Electronic_Program_Guide.png' },
-  { id: 'library-details', name: '04_Movie_Details.png' },
-  { id: 'm3u-editor', name: '05_M3U_Playlist_Editor.png' },
-  { id: 'settings', name: '06_Settings_Theme.png' },
+  { id: 'player-vod', name: '04_Native_libmpv_Player.png' },
+  { id: 'player-series', name: '05_Series_Player_Episodes.png' },
+  { id: 'library-details', name: '06_Movie_Details.png' },
+  { id: 'upcoming', name: '07_Upcoming_Release_Calendar.png' },
+  { id: 'm3u-editor', name: '08_M3U_Playlist_Workspace.png' },
+  { id: 'downloads', name: '09_Download_Manager.png' },
+  { id: 'light-theme', name: '10_Light_Appearance.png' },
 ];
 
 const harness = await startScreenshotHarness(projectRoot);
