@@ -74,19 +74,17 @@ export const PRODUCTION_UI_QA_SCENARIOS: readonly UiQaScenario[] = [
       productionSurface: surface,
     };
   }),
-  ...SETTINGS_SECTIONS.map(
-    (section): UiQaScenario => ({
-      id: `settings-${section.id}`,
-      fixtureSetup: 'populated-library',
-      route: `/?readme=settings&settingsSection=${section.id}`,
-      state: 'populated',
-      themes: BOTH_THEMES,
-      expectedLayers: ['window-chrome'],
-      stableScreenshot: STABLE_SETTINGS_SCREENSHOTS.has(section.id) ? 'baseline' : 'geometry-only',
-      productionSurface: 'settings',
-      settingsSection: section.id,
-    }),
-  ),
+  ...SETTINGS_SECTIONS.map((section): UiQaScenario => ({
+    id: `settings-${section.id}`,
+    fixtureSetup: 'populated-library',
+    route: `/?readme=settings&settingsSection=${section.id}`,
+    state: 'populated',
+    themes: BOTH_THEMES,
+    expectedLayers: ['window-chrome'],
+    stableScreenshot: STABLE_SETTINGS_SCREENSHOTS.has(section.id) ? 'baseline' : 'geometry-only',
+    productionSurface: 'settings',
+    settingsSection: section.id,
+  })),
 ];
 
 export const UI_QA_SCENARIOS: readonly UiQaScenario[] = [

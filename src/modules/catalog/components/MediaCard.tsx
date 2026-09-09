@@ -169,9 +169,9 @@ function MediaCardComponent({
   const cardContext = cardSubtitle || t('Continue watching');
   const showListSecondary = Boolean(
     countryCode ||
-      (isLive && parsedTitle?.categoryPrefix) ||
-      cardSubtitle ||
-      (!isLive && showTypeInList),
+    (isLive && parsedTitle?.categoryPrefix) ||
+    cardSubtitle ||
+    (!isLive && showTypeInList),
   );
 
   const isLiveTvGrid = isLiveTv && viewMode === 'grid';

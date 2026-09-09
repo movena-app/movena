@@ -6,13 +6,7 @@ import type { XtreamLiveStream } from '@/modules/sources/public/data/xtreamClien
 export type CatchupTime = number | string | Date;
 
 export type M3uCatchupMode =
-  | 'none'
-  | 'shift'
-  | 'default'
-  | 'append'
-  | 'flussonic'
-  | 'xc'
-  | 'source';
+  'none' | 'shift' | 'default' | 'append' | 'flussonic' | 'xc' | 'source';
 
 export interface CatchupProgramme {
   start?: CatchupTime | undefined;
@@ -475,9 +469,7 @@ export function buildXtreamCatchupUrl(
 
 export function resolveXtreamCatchupUrl(
   stream:
-    | Pick<XtreamLiveStream, 'stream_id' | 'tv_archive' | 'tv_archive_duration'>
-    | null
-    | undefined,
+    Pick<XtreamLiveStream, 'stream_id' | 'tv_archive' | 'tv_archive_duration'> | null | undefined,
   credentials: Pick<XtreamCredentials, 'url' | 'username' | 'password'> | null | undefined,
   programme: CatchupProgramme | null | undefined,
   options: XtreamCatchupOptions = {},

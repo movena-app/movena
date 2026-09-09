@@ -328,7 +328,7 @@ export function M3uRawCodeEditor({
     if (!query) return [];
     const lowerText = text.toLocaleLowerCase();
     const values: number[] = [];
-    for (let start = 0; start < lowerText.length; ) {
+    for (let start = 0; start < lowerText.length;) {
       const match = lowerText.indexOf(query, start);
       if (match < 0) break;
       values.push(match);

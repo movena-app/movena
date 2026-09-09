@@ -1,13 +1,5 @@
 export type AspectMode =
-  | 'auto'
-  | 'fit100'
-  | 'stretch'
-  | 'zoom'
-  | 'fitScreen'
-  | '16:9'
-  | '4:3'
-  | '1:1'
-  | '5:4';
+  'auto' | 'fit100' | 'stretch' | 'zoom' | 'fitScreen' | '16:9' | '4:3' | '1:1' | '5:4';
 
 /**
  * The four mpv properties that together decide how the picture meets the

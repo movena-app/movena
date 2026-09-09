@@ -48,7 +48,7 @@ interface LegacyPersistedAuth {
     | undefined;
 }
 
-export interface SaveXtreamSourceInput extends XtreamCredentials {
+interface SaveXtreamSourceInput extends XtreamCredentials {
   name?: string | undefined;
 }
 

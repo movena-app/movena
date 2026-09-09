@@ -47,8 +47,7 @@ export interface MediaItem {
   catchupSource?: string | undefined;
   catchupDays?: number | undefined;
   fallbacks?:
-    | Array<{ streamUrl: string; httpHeaders?: Record<string, string> | undefined }>
-    | undefined;
+    Array<{ streamUrl: string; httpHeaders?: Record<string, string> | undefined }> | undefined;
 }
 
 /** Ephemeral navigation context used when a series is opened from an episode. */
