@@ -20,6 +20,7 @@ import {
   getPrimaryMediaTags,
   getTagColorType,
   mergeMediaTags,
+  withVerifiedResolution,
 } from '@/shared/lib/mediaTags';
 import { isMacOS } from '@/platform/runtime';
 import { ChannelsDrawer } from './ChannelsDrawer';
@@ -83,11 +84,11 @@ export function PlayerShell() {
     badgeVisibility?.verified && verifiedMeta
       ? formatVerifiedResolution(verifiedMeta.width, verifiedMeta.height, verifiedMeta.fps)
       : null;
-  const badges = mergeMediaTags(
+  const providerBadges = mergeMediaTags(
     ...(parsedLiveTitle?.qualityBadges ?? parsedMediaTitle?.tags ?? []),
     ...(activeStream.tags ?? []),
-    verifiedBadge,
   );
+  const badges = withVerifiedResolution(providerBadges, verifiedBadge);
   const filteredBadges = filterMediaTagsByVisibility(badges, badgeVisibility);
   const visibleBadges = getPrimaryMediaTags(filteredBadges);
   const displayTitle = isLive

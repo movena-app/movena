@@ -335,7 +335,10 @@ export function SeriesPlaybackPrompts() {
         <button
           type="button"
           className={styles.skipRecapBtn}
-          onClick={skipRecap}
+          onClick={(e) => {
+            e.stopPropagation();
+            skipRecap();
+          }}
           onDoubleClick={(e) => e.stopPropagation()}
         >
           {t('Skip Recap')}
@@ -346,7 +349,10 @@ export function SeriesPlaybackPrompts() {
         <button
           type="button"
           className={styles.skipIntroBtn}
-          onClick={skipIntro}
+          onClick={(e) => {
+            e.stopPropagation();
+            skipIntro();
+          }}
           onDoubleClick={(e) => e.stopPropagation()}
         >
           {t('Skip Intro')}

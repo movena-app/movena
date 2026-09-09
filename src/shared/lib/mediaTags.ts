@@ -347,6 +347,25 @@ export function getPrimaryMediaTags(tags: readonly string[], limit = 2): string[
   return tags.slice(0, Math.max(0, limit));
 }
 
+/**
+ * A verified resolution — measured from the actually-decoded video — can
+ * disagree with what the provider's own title/EPG text claims (e.g. a
+ * channel or programme labelled "4K" that's really streaming 1080p). Once
+ * that ground truth is known, it replaces the provider's resolution guess
+ * instead of being shown alongside it; two conflicting resolution badges
+ * reads as a bug, not two facts.
+ */
+export function withVerifiedResolution(
+  providerTags: readonly string[],
+  verifiedBadge: string | null | undefined,
+): string[] {
+  if (!verifiedBadge) return [...providerTags];
+  return mergeMediaTags(
+    verifiedBadge,
+    ...providerTags.filter((tag) => getMediaTagCategory(tag) !== 'resolution'),
+  );
+}
+
 export function getTagColorType(tag: string): TagColorType {
   const normalized = normalizeMediaTag(tag) ?? tag.trim().toUpperCase();
   if (

@@ -48,6 +48,7 @@ vi.mock('@/modules/playback/components/ChannelsDrawer', () => ({
 
 import { PlayerShell } from '@/modules/playback/components/PlayerShell';
 import { usePlayerStore } from '@/modules/playback/store/usePlayerStore';
+import { useStreamVerificationStore } from '@/modules/sources/store/useStreamVerificationStore';
 
 describe('player error interaction boundary', () => {
   beforeEach(() => {
@@ -124,5 +125,35 @@ describe('player error interaction boundary', () => {
     const overlay = container.querySelector('[class*="loadingOverlay"]');
     expect(overlay).toBeTruthy();
     expect(overlay?.className).toContain('loadingOverlayBuffering');
+  });
+
+  it('shows only the verified resolution badge when it disagrees with the channel-declared one', () => {
+    session.useMpvSession.mockReturnValue({
+      errorMessage: null,
+      retryPlayback: session.retryPlayback,
+      isRetrying: false,
+    });
+    act(() =>
+      usePlayerStore.getState().playStream({
+        id: 'channel-1',
+        title: 'Sports 4K',
+        type: 'live',
+        streamUrl: 'https://media.test/live',
+      }),
+    );
+    act(() =>
+      useStreamVerificationStore.getState().recordVerification('channel-1', {
+        width: 1920,
+        height: 1080,
+        fps: 30,
+      }),
+    );
+
+    render(<PlayerShell />);
+
+    // The channel's own name claims 4K, but the actually-decoded video is
+    // 1080p — only the verified badge should show, not both.
+    expect(screen.getByText('FHD')).toBeTruthy();
+    expect(screen.queryByText('4K')).toBeNull();
   });
 });

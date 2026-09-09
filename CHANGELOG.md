@@ -8,6 +8,14 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-09-09
+
+### Fixed
+
+- fixed Badges on LiveTV Section
+- fixed Skip Intro pausing the VOD
+- minor bug fixes
+
 ## [0.1.13] - 2026-08-29
 
 This maintenance release reorganizes Movena around explicit product-domain

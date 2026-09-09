@@ -1,6 +1,6 @@
 [package]
 name = "movena"
-version = "0.1.13"
+version = "0.1.14"
 description = "Movena — Cross-platform IPTV streaming app"
 authors = []
 license = "GPL-3.0-or-later"

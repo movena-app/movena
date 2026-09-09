@@ -149,4 +149,30 @@ describe('SeriesPlaybackPrompts', () => {
     expect(screen.queryByRole('button', { name: /Skip Intro/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /Skip Recap/i })).toBeNull();
   });
+
+  it('does not let a Skip Intro/Recap click bubble to the player overlay (which would toggle play/pause)', async () => {
+    const user = userEvent.setup();
+    const overlayClick = vi.fn();
+    usePlayerStore.setState({ currentTime: 15 });
+
+    const { rerender } = render(
+      <div onClick={overlayClick}>
+        <SeriesPlaybackPrompts />
+      </div>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Skip Recap/i }));
+    expect(tauriApi.mpvSeek).toHaveBeenCalledWith(30);
+    expect(overlayClick).not.toHaveBeenCalled();
+
+    usePlayerStore.setState({ currentTime: 100 });
+    rerender(
+      <div onClick={overlayClick}>
+        <SeriesPlaybackPrompts />
+      </div>,
+    );
+    await user.click(screen.getByRole('button', { name: /Skip Intro/i }));
+    expect(tauriApi.mpvSeek).toHaveBeenCalledWith(150);
+    expect(overlayClick).not.toHaveBeenCalled();
+  });
 });

@@ -9,9 +9,13 @@ import { decodeEpgText } from '@/modules/guide/public/data/useEpg';
 import { getUserFacingErrorMessage } from '@/shared/lib/error';
 import { createRecordingOutput } from '../lib/recording';
 import { getDisplayTitle, parseLiveChannelTitle } from '@/modules/catalog/public/lib/titleParser';
-import { getTagColorType } from '@/shared/lib/mediaTags';
+import { getTagColorType, withVerifiedResolution } from '@/shared/lib/mediaTags';
 import { getXtreamQueryScope, queryKeys } from '@/modules/sources/public/model/queryKeys';
 import { lookupXmltvChannel, useXmltvGuide } from '@/modules/guide/public/data/xmltvClient';
+import {
+  formatVerifiedResolution,
+  useStreamVerificationStore,
+} from '@/modules/sources/public/store/useStreamVerificationStore';
 import {
   RiPauseFill,
   RiPlayFill,
@@ -56,6 +60,10 @@ export function LiveControls() {
   const instantRecord = useSettingsStore((s) => s.instantRecord);
   const recordingPath = useSettingsStore((s) => s.recordingPath);
   const customRules = useSettingsStore((s) => s.customTitleRules);
+  const badgeVisibility = useSettingsStore((s) => s.badgeVisibility);
+  const verifiedMeta = useStreamVerificationStore((s) =>
+    activeStream ? s.verifiedStreams[String(activeStream.id)] : undefined,
+  );
 
   const { data: epgData } = useQuery({
     queryKey: queryKeys.shortEpg(activeStream?.sourceItemId || activeStream?.id, authScope),
@@ -135,7 +143,14 @@ export function LiveControls() {
     currentXmltvProgramme?.title || decodeEpgText(epgData?.epg_listings?.[0]?.title);
   const parsedEpg = rawEpgTitle ? parseLiveChannelTitle(rawEpgTitle, customRules) : null;
   const epgTitle = parsedEpg?.cleanTitle || rawEpgTitle;
-  const epgBadges = parsedEpg?.qualityBadges ?? [];
+  const verifiedBadge =
+    badgeVisibility?.verified && verifiedMeta
+      ? formatVerifiedResolution(verifiedMeta.width, verifiedMeta.height, verifiedMeta.fps)
+      : null;
+  // Same fix as the player title bar: the EPG entry's own quality tag can
+  // claim a resolution the channel isn't actually delivering, so the
+  // verified (actually-decoded) resolution replaces it instead of joining it.
+  const epgBadges = withVerifiedResolution(parsedEpg?.qualityBadges ?? [], verifiedBadge);
 
   return (
     <div className={styles.bottomBarWrapper}>
