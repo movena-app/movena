@@ -31,8 +31,7 @@ interface SourcesSettingsSectionProps {
 }
 
 type RemoveTarget =
-  | { kind: 'xtream'; profile: XtreamSourceProfile }
-  | { kind: 'm3u'; profile: M3uSourceProfile };
+  { kind: 'xtream'; profile: XtreamSourceProfile } | { kind: 'm3u'; profile: M3uSourceProfile };
 
 export function SourcesSettingsSection({
   onAddSource,

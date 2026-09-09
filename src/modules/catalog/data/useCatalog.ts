@@ -43,8 +43,7 @@ export interface CatalogItem extends MediaItem {
   catchupSource?: string | undefined;
   catchupDays?: number | undefined;
   fallbacks?:
-    | Array<{ streamUrl: string; httpHeaders?: Record<string, string> | undefined }>
-    | undefined;
+    Array<{ streamUrl: string; httpHeaders?: Record<string, string> | undefined }> | undefined;
 }
 
 const foldedLiveCatalogs = new WeakMap<CatalogItem[], CatalogItem[]>();

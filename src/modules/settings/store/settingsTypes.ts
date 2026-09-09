@@ -38,13 +38,7 @@ export interface CategoryPrefs {
 export type SelectedCategoryIds = Record<CatalogType, string | null>;
 
 export type CatalogSortMode =
-  | 'default'
-  | 'recently-added'
-  | 'year-desc'
-  | 'year-asc'
-  | 'rating'
-  | 'name-asc'
-  | 'name-desc';
+  'default' | 'recently-added' | 'year-desc' | 'year-asc' | 'rating' | 'name-asc' | 'name-desc';
 
 export type CatalogSortModes = Record<CatalogType, CatalogSortMode>;
 

@@ -3,12 +3,7 @@ import type { M3uHealthStatuses } from './M3uStreamHealthChecker';
 
 export type M3uTableSort = 'default' | 'name-asc' | 'name-desc' | 'chno' | 'type';
 export type M3uTableHealthFilter =
-  | 'all'
-  | 'online'
-  | 'offline'
-  | 'unauthorized'
-  | 'timeout'
-  | 'untested';
+  'all' | 'online' | 'offline' | 'unauthorized' | 'timeout' | 'untested';
 
 export interface M3uTableFilters {
   searchQuery: string;

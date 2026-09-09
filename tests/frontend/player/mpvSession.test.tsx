@@ -35,8 +35,8 @@ import { usePlayerStore } from '@/modules/playback/store/usePlayerStore';
 import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
 
 let eventHandler:
-  | ((event: { type: string; name?: string; data?: unknown; sessionId?: string }) => void)
-  | null = null;
+  ((event: { type: string; name?: string; data?: unknown; sessionId?: string }) => void) | null =
+  null;
 const unlisten = vi.fn();
 
 const stream = {

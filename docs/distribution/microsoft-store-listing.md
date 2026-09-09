@@ -72,6 +72,7 @@ BUILT-IN M3U PLAYLIST WORKSPACE
 =======================================================
 DISCLAIMER & USAGE POLICY
 =======================================================
+
 Movena is strictly a media player application. Movena does not provide, host, bundle, or sell any media, streams, subscriptions, or channel playlists. Users must supply their own authorized content. Movena respects intellectual property and does not bypass DRM or unauthorized access controls.
 ```
 

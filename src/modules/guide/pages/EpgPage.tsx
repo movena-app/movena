@@ -294,9 +294,9 @@ export function EpgPage() {
       if (channel.sourceId?.startsWith('m3u-')) {
         const entry = useSourceStore
           .getState()
-          .runtimes[
-            channel.sourceId
-          ]?.playlist?.entries.find((candidate) => candidate.id === channel.sourceItemId || candidate.id === channel.id);
+          .runtimes[channel.sourceId]?.playlist?.entries.find(
+            (candidate) => candidate.id === channel.sourceItemId || candidate.id === channel.id,
+          );
         archiveUrl = resolveM3uCatchupUrl(entry, programme, Date.now(), { requireEnded: true });
       } else if (channel.sourceItemId && channel.catchup === 'xtream') {
         const xtreamCredentials = channel.sourceId

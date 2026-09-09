@@ -42,12 +42,7 @@ interface PlaybackSessionStartedObservation {
 }
 
 type MpvPlaybackProperty =
-  | 'vo-configured'
-  | 'pause'
-  | 'paused-for-cache'
-  | 'seeking'
-  | 'time-pos'
-  | 'eof-reached';
+  'vo-configured' | 'pause' | 'paused-for-cache' | 'seeking' | 'time-pos' | 'eof-reached';
 
 interface MpvPropertyObservation {
   type: 'mpv-property';

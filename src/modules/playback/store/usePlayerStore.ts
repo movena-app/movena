@@ -446,12 +446,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       'eof-reached',
     ].includes(name)
       ? (name as
-          | 'vo-configured'
-          | 'pause'
-          | 'paused-for-cache'
-          | 'seeking'
-          | 'time-pos'
-          | 'eof-reached')
+          'vo-configured' | 'pause' | 'paused-for-cache' | 'seeking' | 'time-pos' | 'eof-reached')
       : null;
     if (playbackName) {
       set((state) => {
