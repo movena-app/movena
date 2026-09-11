@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -134,3 +135,22 @@ export const useStreamVerificationStore = create<StreamVerificationState>()(
     },
   ),
 );
+
+/**
+ * Formatted verified resolution per stream id, for anything that needs to
+ * check many items at once (smart-category counts/filters) rather than one
+ * card's own badge. `enabled` mirrors `badgeVisibility.verified` — when the
+ * user has turned verified resolutions off, callers get an empty map back
+ * and fall back to whatever the provider claims, same as a single card does.
+ */
+export function useVerifiedResolutionMap(enabled: boolean): ReadonlyMap<string, string> {
+  const verifiedStreams = useStreamVerificationStore((s) => s.verifiedStreams);
+  return useMemo(() => {
+    if (!enabled) return new Map<string, string>();
+    const map = new Map<string, string>();
+    for (const [id, meta] of Object.entries(verifiedStreams)) {
+      map.set(id, formatVerifiedResolution(meta.width, meta.height, meta.fps));
+    }
+    return map;
+  }, [enabled, verifiedStreams]);
+}

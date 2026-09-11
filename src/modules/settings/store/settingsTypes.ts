@@ -129,6 +129,7 @@ export interface SettingsState {
   themePreference: ThemePreference;
   motionPreference: MotionPreference;
   onboardingDismissed: boolean;
+  fourKDisclaimerDismissed: boolean;
   sidebarCollapsed: boolean;
   showCollapsedSidebarBadges: boolean;
   lastCollectionId: string | null;

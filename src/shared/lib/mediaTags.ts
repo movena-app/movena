@@ -366,6 +366,30 @@ export function withVerifiedResolution(
   );
 }
 
+/**
+ * Whether an item belongs in a "4K/Ultra HD" grouping (a smart category tab,
+ * a count next to one). Same precedence as withVerifiedResolution: a known
+ * verified resolution is ground truth and decides it on its own — a channel
+ * whose name says "4K" but actually streams 1080p does not belong in a 4K
+ * filter just because the provider says so. Only falls back to the
+ * title/quality/tags claim when nothing has been verified yet.
+ */
+export function isUltraHdQuality(
+  item: {
+    title: string;
+    quality?: string | null | undefined;
+    tags?: readonly string[] | undefined;
+  },
+  verifiedBadge?: string | null | undefined,
+): boolean {
+  if (verifiedBadge) {
+    const normalized = normalizeMediaTag(verifiedBadge) ?? verifiedBadge;
+    return normalized === '4K' || normalized === '8K';
+  }
+  const declared = mergeMediaTags(item.title, item.quality, ...(item.tags ?? []));
+  return declared.includes('4K') || declared.includes('8K');
+}
+
 export function getTagColorType(tag: string): TagColorType {
   const normalized = normalizeMediaTag(tag) ?? tag.trim().toUpperCase();
   if (

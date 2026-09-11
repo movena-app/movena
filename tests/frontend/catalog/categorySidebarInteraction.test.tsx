@@ -194,3 +194,59 @@ describe('category sidebar M3U country groups', () => {
     expect(screen.getByRole('button', { name: 'Andorra, 1 channel' })).toBeTruthy();
   });
 });
+
+describe('category sidebar 4K disclaimer', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useSettingsStore.getState().resetSettings();
+    vi.mocked(useCategories).mockReturnValue(
+      categoryResult as unknown as ReturnType<typeof useCategories>,
+    );
+    vi.mocked(useHiddenCategoryIds).mockReturnValue(new Set());
+    vi.mocked(useCatalogByType).mockReturnValue({
+      data: [
+        {
+          id: 'ch-1',
+          title: 'Sports 4K',
+          type: 'live',
+          posterUrl: '',
+          categoryId: 'm3u-category-ar',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+      error: null,
+      isFetching: false,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useCatalogByType>);
+  });
+
+  it('shows the accuracy notice the first time the 4K Ultra HD hub is opened', async () => {
+    const onSelectCategory = vi.fn();
+    render(
+      <CategorySidebar type="live" activeCategoryId={null} onSelectCategory={onSelectCategory} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /4K Ultra HD/ }));
+
+    expect(onSelectCategory).toHaveBeenCalledWith('smart:4k');
+    expect(screen.getByText('About the 4K Ultra HD list')).toBeTruthy();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Got it' }));
+    expect(screen.queryByText('About the 4K Ultra HD list')).toBeNull();
+    expect(useSettingsStore.getState().fourKDisclaimerDismissed).toBe(true);
+  });
+
+  it('does not show the notice again once dismissed', async () => {
+    useSettingsStore.getState().updateSetting('fourKDisclaimerDismissed', true);
+    const onSelectCategory = vi.fn();
+    render(
+      <CategorySidebar type="live" activeCategoryId={null} onSelectCategory={onSelectCategory} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /4K Ultra HD/ }));
+
+    expect(onSelectCategory).toHaveBeenCalledWith('smart:4k');
+    expect(screen.queryByText('About the 4K Ultra HD list')).toBeNull();
+  });
+});

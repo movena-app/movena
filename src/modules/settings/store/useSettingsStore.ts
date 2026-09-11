@@ -234,6 +234,7 @@ const DEFAULT_SETTINGS = {
   themePreference: 'dark' as ThemePreference,
   motionPreference: 'system' as const,
   onboardingDismissed: false,
+  fourKDisclaimerDismissed: false,
   sidebarCollapsed: false,
   showCollapsedSidebarBadges: true,
   lastCollectionId: null,

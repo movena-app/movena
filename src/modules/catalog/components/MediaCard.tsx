@@ -10,6 +10,7 @@ import {
   getPrimaryMediaTags,
   getTagColorType,
   mergeMediaTags,
+  withVerifiedResolution,
 } from '@/shared/lib/mediaTags';
 import { countryName, normalizeCountryCode } from '@/shared/lib/categoryName';
 import { MediaCardMenu } from './MediaCardMenu';
@@ -150,12 +151,12 @@ function MediaCardComponent({
     badgeVisibility?.verified && verifiedMeta
       ? formatVerifiedResolution(verifiedMeta.width, verifiedMeta.height, verifiedMeta.fps)
       : null;
-  const qualityBadges = mergeMediaTags(
+  const providerQualityBadges = mergeMediaTags(
     ...(parsedTitle?.qualityBadges ?? parsedMediaTitle?.tags ?? []),
     ...(item.tags ?? []),
     item.quality,
-    verifiedResolutionBadge,
   );
+  const qualityBadges = withVerifiedResolution(providerQualityBadges, verifiedResolutionBadge);
   const filteredBadges = filterMediaTagsByVisibility(qualityBadges, badgeVisibility);
   const visibleQualityBadges = getPrimaryMediaTags(filteredBadges);
   const titleCountry = item.country ?? parsedTitle?.country ?? parsedMediaTitle?.country ?? null;

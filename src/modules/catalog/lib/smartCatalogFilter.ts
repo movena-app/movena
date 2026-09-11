@@ -1,6 +1,7 @@
 import type { MediaItem } from '../model/media';
 import type { CatalogSortMode } from '@/modules/settings/public/store/useSettingsStore';
 import { parseCategoryName } from '@/shared/lib/categoryName';
+import { isUltraHdQuality } from '@/shared/lib/mediaTags';
 
 export interface SmartCatalogItem extends MediaItem {
   categoryId?: string | undefined;
@@ -222,6 +223,7 @@ export function filterItemsBySmartCategory<T extends SmartCatalogItem>(
   hiddenCategoryIds: Set<string>,
   favorites: { id: string }[] = [],
   categories: CategoryLike[] = [],
+  verifiedResolutions?: ReadonlyMap<string, string>,
 ): T[] {
   if (!activeCategoryId) {
     return items.filter((s) => !s.categoryId || !hiddenCategoryIds.has(s.categoryId));
@@ -277,9 +279,7 @@ export function filterItemsBySmartCategory<T extends SmartCatalogItem>(
     return items.filter(
       (s) =>
         (!s.categoryId || !hiddenCategoryIds.has(s.categoryId)) &&
-        (/\b(4k|uhd|2160p|8k)\b/i.test(s.title) ||
-          (s.quality && /\b(4k|uhd|2160p|8k)\b/i.test(s.quality)) ||
-          (s.tags && s.tags.some((t: string) => /^(4K|8K|UHD)$/i.test(t)))),
+        isUltraHdQuality(s, verifiedResolutions?.get(s.id)),
     );
   }
 

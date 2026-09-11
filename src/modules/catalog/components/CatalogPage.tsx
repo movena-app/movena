@@ -15,6 +15,7 @@ import { CatalogPageHeader } from './CatalogPageHeader';
 import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
 import { useLibraryStore } from '@/modules/library/public/store/useLibraryStore';
 import { useEnabledSources } from '@/modules/sources/public/hooks/useEnabledSources';
+import { useVerifiedResolutionMap } from '@/modules/sources/public/store/useStreamVerificationStore';
 import { useCatalogCategorySelection } from '../hooks/useCatalogCategorySelection';
 import { useCatalogByType } from '../data/useCatalog';
 import { useCategories, useHiddenCategoryIds } from '../data/useCategories';
@@ -55,6 +56,8 @@ export function CatalogPage({
   const viewMode = useSettingsStore((state) => state.viewMode);
   const catalogSortModes = useSettingsStore((state) => state.catalogSortModes);
   const setCatalogSort = useSettingsStore((state) => state.setCatalogSort);
+  const badgeVisibility = useSettingsStore((state) => state.badgeVisibility);
+  const verifiedResolutions = useVerifiedResolutionMap(badgeVisibility?.verified ?? true);
   const currentSortMode = catalogSortModes?.[type] ?? 'default';
   const navigate = useNavigate();
   const [activeCategoryId, setActiveCategoryId] = useCatalogCategorySelection(type);
@@ -100,8 +103,9 @@ export function CatalogPage({
       hiddenCategoryIds,
       favorites,
       categories,
+      verifiedResolutions,
     );
-  }, [allItems, activeCategoryId, hiddenCategoryIds, favorites, categories]);
+  }, [allItems, activeCategoryId, hiddenCategoryIds, favorites, categories, verifiedResolutions]);
 
   const items = useMemo(() => {
     const genreFiltered = filterItemsByGenre(categoryItems, selectedGenre, categoryNameMap);

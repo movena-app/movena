@@ -51,6 +51,25 @@ describe('smart catalogue filtering', () => {
     ).toEqual(['3']);
   });
 
+  it('lets a verified resolution override the smart:4k match instead of trusting the title', () => {
+    // "Sky Sport UHD" claims 4K in its own name, but the actually-decoded
+    // stream measured out as FHD — the verified truth wins, so it drops out.
+    expect(
+      filterItemsBySmartCategory(items, 'smart:4k', new Set(), [], [], new Map([['1', 'FHD']])).map(
+        (item) => item.id,
+      ),
+    ).toEqual([]);
+
+    // The reverse also holds: a channel with no 4K wording in its name still
+    // belongs in the smart:4k group once verified as actually being 4K —
+    // alongside "Sky Sport UHD", which still matches on its own title here.
+    expect(
+      filterItemsBySmartCategory(items, 'smart:4k', new Set(), [], [], new Map([['2', '4K']])).map(
+        (item) => item.id,
+      ),
+    ).toEqual(['1', '2']);
+  });
+
   it('falls back to exact provider category matching', () => {
     expect(filterItemsBySmartCategory(items, '20', new Set()).map((item) => item.id)).toEqual([
       '2',

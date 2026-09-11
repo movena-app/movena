@@ -6,6 +6,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { MediaCard } from '@/modules/catalog/components/MediaCard';
 import type { MediaItem } from '@/modules/catalog/model/media';
 import { useDownloadStore } from '@/modules/downloads/store/useDownloadStore';
+import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
+import { useStreamVerificationStore } from '@/modules/sources/store/useStreamVerificationStore';
 
 const movieItem: MediaItem = { id: 'movie-1', title: 'Inception', posterUrl: '', type: 'vod' };
 
@@ -19,6 +21,8 @@ function renderCard(item: MediaItem, viewMode?: 'grid' | 'list') {
 
 beforeEach(() => {
   useDownloadStore.setState({ jobs: [], downloadedByLibraryId: {} });
+  useSettingsStore.getState().resetSettings();
+  useStreamVerificationStore.getState().clearVerifications();
 });
 
 describe('MediaCard downloaded indicator', () => {
@@ -70,5 +74,30 @@ describe('MediaCard downloaded indicator', () => {
     });
     renderCard(movieItem, 'list');
     expect(screen.getByTitle('Downloaded')).toBeTruthy();
+  });
+});
+
+describe('MediaCard quality badge', () => {
+  const channelItem: MediaItem = {
+    id: 'channel-1',
+    title: 'Sports 4K',
+    posterUrl: '',
+    type: 'live',
+  };
+
+  it('shows the provider-declared quality when nothing has been verified yet', () => {
+    renderCard(channelItem);
+    expect(screen.getAllByText('4K').length).toBeGreaterThan(0);
+  });
+
+  it('shows only the verified resolution once it disagrees with the channel name, not both', () => {
+    useStreamVerificationStore.getState().recordVerification('channel-1', {
+      width: 1920,
+      height: 1080,
+      fps: 30,
+    });
+    renderCard(channelItem);
+    expect(screen.getAllByText('FHD').length).toBeGreaterThan(0);
+    expect(screen.queryAllByText('4K')).toHaveLength(0);
   });
 });

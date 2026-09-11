@@ -24,6 +24,7 @@ import { ErrorState } from '@/shared/ui/ErrorState';
 import { getCombinedErrorMessage, getErrorPresentation } from '@/shared/lib/error';
 import { playableFromMediaItem } from '@/modules/playback/public/lib/playback';
 import { useEnabledSources } from '@/modules/sources/public/hooks/useEnabledSources';
+import { useVerifiedResolutionMap } from '@/modules/sources/public/store/useStreamVerificationStore';
 import { CatalogPageHeader } from '@/modules/catalog/public/components/CatalogPageHeader';
 import { filterItemsBySmartCategory } from '@/modules/catalog/public/lib/smartCatalogFilter';
 import {
@@ -82,6 +83,8 @@ export function EpgPage() {
   const zoomPercent = useSettingsStore((state) => state.epgZoomPercent ?? DEFAULT_ZOOM_PERCENT);
   const updateSetting = useSettingsStore((state) => state.updateSetting);
   const customTitleRules = useSettingsStore((state) => state.customTitleRules);
+  const badgeVisibility = useSettingsStore((state) => state.badgeVisibility);
+  const verifiedResolutions = useVerifiedResolutionMap(badgeVisibility?.verified ?? true);
   const [selected, setSelected] = useState<{
     channel: CatalogItem;
     programme: EpgProgramme;
@@ -124,13 +127,21 @@ export function EpgPage() {
       hiddenCategoryIds,
       [],
       categories,
+      verifiedResolutions,
     );
     if (channelSearchQuery.trim()) {
       const q = channelSearchQuery.toLowerCase();
       list = list.filter((c) => c.title.toLowerCase().includes(q));
     }
     return list;
-  }, [allChannels, activeCategoryId, hiddenCategoryIds, categories, channelSearchQuery]);
+  }, [
+    allChannels,
+    activeCategoryId,
+    hiddenCategoryIds,
+    categories,
+    channelSearchQuery,
+    verifiedResolutions,
+  ]);
 
   useEffect(() => {
     if (selected && !channels.some((channel) => channel.id === selected.channel.id)) {

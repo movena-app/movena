@@ -1,8 +1,12 @@
+// @vitest-environment happy-dom
+
+import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   formatVerifiedResolution,
   normalizeVerifiedStreams,
   useStreamVerificationStore,
+  useVerifiedResolutionMap,
 } from '@/modules/sources/store/useStreamVerificationStore';
 
 describe('stream verification store', () => {
@@ -58,5 +62,36 @@ describe('stream verification store', () => {
     expect(normalized.stale).toBeUndefined();
     expect(normalized['stream-0']).toBeDefined();
     expect(normalized['stream-519']).toBeUndefined();
+  });
+});
+
+describe('useVerifiedResolutionMap', () => {
+  beforeEach(() => {
+    useStreamVerificationStore.getState().clearVerifications();
+  });
+
+  it('maps each verified stream id to its formatted resolution', () => {
+    useStreamVerificationStore.getState().recordVerification('channel-1', {
+      width: 1920,
+      height: 1080,
+    });
+    useStreamVerificationStore.getState().recordVerification('channel-2', {
+      width: 3840,
+      height: 2160,
+    });
+
+    const { result } = renderHook(() => useVerifiedResolutionMap(true));
+    expect(result.current.get('channel-1')).toBe('1080p');
+    expect(result.current.get('channel-2')).toBe('4K');
+  });
+
+  it('returns an empty map when disabled, even with verified data present', () => {
+    useStreamVerificationStore.getState().recordVerification('channel-1', {
+      width: 1920,
+      height: 1080,
+    });
+
+    const { result } = renderHook(() => useVerifiedResolutionMap(false));
+    expect(result.current.size).toBe(0);
   });
 });

@@ -1,0 +1,26 @@
+.dialog {
+  width: min(420px, 100%);
+  padding: var(--space-6);
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-semibold);
+}
+
+.description {
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-5);
+}
+
+.confirmButton {
+  min-width: 88px;
+}

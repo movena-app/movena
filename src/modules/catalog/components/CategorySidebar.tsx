@@ -40,7 +40,14 @@ import {
   parseCategoryName,
 } from '@/shared/lib/categoryName';
 import { countHiddenCategories, isCategoryHidden } from '../lib/categorySidebar';
-import { getPrimaryMediaTags, getTagColorType, mergeMediaTags } from '@/shared/lib/mediaTags';
+import {
+  getPrimaryMediaTags,
+  getTagColorType,
+  isUltraHdQuality,
+  mergeMediaTags,
+} from '@/shared/lib/mediaTags';
+import { useVerifiedResolutionMap } from '@/modules/sources/public/store/useStreamVerificationStore';
+import { FourKQualityNotice } from './FourKQualityNotice';
 import { CountryFlag } from '@/shared/ui/CountryFlag';
 import { WorkspaceSidebar, WorkspaceSidebarSearch } from '@/shared/ui/WorkspaceSidebar';
 import { StateIcon, type StateIconPair } from '@/shared/ui/StateIcon';
@@ -114,9 +121,25 @@ export function CategorySidebar({
   const openContextMenu = useContextMenuStore((s) => s.openContextMenu);
   const [showHidden, setShowHidden] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFourKNotice, setShowFourKNotice] = useState(false);
 
   const storedWidth = useSettingsStore((s) => s.sidebarWidth) ?? 260;
   const updateSetting = useSettingsStore((s) => s.updateSetting);
+  const badgeVisibility = useSettingsStore((s) => s.badgeVisibility);
+  const verifiedResolutions = useVerifiedResolutionMap(badgeVisibility?.verified ?? true);
+  const fourKDisclaimerDismissed = useSettingsStore((s) => s.fourKDisclaimerDismissed);
+
+  const selectSmartHub = (hubId: string, isActive: boolean) => {
+    if (!isActive && hubId === 'smart:4k' && !fourKDisclaimerDismissed) {
+      setShowFourKNotice(true);
+    }
+    onSelectCategory(isActive ? null : hubId);
+  };
+
+  const dismissFourKNotice = () => {
+    setShowFourKNotice(false);
+    updateSetting('fourKDisclaimerDismissed', true);
+  };
 
   const pinned = useMemo(() => categoryPrefs?.pinned?.[type] ?? [], [categoryPrefs, type]);
   const hidden = useMemo(() => categoryPrefs?.hidden?.[type] ?? [], [categoryPrefs, type]);
@@ -169,11 +192,7 @@ export function CategorySidebar({
       if (favSet.has(item.id)) favCount += 1;
       if (item.added) recentCount += 1;
       if (typeof item.rating === 'number' && item.rating >= 7.0) topRatedCount += 1;
-      if (
-        /\b(4k|uhd|2160p|8k)\b/i.test(item.title) ||
-        (item.quality && /\b(4k|uhd|2160p|8k)\b/i.test(item.quality)) ||
-        item.tags?.some((tag: string) => /^(4K|8K|UHD)$/i.test(tag))
-      ) {
+      if (isUltraHdQuality(item, verifiedResolutions.get(item.id))) {
         fourKCount += 1;
       }
     }
@@ -185,7 +204,7 @@ export function CategorySidebar({
       topRated: topRatedCount,
       fourK: fourKCount,
     };
-  }, [items, favorites, hiddenCategoryIds]);
+  }, [items, favorites, hiddenCategoryIds, verifiedResolutions]);
   const visibleTotal = catalogStats.visibleTotal;
   const smartHubCounts = catalogStats;
 
@@ -547,259 +566,268 @@ export function CategorySidebar({
   };
 
   return (
-    <WorkspaceSidebar
-      width={storedWidth}
-      onWidthChange={(width) => updateSetting('sidebarWidth', width)}
-      ariaLabel="Categories"
-      headerContent={
-        <>
-          <WorkspaceSidebarSearch
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search categories..."
-            ariaLabel="Filter categories"
-          />
-          {hasSearch && (
-            <div className={styles.searchStatus} role="status" aria-live="polite">
-              <span>
-                {tn('{count} category', '{count} categories', displayedCategoryCount, {
-                  count: number(displayedCategoryCount),
-                })}
-              </span>
-              {hiddenSearchMatchCount > 0 && (
-                <button
-                  type="button"
-                  className={styles.searchHiddenToggle}
-                  onClick={() => setShowHidden((value) => !value)}
-                >
-                  {showHidden
-                    ? t('Hide hidden')
-                    : t('Show {count} hidden', { count: number(hiddenSearchMatchCount) })}
-                </button>
-              )}
-            </div>
-          )}
-        </>
-      }
-    >
-      {isLoading ? (
-        <CategorySkeleton />
-      ) : isError && categories.length === 0 ? (
-        <div className={styles.categoryUnavailable} role="status" aria-live="polite">
-          <span>
-            <strong>{t('Categories unavailable')}</strong>
-            <small>
-              {getErrorMessage(error, 'Category query failed without an error message.')}
-            </small>
-          </span>
-          <button
-            type="button"
-            onClick={() => void refetch()}
-            disabled={isFetching}
-            aria-label={t('Retry loading categories')}
-          >
-            <RefreshCw
-              size={14}
-              className={isFetching ? styles.categoryRetrying : undefined}
-              aria-hidden="true"
+    <>
+      {showFourKNotice && <FourKQualityNotice onClose={dismissFourKNotice} />}
+      <WorkspaceSidebar
+        width={storedWidth}
+        onWidthChange={(width) => updateSetting('sidebarWidth', width)}
+        ariaLabel="Categories"
+        headerContent={
+          <>
+            <WorkspaceSidebarSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search categories..."
+              ariaLabel="Filter categories"
             />
-            <span>{t(isFetching ? 'Retrying' : 'Retry')}</span>
-          </button>
-        </div>
-      ) : (
-        <>
-          {!hasSearch && (
-            <div
-              className={`${styles.row} ${styles.allCategoriesRow} ${activeCategoryId === null ? styles.active : ''}`}
-            >
-              <button
-                type="button"
-                className={styles.rowMain}
-                onClick={() => onSelectCategory(null)}
-                aria-pressed={activeCategoryId === null}
-                aria-label={t('All categories, {count} available', { count: number(visibleTotal) })}
-              >
-                <StateIcon
-                  icons={{ line: RiLayoutGridLine, fill: RiLayoutGridFill }}
-                  active={activeCategoryId === null}
-                  size={14}
-                  className={styles.allCategoriesIcon}
-                />
-                <span className={styles.categoryLabel}>{t('All Categories')}</span>
-                {visibleTotal > 0 && <span className={styles.count}>{number(visibleTotal)}</span>}
-              </button>
-              {collapsibleGroups.length > 0 && (
-                <button
-                  type="button"
-                  className={styles.rowMenuButton}
-                  onClick={handleToggleCollapseAll}
-                  aria-label={t(allCollapsed ? 'Expand all categories' : 'Collapse all categories')}
-                >
-                  {allCollapsed ? <ChevronsUpDown size={13} /> : <ChevronsDownUp size={13} />}
-                </button>
-              )}
-            </div>
-          )}
-
-          {!hasSearch && smartHubs.length > 0 && (
-            <div className={styles.smartHubsSection}>
-              {smartHubs.map((hub) => {
-                const isActive = activeCategoryId === hub.id;
-                return (
-                  <div
-                    key={hub.id}
-                    className={`${styles.row} ${styles.smartHubRow} ${isActive ? styles.active : ''}`}
-                  >
-                    <button
-                      type="button"
-                      className={styles.rowMain}
-                      onClick={() => onSelectCategory(isActive ? null : hub.id)}
-                      aria-pressed={isActive}
-                      aria-label={`${hub.label}, ${itemCountLabel(hub.count)}`}
-                    >
-                      <StateIcon
-                        icons={hub.icons}
-                        active={isActive}
-                        size={14}
-                        className={styles.smartHubIcon}
-                      />
-                      <span className={styles.categoryLabel}>{hub.label}</span>
-                      {hub.count > 0 && <span className={styles.count}>{number(hub.count)}</span>}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Pinned section at the top */}
-          {pinnedRows.length > 0 && (
-            <div className={styles.section}>
-              <div className={styles.sectionLabel}>
-                <span>{t('Pinned')}</span>
-              </div>
-              {pinnedRows.map((row) => renderRow(row, { showCountry: true }))}
-            </div>
-          )}
-
-          {/* Country groups */}
-          {groups.map((group) => {
-            const key = group.key;
-            const childRows = countryChildRows(group);
-            const isDirectCountry = isDirectCountryGroup(group);
-            const isCollapsed = hasSearch ? false : collapsed.includes(key);
-            const isHiddenCountry = hiddenCountrySet.has(key);
-            const countryId = `country:${key}`;
-            const isActive = activeCategoryId === countryId;
-            const isPinnedCountry = pinnedCountries.includes(key);
-            const menuItems = countryActions(key, group.country);
-            return (
-              <div key={key} className={styles.group}>
-                <div
-                  className={`${styles.groupHeaderRow} ${isActive ? styles.active : ''} ${isHiddenCountry ? styles.hiddenRow : ''}`}
-                  onContextMenu={(event) => openActions(event, menuItems)}
-                >
-                  {!isDirectCountry && (
-                    <button
-                      type="button"
-                      className={styles.groupCollapseButton}
-                      onClick={() => toggleCategoryPref('collapsed', type, key)}
-                      aria-expanded={!isCollapsed}
-                      aria-label={t(isCollapsed ? 'Expand {name}' : 'Collapse {name}', {
-                        name: countryName(group.country, language),
-                      })}
-                    >
-                      <ChevronDown
-                        size={13}
-                        className={`${styles.chevron} ${isCollapsed ? styles.chevronCollapsed : ''}`}
-                      />
-                    </button>
-                  )}
+            {hasSearch && (
+              <div className={styles.searchStatus} role="status" aria-live="polite">
+                <span>
+                  {tn('{count} category', '{count} categories', displayedCategoryCount, {
+                    count: number(displayedCategoryCount),
+                  })}
+                </span>
+                {hiddenSearchMatchCount > 0 && (
                   <button
                     type="button"
-                    className={`${styles.groupHeader} ${isDirectCountry ? styles.directCountryHeader : ''}`}
-                    onClick={() => onSelectCategory(isActive ? null : countryId)}
-                    aria-pressed={isActive}
-                    aria-label={`${countryName(group.country, language)}, ${itemCountLabel(group.total)}${isPinnedCountry ? `, ${t('pinned')}` : ''}`}
+                    className={styles.searchHiddenToggle}
+                    onClick={() => setShowHidden((value) => !value)}
                   >
-                    {group.country && hasCountryFlag(group.country) ? (
-                      <CountryFlag code={group.country} className={styles.flag} />
-                    ) : (
-                      group.country && <span className={styles.countryCode}>{group.country}</span>
-                    )}
-                    {isPinnedCountry && (
-                      <span
-                        className={styles.pinnedIndicator}
-                        title={t('Pinned')}
-                        aria-hidden="true"
-                      >
-                        <Pin size={12} strokeWidth={2.25} />
-                      </span>
-                    )}
-                    <span className={styles.groupName}>{countryName(group.country, language)}</span>
-                    {group.total > 0 && (
-                      <span className={styles.groupCount}>{number(group.total)}</span>
-                    )}
-                    {isHiddenCountry && (
-                      <EyeOff size={12} className={styles.hiddenIndicator} aria-hidden="true" />
-                    )}
+                    {showHidden
+                      ? t('Hide hidden')
+                      : t('Show {count} hidden', { count: number(hiddenSearchMatchCount) })}
                   </button>
+                )}
+              </div>
+            )}
+          </>
+        }
+      >
+        {isLoading ? (
+          <CategorySkeleton />
+        ) : isError && categories.length === 0 ? (
+          <div className={styles.categoryUnavailable} role="status" aria-live="polite">
+            <span>
+              <strong>{t('Categories unavailable')}</strong>
+              <small>
+                {getErrorMessage(error, 'Category query failed without an error message.')}
+              </small>
+            </span>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              disabled={isFetching}
+              aria-label={t('Retry loading categories')}
+            >
+              <RefreshCw
+                size={14}
+                className={isFetching ? styles.categoryRetrying : undefined}
+                aria-hidden="true"
+              />
+              <span>{t(isFetching ? 'Retrying' : 'Retry')}</span>
+            </button>
+          </div>
+        ) : (
+          <>
+            {!hasSearch && (
+              <div
+                className={`${styles.row} ${styles.allCategoriesRow} ${activeCategoryId === null ? styles.active : ''}`}
+              >
+                <button
+                  type="button"
+                  className={styles.rowMain}
+                  onClick={() => onSelectCategory(null)}
+                  aria-pressed={activeCategoryId === null}
+                  aria-label={t('All categories, {count} available', {
+                    count: number(visibleTotal),
+                  })}
+                >
+                  <StateIcon
+                    icons={{ line: RiLayoutGridLine, fill: RiLayoutGridFill }}
+                    active={activeCategoryId === null}
+                    size={14}
+                    className={styles.allCategoriesIcon}
+                  />
+                  <span className={styles.categoryLabel}>{t('All Categories')}</span>
+                  {visibleTotal > 0 && <span className={styles.count}>{number(visibleTotal)}</span>}
+                </button>
+                {collapsibleGroups.length > 0 && (
                   <button
                     type="button"
                     className={styles.rowMenuButton}
-                    onClick={(event) => openActions(event, menuItems)}
-                    aria-label={t('Actions for {name}', {
-                      name: countryName(group.country, language),
-                    })}
-                    aria-haspopup="menu"
+                    onClick={handleToggleCollapseAll}
+                    aria-label={t(
+                      allCollapsed ? 'Expand all categories' : 'Collapse all categories',
+                    )}
                   >
-                    <MoreHorizontal size={16} />
+                    {allCollapsed ? <ChevronsUpDown size={13} /> : <ChevronsDownUp size={13} />}
                   </button>
-                </div>
-
-                {!isDirectCountry && !isCollapsed && (
-                  <div className={styles.groupChildren}>
-                    {childRows.map((row) => renderRow(row, { nested: true }))}
-                  </div>
                 )}
               </div>
-            );
-          })}
+            )}
 
-          {hasSearch && displayedCategoryCount === 0 && (
-            <div className={styles.emptySearch}>
-              <SearchX size={20} aria-hidden="true" />
-              <strong>{t('No categories found')}</strong>
-              <span>
-                {hiddenSearchMatchCount > 0
-                  ? t('Matching categories are hidden.')
-                  : t('Try a different search term.')}
-              </span>
-            </div>
-          )}
+            {!hasSearch && smartHubs.length > 0 && (
+              <div className={styles.smartHubsSection}>
+                {smartHubs.map((hub) => {
+                  const isActive = activeCategoryId === hub.id;
+                  return (
+                    <div
+                      key={hub.id}
+                      className={`${styles.row} ${styles.smartHubRow} ${isActive ? styles.active : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className={styles.rowMain}
+                        onClick={() => selectSmartHub(hub.id, isActive)}
+                        aria-pressed={isActive}
+                        aria-label={`${hub.label}, ${itemCountLabel(hub.count)}`}
+                      >
+                        <StateIcon
+                          icons={hub.icons}
+                          active={isActive}
+                          size={14}
+                          className={styles.smartHubIcon}
+                        />
+                        <span className={styles.categoryLabel}>{hub.label}</span>
+                        {hub.count > 0 && <span className={styles.count}>{number(hub.count)}</span>}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
-          {!hasSearch && rows.length === 0 && (
-            <div className={styles.emptySearch}>
-              <SearchX size={20} aria-hidden="true" />
-              <strong>{t('No categories available')}</strong>
-              <span>{t('The provider did not return any categories.')}</span>
-            </div>
-          )}
+            {/* Pinned section at the top */}
+            {pinnedRows.length > 0 && (
+              <div className={styles.section}>
+                <div className={styles.sectionLabel}>
+                  <span>{t('Pinned')}</span>
+                </div>
+                {pinnedRows.map((row) => renderRow(row, { showCountry: true }))}
+              </div>
+            )}
 
-          {!hasSearch && hiddenCount > 0 && (
-            <button
-              type="button"
-              className={styles.hiddenToggle}
-              onClick={() => setShowHidden((v) => !v)}
-            >
-              {showHidden ? <EyeOff size={12} /> : <Eye size={12} />}
-              <span>
-                {showHidden ? t('Hide') : t('Show')} {number(hiddenCount)} {t('hidden')}
-              </span>
-            </button>
-          )}
-        </>
-      )}
-    </WorkspaceSidebar>
+            {/* Country groups */}
+            {groups.map((group) => {
+              const key = group.key;
+              const childRows = countryChildRows(group);
+              const isDirectCountry = isDirectCountryGroup(group);
+              const isCollapsed = hasSearch ? false : collapsed.includes(key);
+              const isHiddenCountry = hiddenCountrySet.has(key);
+              const countryId = `country:${key}`;
+              const isActive = activeCategoryId === countryId;
+              const isPinnedCountry = pinnedCountries.includes(key);
+              const menuItems = countryActions(key, group.country);
+              return (
+                <div key={key} className={styles.group}>
+                  <div
+                    className={`${styles.groupHeaderRow} ${isActive ? styles.active : ''} ${isHiddenCountry ? styles.hiddenRow : ''}`}
+                    onContextMenu={(event) => openActions(event, menuItems)}
+                  >
+                    {!isDirectCountry && (
+                      <button
+                        type="button"
+                        className={styles.groupCollapseButton}
+                        onClick={() => toggleCategoryPref('collapsed', type, key)}
+                        aria-expanded={!isCollapsed}
+                        aria-label={t(isCollapsed ? 'Expand {name}' : 'Collapse {name}', {
+                          name: countryName(group.country, language),
+                        })}
+                      >
+                        <ChevronDown
+                          size={13}
+                          className={`${styles.chevron} ${isCollapsed ? styles.chevronCollapsed : ''}`}
+                        />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`${styles.groupHeader} ${isDirectCountry ? styles.directCountryHeader : ''}`}
+                      onClick={() => onSelectCategory(isActive ? null : countryId)}
+                      aria-pressed={isActive}
+                      aria-label={`${countryName(group.country, language)}, ${itemCountLabel(group.total)}${isPinnedCountry ? `, ${t('pinned')}` : ''}`}
+                    >
+                      {group.country && hasCountryFlag(group.country) ? (
+                        <CountryFlag code={group.country} className={styles.flag} />
+                      ) : (
+                        group.country && <span className={styles.countryCode}>{group.country}</span>
+                      )}
+                      {isPinnedCountry && (
+                        <span
+                          className={styles.pinnedIndicator}
+                          title={t('Pinned')}
+                          aria-hidden="true"
+                        >
+                          <Pin size={12} strokeWidth={2.25} />
+                        </span>
+                      )}
+                      <span className={styles.groupName}>
+                        {countryName(group.country, language)}
+                      </span>
+                      {group.total > 0 && (
+                        <span className={styles.groupCount}>{number(group.total)}</span>
+                      )}
+                      {isHiddenCountry && (
+                        <EyeOff size={12} className={styles.hiddenIndicator} aria-hidden="true" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.rowMenuButton}
+                      onClick={(event) => openActions(event, menuItems)}
+                      aria-label={t('Actions for {name}', {
+                        name: countryName(group.country, language),
+                      })}
+                      aria-haspopup="menu"
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </div>
+
+                  {!isDirectCountry && !isCollapsed && (
+                    <div className={styles.groupChildren}>
+                      {childRows.map((row) => renderRow(row, { nested: true }))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {hasSearch && displayedCategoryCount === 0 && (
+              <div className={styles.emptySearch}>
+                <SearchX size={20} aria-hidden="true" />
+                <strong>{t('No categories found')}</strong>
+                <span>
+                  {hiddenSearchMatchCount > 0
+                    ? t('Matching categories are hidden.')
+                    : t('Try a different search term.')}
+                </span>
+              </div>
+            )}
+
+            {!hasSearch && rows.length === 0 && (
+              <div className={styles.emptySearch}>
+                <SearchX size={20} aria-hidden="true" />
+                <strong>{t('No categories available')}</strong>
+                <span>{t('The provider did not return any categories.')}</span>
+              </div>
+            )}
+
+            {!hasSearch && hiddenCount > 0 && (
+              <button
+                type="button"
+                className={styles.hiddenToggle}
+                onClick={() => setShowHidden((v) => !v)}
+              >
+                {showHidden ? <EyeOff size={12} /> : <Eye size={12} />}
+                <span>
+                  {showHidden ? t('Hide') : t('Show')} {number(hiddenCount)} {t('hidden')}
+                </span>
+              </button>
+            )}
+          </>
+        )}
+      </WorkspaceSidebar>
+    </>
   );
 }

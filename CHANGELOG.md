@@ -8,6 +8,17 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.15] - 2026-09-11
+
+### Fixed
+
+- fixed LiveTV cards showing a fake quality badge (e.g. "4K") next to the real one once verified
+- reworked the "4K Ultra HD" category so it trusts a verified resolution over the provider's claim, both for its count and for what actually shows up when you open it
+
+### Added
+
+- added a one-time notice on the "4K Ultra HD" category explaining that unverified channels are grouped by the provider's own label, not a guarantee
+
 ## [0.1.14] - 2026-09-09
 
 ### Fixed
