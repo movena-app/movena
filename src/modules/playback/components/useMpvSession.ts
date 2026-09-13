@@ -319,13 +319,34 @@ export function useMpvSession(): MpvSessionState {
     });
 
     return () => {
+      // This cleanup fires for two very different reasons that share the
+      // same dependency: the player closing (nothing replaces this stream)
+      // and switching to a new one (episode/channel change, still playing).
+      // By the time this runs, the store's `activeStream` already reflects
+      // whatever comes next — if that's a genuinely different stream, this
+      // was a switch, and the "stop everything" side effects below (most
+      // importantly, exiting fullscreen) don't belong here. They were firing
+      // on every episode change, dropping fullscreen along with it.
+      const nextStream = usePlayerStore.getState().activeStream;
+      if (nextStream && nextStream.id !== stream.id) return;
       document.body.classList.remove('is-playing');
       document.documentElement.classList.remove('is-playing');
       document.body.classList.remove('is-video-ready');
       document.documentElement.classList.remove('is-video-ready');
-      tauriApi.mpvStop().catch(console.error);
       clearPlaybackRecovery();
-      void setPlayerFullscreen(false);
+      // Sequenced, not fired together: mpv tearing down its embedded window
+      // and our own native code repositioning that same window for a
+      // fullscreen exit at the same time is exactly the kind of race that
+      // was corrupting the window on an episode switch. Letting mpv's
+      // teardown finish first avoids it here too.
+      void (async () => {
+        try {
+          await tauriApi.mpvStop();
+        } catch (error) {
+          console.error(error);
+        }
+        await setPlayerFullscreen(false);
+      })();
     };
   }, [activeStream, hasActiveStream]);
 

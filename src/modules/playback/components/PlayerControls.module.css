@@ -153,6 +153,19 @@
   transform: scale(1.2);
 }
 
+/* The app-wide focus ring (`:focus-visible` in shared/design/index.css) is
+   sized for rectangular controls. On a slider it draws a large blue box
+   around the whole track instead of highlighting the thumb, which reads as
+   broken rather than as a focus indicator — the moving thumb and filled
+   track already show the current value and which control is active, so
+   these are the one place that ring is suppressed outright. */
+.seekbar:focus-visible,
+.volumeSlider:focus-visible,
+.imageSlider:focus-visible,
+.popoverRange:focus-visible {
+  outline: none;
+}
+
 /* ── Volume ─────────────────────────────────────────────── */
 
 .volumeContainer {

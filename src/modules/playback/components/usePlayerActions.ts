@@ -3,7 +3,7 @@ import { tauriApi } from '@/platform/tauri';
 import { MOTION_DURATION } from '@/shared/design/motion';
 import { usePlayerStore, type PlayableStream } from '../store/usePlayerStore';
 import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
-import { toggleWindowFullscreen } from './fullscreen';
+import { setPlayerFullscreen, toggleWindowFullscreen } from './fullscreen';
 import { notify } from '@/shared/notifications/useNotificationStore';
 import { getErrorMessage } from '@/shared/lib/error';
 
@@ -123,11 +123,22 @@ export function usePlayerActions(
   useEffect(() => {
     if (!activeStream) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
+      const isEscape = event.key === 'Escape';
+      // Every other shortcut backs off while a text field or slider has
+      // focus so typing/dragging isn't hijacked, but Escape must always get
+      // through. The seekbar, volume, and image-adjustment sliders are all
+      // <input> elements that keep native focus after a drag/click, so
+      // without this carve-out Escape silently no-oped on the browser's own
+      // input handling instead of leaving fullscreen or closing the player —
+      // visible only as focus snapping back to the timeline.
+      if (
+        !isEscape &&
+        (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
+      )
         return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (interactionsDisabled) {
-        if (event.key === 'Escape') {
+        if (isEscape) {
           event.preventDefault();
           handleClose();
         }
@@ -169,9 +180,15 @@ export function usePlayerActions(
         case 'escape': {
           event.preventDefault();
           const state = usePlayerStore.getState();
+          // Matches every other player's Esc: back out one step at a time —
+          // a popover, a drawer, fullscreen itself — and only close on a
+          // press with nothing left to back out of. Skipping the fullscreen
+          // step meant Esc closed the episode entirely instead of just
+          // leaving fullscreen.
           if (state.activePopover) state.setActivePopover(null);
           else if (state.showEpisodesDrawer) state.setShowEpisodesDrawer(false);
           else if (state.showChannelsDrawer) state.setShowChannelsDrawer(false);
+          else if (state.isFullscreen) void setPlayerFullscreen(false);
           else handleClose();
           break;
         }

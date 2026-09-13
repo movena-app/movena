@@ -31,6 +31,14 @@ export async function setPlayerFullscreen(on: boolean): Promise<void> {
       const applied = await tauriApi.playerSetFullscreen(on);
       usePlayerStore.getState().setIsFullscreen(applied);
     } catch (error: unknown) {
+      // Only forced on the way *out*. A failed attempt to enter fullscreen
+      // must not claim success — that would hide the custom window chrome
+      // over a window that never actually left its normal bounds. A failed
+      // attempt to leave is the opposite risk: the native window is in
+      // some unknown state, but the frontend still asked to be windowed,
+      // and leaving `isFullscreen` stuck true is what left Escape/close
+      // looking like they'd hidden Minimize/Maximize/Close for good.
+      if (!on) usePlayerStore.getState().setIsFullscreen(false);
       notify.error(
         'Fullscreen Failed',
         getErrorMessage(error, 'player_set_fullscreen failed without an error message.'),

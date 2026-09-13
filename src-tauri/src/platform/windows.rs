@@ -378,3 +378,114 @@ pub fn set_fullscreen(app: &AppHandle, on: bool) -> Result<bool, String> {
 
     Ok(on)
 }
+
+/// Re-applies the fullscreen style/position without touching the saved
+/// pre-fullscreen placement — a no-op unless fullscreen is currently active.
+///
+/// `mpv_start` (see `player/mod.rs`) fully tears down and recreates its
+/// embedded window on every episode switch, not just the first stream in a
+/// session. If that happens while the app is fullscreen, the window has been
+/// observed to come back at a different size/style than the fullscreen
+/// placement we already applied — visually indistinguishable from exiting
+/// fullscreen, but our own `is_fullscreen` flag (only ever changed by an
+/// explicit `set_fullscreen` call) never agreed, leaving the custom window
+/// chrome that depends on it hidden over a window it can no longer control.
+/// Rather than chase the exact mechanism inside libmpv's embed step, the
+/// player calls this right after every `mpv_start` to unconditionally put
+/// the already-known-correct fullscreen geometry back.
+///
+/// This runs from two different threads that can race each other: `mpv_start`
+/// calls it synchronously on the command's own thread, and the mpv event
+/// thread calls it again once `vo-configured` fires for the new stream —
+/// which can land right as the *close* path calls `set_fullscreen(false)` on
+/// yet another thread to leave fullscreen for real. Both functions touch the
+/// same raw HWND with unsynchronized `SetWindowLongW`/`SetWindowPos` calls, so
+/// the `WINDOW_STATE` mutex has to stay held for the *entire* operation here,
+/// exactly like `set_fullscreen` already does — not just for the initial
+/// flag check — otherwise the two can interleave their Win32 calls and leave
+/// the window with mismatched style/geometry (e.g. sized to the fullscreen
+/// monitor rect but styled with a caption/border, which reads as the whole
+/// UI being blown up/"zoomed"), and `set_fullscreen(false)` can come back
+/// with stale inputs and return an `Err` that leaves the frontend's
+/// `isFullscreen` flag — and the custom window chrome gated on it — stuck on
+/// forever.
+pub fn reassert_fullscreen(app: &AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "Failed to get main window".to_string())?;
+    let handle = window.window_handle().map_err(|error| error.to_string())?;
+    let hwnd = match handle.as_raw() {
+        RawWindowHandle::Win32(win32_handle) => win32_handle.hwnd.get() as HWND,
+        _ => return Err("Invalid window handle".to_string()),
+    };
+
+    let state = WINDOW_STATE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if !state.is_fullscreen {
+        return Ok(());
+    }
+    let (Some(style), Some(ex_style)) = (state.style, state.ex_style) else {
+        // Fullscreen is flagged active but we never captured what to derive
+        // the fullscreen style from — nothing safe to reapply.
+        return Ok(());
+    };
+    // Deliberately NOT dropping `state` here: it must stay locked across the
+    // Win32 calls below so this can never interleave with a concurrent
+    // `set_fullscreen` call from another thread. See the doc comment above.
+
+    unsafe {
+        let monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        let mut mi: MONITORINFO = std::mem::zeroed();
+        mi.cbSize = std::mem::size_of::<MONITORINFO>() as u32;
+        if GetMonitorInfoW(monitor, &mut mi) == 0 {
+            return Err("Failed to query monitor info".to_string());
+        }
+        let rc = mi.rcMonitor;
+
+        if let Some(taskbar) = TaskbarList::new() {
+            taskbar.mark_fullscreen(hwnd, true);
+        }
+        let _ = window.set_shadow(false);
+
+        // Same derivation as the entry path in `set_fullscreen`, from the
+        // same saved pre-fullscreen style — never from whatever the style
+        // bits currently read as, which is exactly what may have drifted.
+        let fullscreen_style = (style & !(WS_THICKFRAME | WS_CAPTION | WS_BORDER | WS_MAXIMIZE))
+            | WS_POPUP
+            | WS_VISIBLE;
+        set_window_style(
+            hwnd,
+            GWL_STYLE,
+            fullscreen_style,
+            "Reapplying fullscreen window style",
+        )?;
+
+        let fullscreen_ex_style =
+            ex_style & !(WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+        set_window_style(
+            hwnd,
+            GWL_EXSTYLE,
+            fullscreen_ex_style,
+            "Reapplying fullscreen extended style",
+        )?;
+
+        if SetWindowPos(
+            hwnd,
+            HWND_TOP,
+            rc.left,
+            rc.top,
+            rc.right - rc.left,
+            rc.bottom - rc.top,
+            SWP_FRAMECHANGED | SWP_NOCOPYBITS,
+        ) == 0
+        {
+            return Err(format!(
+                "Failed to reposition fullscreen window (Windows error {})",
+                GetLastError()
+            ));
+        }
+    }
+
+    Ok(())
+}

@@ -31,6 +31,7 @@ vi.mock('@/modules/diagnostics/store/useDebugStore', () => debug);
 vi.mock('@/shared/notifications/useNotificationStore', () => notifications);
 
 import { useMpvSession } from '@/modules/playback/components/useMpvSession';
+import { setPlayerFullscreen } from '@/modules/playback/components/fullscreen';
 import { usePlayerStore } from '@/modules/playback/store/usePlayerStore';
 import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
 
@@ -101,6 +102,23 @@ describe('native MPV session lifecycle', () => {
     unmount();
     await waitFor(() => expect(native.mpvStop).toHaveBeenCalledTimes(1));
     expect(unlisten).toHaveBeenCalledTimes(1);
+  });
+
+  it('switching to a new episode does not exit fullscreen or stop mpv from the frontend', async () => {
+    act(() => usePlayerStore.getState().playStream(stream));
+    const { unmount } = renderHook(() => useMpvSession());
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(1));
+
+    const nextEpisode = { ...stream, id: 'episode-2', streamUrl: 'https://primary.test/ep2.mp4' };
+    act(() => usePlayerStore.getState().playStream(nextEpisode));
+
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(2));
+    expect(native.mpvStop).not.toHaveBeenCalled();
+    expect(setPlayerFullscreen).not.toHaveBeenCalled();
+
+    unmount();
+    await waitFor(() => expect(native.mpvStop).toHaveBeenCalledTimes(1));
+    expect(setPlayerFullscreen).toHaveBeenCalledWith(false);
   });
 
   it('switches to the next fallback after a confirmed end-file error', async () => {

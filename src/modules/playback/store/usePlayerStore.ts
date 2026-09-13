@@ -426,6 +426,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       showEpisodesDrawer: false,
       showChannelsDrawer: false,
       feedback: null,
+      // Forced, not left to the native round trip: with the player gone
+      // there is no video left to be fullscreen *for*, so the custom
+      // window chrome (Minimize/Maximize/Close) must be recoverable no
+      // matter what the backend's own fullscreen-exit call does with the
+      // actual OS window. Leaving this to `setPlayerFullscreen`'s async
+      // result was how a failed/slow native restore left it stuck true
+      // with the chrome hidden and no way back to it but a relaunch.
+      isFullscreen: false,
     }),
 
   // ── MPV event sync ──────────────────────────────────────────

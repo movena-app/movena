@@ -103,4 +103,24 @@ describe('native player command helpers', () => {
     await setPlayerFullscreen(true);
     expect(usePlayerStore.getState().isFullscreen).toBe(true);
   });
+
+  it('still leaves fullscreen in the store even when the backend fails to leave it', async () => {
+    // Unlike entering fullscreen, a failed *exit* must not get stuck: there
+    // would be no way left to reach the custom window chrome (Minimize/
+    // Maximize/Close), which is gated on this same flag.
+    usePlayerStore.getState().setIsFullscreen(true);
+    playerSetFullscreen.mockRejectedValueOnce(new Error('Win32 error'));
+
+    await setPlayerFullscreen(false);
+    expect(usePlayerStore.getState().isFullscreen).toBe(false);
+  });
+
+  it('closePlayer always clears fullscreen regardless of the native round trip', () => {
+    // Forced directly rather than left to the async setPlayerFullscreen
+    // result — once the player is gone there is nothing left to be
+    // fullscreen for, and the window chrome must be recoverable immediately.
+    usePlayerStore.getState().setIsFullscreen(true);
+    usePlayerStore.getState().closePlayer();
+    expect(usePlayerStore.getState().isFullscreen).toBe(false);
+  });
 });

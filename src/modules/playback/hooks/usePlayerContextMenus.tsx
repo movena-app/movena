@@ -17,6 +17,7 @@ import {
   RiVolumeUpLine,
 } from '@/shared/ui/icons';
 import { tauriApi } from '@/platform/tauri';
+import { toggleWindowFullscreen } from '../components/fullscreen';
 import { formatTrackLabel } from '../lib/trackLabel';
 import {
   useContextMenuStore,
@@ -161,11 +162,14 @@ export function usePlayerContextMenus() {
           <RiFullscreenLine size={16} />
         ),
         shortcut: 'F',
+        // Routed through the same queued helper as the `F` key and the
+        // overlay double-click, not a second direct `playerSetFullscreen`
+        // call — two independent call sites racing the same native round
+        // trip is exactly the state corruption that helper exists to rule
+        // out (see its doc comment), and this one also skipped its
+        // guaranteed fallback to `isFullscreen: false` on a failed exit.
         action: () =>
-          runPlayerCommand(async () => {
-            const applied = await tauriApi.playerSetFullscreen(!player.isFullscreen);
-            player.setIsFullscreen(applied);
-          }, 'Could not change fullscreen mode.'),
+          runPlayerCommand(() => toggleWindowFullscreen(), 'Could not change fullscreen mode.'),
       });
 
       if (settings.debugMode) {

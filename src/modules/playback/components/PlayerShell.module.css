@@ -23,6 +23,17 @@
   border-radius: 0 !important;
 }
 
+/* The app-wide focus ring (`:focus-visible` in shared/design/index.css) is
+   sized for rectangular controls in normal document flow. Over the video —
+   icon buttons on a transparent overlay, drawers, popovers — it draws a blue
+   box that looks like stray UI rather than a focus indicator, and every
+   control here already has its own hover/active/selected treatment. Kill it
+   for every descendant of the player, not just the sliders, rather than
+   chase it control by control as new reports come in. */
+.playerOverlay :focus-visible {
+  outline: none;
+}
+
 /* Keeps the window's top strip draggable while a video plays. The overlay
    above covers the full viewport for its click-to-toggle-play handler, which
    would otherwise sit above (and swallow) the app-level drag strip from

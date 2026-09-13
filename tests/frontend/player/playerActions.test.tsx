@@ -8,7 +8,10 @@ const native = vi.hoisted(() => ({
   mpvSeekRelative: vi.fn(),
   mpvSetVolume: vi.fn(),
 }));
-const fullscreen = vi.hoisted(() => ({ toggleWindowFullscreen: vi.fn() }));
+const fullscreen = vi.hoisted(() => ({
+  toggleWindowFullscreen: vi.fn(),
+  setPlayerFullscreen: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock('@/platform/tauri', () => ({ tauriApi: native }));
 vi.mock('@/modules/playback/components/fullscreen', () => fullscreen);
@@ -37,6 +40,7 @@ beforeEach(() => {
   native.mpvSeekRelative.mockResolvedValue(undefined);
   native.mpvSetVolume.mockResolvedValue(undefined);
   fullscreen.toggleWindowFullscreen.mockClear();
+  fullscreen.setPlayerFullscreen.mockClear();
   usePlayerStore.getState().closePlayer();
   useSettingsStore.getState().resetSettings();
 });
@@ -82,6 +86,47 @@ describe('player keyboard and pointer actions', () => {
     expect(usePlayerStore.getState().activeStream).toBeNull();
     expect(result.current.handleClose).toBeTypeOf('function');
     input.remove();
+  });
+
+  it('leaves fullscreen on Escape instead of closing the player', () => {
+    const save = vi.fn();
+    act(() => usePlayerStore.getState().playStream(vod));
+    act(() => usePlayerStore.getState().setIsFullscreen(true));
+    renderHook(() => usePlayerActions(vod, save));
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(fullscreen.setPlayerFullscreen).toHaveBeenCalledWith(false);
+    expect(save).not.toHaveBeenCalled();
+    expect(usePlayerStore.getState().activeStream).not.toBeNull();
+
+    // A second Escape, now windowed, closes as before.
+    act(() => usePlayerStore.getState().setIsFullscreen(false));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(usePlayerStore.getState().activeStream).toBeNull();
+  });
+
+  it('lets Escape through a focused seekbar/slider while still guarding other shortcuts', () => {
+    const save = vi.fn();
+    act(() => usePlayerStore.getState().playStream(vod));
+    act(() => usePlayerStore.getState().setIsFullscreen(true));
+    renderHook(() => usePlayerActions(vod, save));
+
+    // The seekbar (and volume/image sliders) are <input type="range">
+    // elements that keep native focus after a drag or click.
+    const seekbar = document.createElement('input');
+    seekbar.type = 'range';
+    document.body.appendChild(seekbar);
+    seekbar.focus();
+
+    fireEvent.keyDown(seekbar, { key: 'ArrowRight' });
+    expect(native.mpvSeekRelative).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(seekbar, { key: 'Escape' });
+    expect(fullscreen.setPlayerFullscreen).toHaveBeenCalledWith(false);
+    expect(usePlayerStore.getState().activeStream).not.toBeNull();
+
+    seekbar.remove();
   });
 
   it('treats two overlay clicks as fullscreen and one click as play/pause', async () => {

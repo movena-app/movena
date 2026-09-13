@@ -29,6 +29,8 @@ use self::property::{validate_mpv_property, MpvPropertyUpdate};
 
 #[cfg(target_os = "macos")]
 use crate::platform::macos as macos_embed;
+#[cfg(target_os = "windows")]
+use crate::platform::windows as windows_fullscreen;
 
 #[derive(Default)]
 pub struct NativePlayerManager {
@@ -326,6 +328,17 @@ pub fn mpv_start(
                 _ => return Err("Unsupported OS window handle".to_string()),
             };
             set_mpv_option(mpv, "wid", &wid.to_string())?;
+            // Here `wid` is the main application window itself, not a
+            // container mpv merely draws into. Without this, mpv is free to
+            // resize that window to the video's native resolution on every
+            // load — invisible normally, but every episode switch tears mpv
+            // down and rebuilds it (see stop_internal above), and doing that
+            // while native fullscreen was active shrank the window out of
+            // fullscreen and left the webview's layout sized for a viewport
+            // that no longer existed. We own this window's geometry; mpv
+            // must never resize or aspect-lock it.
+            set_mpv_option(mpv, "auto-window-resize", "no")?;
+            set_mpv_option(mpv, "keepaspect-window", "no")?;
         }
 
         #[cfg(target_os = "macos")]
@@ -530,6 +543,18 @@ pub fn mpv_start(
         let mpv_ptr = mpv as usize;
         let event_session_id = session_id.clone();
 
+        // Every episode switch tears mpv down and rebuilds it from here
+        // (see stop_internal above), re-embedding into the same window. If
+        // that happens while native fullscreen is active, put the fullscreen
+        // placement back immediately in case mpv's embed step just disturbed
+        // it; `vo-configured` below covers the same thing again once mpv
+        // actually establishes a video output, in case the disturbance
+        // happens later than this.
+        #[cfg(target_os = "windows")]
+        if let Err(error) = windows_fullscreen::reassert_fullscreen(&app) {
+            log::warn!("Failed to reassert fullscreen after mpv_start: {error}");
+        }
+
         let th = thread::spawn(move || {
             let mpv_handle = mpv_ptr as *mut mpv_handle;
             let mut last_diagnostic_sample = Instant::now();
@@ -613,6 +638,22 @@ pub fn mpv_start(
                                     }
                                     _ => Value::Null,
                                 };
+                                #[cfg(target_os = "windows")]
+                                if name == "vo-configured" && data == Value::Bool(true) {
+                                    // mpv just finished (re-)establishing its
+                                    // embedded video output — the delayed
+                                    // counterpart to the reassert right after
+                                    // mpv_start above, for whichever point
+                                    // mpv's embed step actually disturbs the
+                                    // window at.
+                                    if let Err(error) =
+                                        windows_fullscreen::reassert_fullscreen(&app)
+                                    {
+                                        log::warn!(
+                                            "Failed to reassert fullscreen after vo-configured: {error}"
+                                        );
+                                    }
+                                }
                                 let _ = app.emit(
                                     "mpv-event",
                                     MpvEventPayload {

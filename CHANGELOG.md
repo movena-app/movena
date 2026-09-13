@@ -8,6 +8,16 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.16] - 2026-09-13
+
+### Fixed
+
+- fixed the next episode/channel starting in a normal window instead of staying fullscreen when switched while fullscreen
+- fixed a corrupted, "zoomed in" looking UI and missing window buttons (Minimize/Maximize/Close) that could appear after switching episodes or leaving fullscreen
+- fixed Esc closing the player entirely instead of leaving fullscreen first
+- fixed Esc doing nothing after clicking or dragging the seekbar or volume slider
+- removed the blue focus outline that could appear around player controls (seekbar, volume, buttons) after clicking or tabbing
+
 ## [0.1.15] - 2026-09-11
 
 ### Fixed
