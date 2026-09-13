@@ -160,9 +160,23 @@ jobs:
           path: windows-artifacts/*
 
   build-macos:
-    name: Build macOS DMG & app
+    name: Build macOS DMG & app (${{ matrix.arch }})
     needs: verify
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macos-latest is Apple Silicon; macos-15-intel is GitHub's hosted
+          # x86_64 replacement for the retired macos-13 image. Each builds
+          # natively for its own architecture — no cross-compilation, no
+          # Rosetta — so every existing step below (mpv via Homebrew,
+          # PyInstaller for the Twitch resolver, cargo/tauri build) runs
+          # completely unchanged on both.
+          - os: macos-latest
+            arch: aarch64
+          - os: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -247,14 +261,26 @@ jobs:
           # (with bundle.createUpdaterArtifacts on) — reuse that file instead of
           # re-tarring the .app, which would produce different bytes than what
           # got signed and break updater signature verification.
-          if [ -d "src-tauri/target/release/bundle/macos" ]; then
-            cp src-tauri/target/release/bundle/macos/*.tar.gz macos-artifacts/ 2>/dev/null || true
-            cp src-tauri/target/release/bundle/macos/*.tar.gz.sig macos-artifacts/ 2>/dev/null || true
+          #
+          # Unlike the DMG (which Tauri already names with its target arch,
+          # e.g. Movena_0.1.16_aarch64.dmg), this updater bundle is always
+          # named the same regardless of arch — harmless as a single build,
+          # but the aarch64 and x86_64 matrix legs would silently clobber
+          # each other once both land in the same release. Renamed here so
+          # both survive; generate-latest-json.mjs expects these exact names.
+          app_tar="$(find src-tauri/target/release/bundle/macos -maxdepth 1 -name '*.app.tar.gz' -print -quit 2>/dev/null || true)"
+          if [ -n "$app_tar" ]; then
+            cp "$app_tar" "macos-artifacts/Movena_${{ matrix.arch }}.app.tar.gz"
+            cp "${app_tar}.sig" "macos-artifacts/Movena_${{ matrix.arch }}.app.tar.gz.sig"
           fi
           du -sh src-tauri/lib/twitch-resolver
       - uses: actions/upload-artifact@v7
         with:
-          name: macos-artifacts
+          # Suffixed per matrix leg (still matching the publish job's
+          # `*-artifacts` download pattern) — a shared "macos-artifacts" name
+          # across both legs would have the second upload silently replace
+          # the first instead of the two coexisting.
+          name: macos-${{ matrix.arch }}-artifacts
           path: macos-artifacts/*
 
   build-linux:

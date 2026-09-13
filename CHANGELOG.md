@@ -8,6 +8,12 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.17] - 2026-09-13
+
+### Added
+
+- added native macOS builds for Intel (x86_64) Macs, alongside the existing Apple Silicon (aarch64) builds
+
 ## [0.1.16] - 2026-09-13
 
 ### Fixed
