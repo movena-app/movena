@@ -114,9 +114,9 @@ if (bundledDylibs.length === 0) {
 // duplicates back down to one entry per unique path before signing.
 function dedupeRpaths(filePath) {
   const info = execFileSync('otool', ['-l', filePath], { encoding: 'utf8' });
-  const rpaths = [...info.matchAll(/cmd LC_RPATH\s*\n\s*cmdsize \d+\s*\n\s*path (.+?) \(offset \d+\)/g)].map(
-    (m) => m[1],
-  );
+  const rpaths = [
+    ...info.matchAll(/cmd LC_RPATH\s*\n\s*cmdsize \d+\s*\n\s*path (.+?) \(offset \d+\)/g),
+  ].map((m) => m[1]);
   const counts = new Map();
   for (const path of rpaths) counts.set(path, (counts.get(path) ?? 0) + 1);
   for (const [path, count] of counts) {
