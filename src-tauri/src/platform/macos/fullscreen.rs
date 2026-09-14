@@ -59,7 +59,7 @@ pub fn set_simple_fullscreen(app: &AppHandle, on: bool) -> bool {
             // it has to go for the window to cover the screen.
             *WINDOWED_STYLE_MASK
                 .lock()
-                .unwrap_or_else(|e| e.into_inner()) = Some(parent.styleMask().0 as usize);
+                .unwrap_or_else(|e| e.into_inner()) = Some(parent.styleMask().0);
             toggle_style_mask(&parent, NSWindowStyleMask::Titled, false);
 
             let target = screen.frame();

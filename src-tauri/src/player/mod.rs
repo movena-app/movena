@@ -462,6 +462,20 @@ pub fn mpv_start(
                 set_mpv_option(mpv, "script-opts", &script_option)?;
             }
         }
+        // Every URL that reaches loadfile here is already a direct, playable
+        // stream — Xtream/M3U entries as-is, Twitch already resolved above.
+        // None of it ever needs yt-dlp's site extraction. Without a bundled
+        // resolver to point it at (Windows-only, see above), leaving ytdl_hook
+        // enabled means it runs against whatever "yt-dlp"/"youtube-dl" happens
+        // to be on the user's PATH — on a machine that has one installed for
+        // unrelated reasons, the hook can decide a plain VOD URL needs
+        // resolving and block the whole demuxer thread on that subprocess's
+        // own (unauthenticated, header-less) probe of the provider, which the
+        // provider can simply hang rather than reject — indistinguishable
+        // from playback never starting. Disable the hook outright here rather
+        // than depend on an uncontrolled binary being absent, wrong, or slow.
+        #[cfg(not(target_os = "windows"))]
+        set_mpv_option(mpv, "ytdl", "no")?;
 
         if let Some(start_pos) = start_position {
             if start_pos > 0.0 {
@@ -695,6 +709,12 @@ pub fn mpv_start(
                                 } else {
                                     None
                                 };
+                                if reason == mpv_end_file_reason_MPV_END_FILE_REASON_ERROR {
+                                    log::warn!(
+                                        "mpv end-file error {error_code}: {}",
+                                        error_message.as_deref().unwrap_or("(no message)")
+                                    );
+                                }
                                 Some(serde_json::json!({
                                     "reason": reason_name,
                                     "errorCode": error_code,
@@ -729,6 +749,13 @@ pub fn mpv_start(
                                 } else {
                                     CStr::from_ptr((*log).text).to_str().unwrap_or("")
                                 };
+
+                                if matches!(level, "fatal" | "error" | "warn") {
+                                    log::warn!(
+                                        "mpv [{level}][{prefix}] {}",
+                                        sanitize_mpv_log_text(text)
+                                    );
+                                }
 
                                 let _ = app.emit(
                                     "mpv-event",

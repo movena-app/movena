@@ -8,6 +8,13 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.18] - 2026-09-14
+
+### Fixed
+
+- fixed macOS app not launching for anyone without mpv installed via Homebrew at the exact same path the build used — the app now bundles mpv and its full dependency chain into itself instead of depending on the machine's own install
+- fixed video not starting on macOS/Linux
+
 ## [0.1.17] - 2026-09-13
 
 ### Added
