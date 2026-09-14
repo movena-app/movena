@@ -381,7 +381,17 @@ pub fn mpv_start(
             }
         }
 
-        set_mpv_option(mpv, "vo", "gpu-next")?;
+        // A plain "gpu-next" is a hard requirement: if libplacebo can't get a
+        // GPU context (older/weaker GPUs, broken Vulkan-via-MoltenVK on some
+        // Intel Macs, ...), mpv logs "Failed initializing any suitable GPU
+        // context!" and never configures a video output — audio keeps
+        // playing while video silently never starts, until our own startup
+        // watchdog times out. The comma-separated form is mpv's own VO
+        // priority list: it tries each driver in order and falls through to
+        // the next on init failure, so we keep gpu-next's quality where it
+        // works and land on the far more broadly compatible legacy "gpu" VO
+        // where it doesn't, instead of failing outright.
+        set_mpv_option(mpv, "vo", "gpu-next,gpu")?;
         set_mpv_option(mpv, "hwdec", &hwdec)?;
         set_mpv_option(mpv, "force-window", "no")?;
         set_mpv_option(mpv, "keep-open", "yes")?;
