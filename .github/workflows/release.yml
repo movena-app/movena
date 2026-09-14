@@ -187,8 +187,14 @@ jobs:
         with:
           python-version: '3.13.11'
       - uses: dtolnay/rust-toolchain@stable
-      - name: Install mpv
-        run: brew install mpv
+      - name: Install mpv and dylibbundler
+        run: brew install mpv dylibbundler
+      - name: Generate macOS runtime license notices
+        # Walks Homebrew's own installed libmpv (independent of anything our
+        # build produces) to record every library scripts/bundle-macos-mpv.mjs
+        # is about to embed into the app, before the app itself even exists —
+        # tauri.bundle.macos.conf.json embeds this file as a build resource.
+        run: node scripts/generate-macos-runtime-licenses.mjs
       - run: npm ci
       - name: Build pinned Twitch resolver
         run: npm run setup:twitch
@@ -231,15 +237,26 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npx tauri build --config src-tauri/tauri.bundle.macos.conf.json
-      - name: Verify bundled Twitch resolver
+      - name: Verify bundled Twitch resolver and mpv runtime
         shell: bash
         run: |
-          resolver="src-tauri/target/release/bundle/macos/Movena.app/Contents/Resources/twitch-resolver/twitch-resolver"
+          app="src-tauri/target/release/bundle/macos/Movena.app"
+          resolver="$app/Contents/Resources/twitch-resolver/twitch-resolver"
           test -x "$resolver"
           test -f "$(dirname "$resolver")/THIRD_PARTY_NOTICES.txt"
           test "$($resolver --version)" = "8.5.0"
           "$resolver" --can-handle-url https://www.twitch.tv/gleggmire
-          codesign --verify --deep --strict src-tauri/target/release/bundle/macos/Movena.app
+          test -f "$app/Contents/Resources/THIRD_PARTY_NOTICES_MACOS_RUNTIME.txt"
+          # scripts/bundle-macos-mpv.mjs already asserted this on the raw
+          # executable before Tauri packaged and signed it — re-checking the
+          # actually-shipped binary here catches anything the bundling step
+          # itself could not: packaging re-introducing an absolute reference.
+          test -n "$(find "$app/Contents/Frameworks" -maxdepth 1 -name '*.dylib' -print -quit)"
+          if otool -L "$app/Contents/MacOS/movena" | grep -E '/(usr/local|opt/homebrew)/'; then
+            echo 'Homebrew-absolute library paths leaked into the packaged app.' >&2
+            exit 1
+          fi
+          codesign --verify --deep --strict "$app"
       - name: Verify Developer ID, notarization, and stapling
         if: env.APPLE_SIGNING_IDENTITY != ''
         env:

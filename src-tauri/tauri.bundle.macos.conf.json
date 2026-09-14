@@ -1,8 +1,13 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "build": {
+    "beforeBundleCommand": "node scripts/bundle-macos-mpv.mjs"
+  },
   "bundle": {
     "resources": {
-      "lib/twitch-resolver/": "twitch-resolver/"
+      "lib/twitch-resolver/": "twitch-resolver/",
+      "macos-runtime-notices/THIRD_PARTY_NOTICES.txt": "THIRD_PARTY_NOTICES_MACOS_RUNTIME.txt",
+      "macos-frameworks/": "Frameworks/"
     }
   }
 }

@@ -27,6 +27,8 @@ src-tauri/lib/mpv-dev/
 src-tauri/lib/yt-dlp/
 src-tauri/lib/twitch-resolver/
 src-tauri/.twitch-resolver-build/
+src-tauri/macos-runtime-notices/
+src-tauri/macos-frameworks/
 src-tauri/lib/*.dll
 src-tauri/lib/*.lib
 src-tauri/lib/*.exp
