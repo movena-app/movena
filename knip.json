@@ -2,20 +2,20 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "tests/**/*.{test,spec}.{ts,tsx}",
-    "tests-desktop/**/*.e2e.ts",
-    "tests-ui/harness/main.tsx",
+    "tests/desktop/**/*.e2e.ts",
+    "tests/ui/harness/main.tsx",
     "scripts/**/*.{mjs,ps1}",
     "*.config.{js,mjs,ts}",
-    "*.conf.ts"
+    "config/*.{config,conf}.ts"
   ],
   "project": [
     "src/**/*.{ts,tsx}",
     "tests/**/*.{ts,tsx}",
-    "tests-desktop/**/*.ts",
-    "tests-ui/**/*.{ts,tsx}",
+    "tests/desktop/**/*.ts",
+    "tests/ui/**/*.{ts,tsx}",
     "scripts/**/*.mjs",
     "*.config.{js,mjs,ts}",
-    "*.conf.ts"
+    "config/*.{config,conf}.ts"
   ],
   "ignoreDependencies": [
     "@emnapi/core",

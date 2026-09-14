@@ -26,23 +26,24 @@ behavior instead of relying on documentation or assumptions.
 
 ## Architecture boundaries
 
-- Playback is native libmpv through `src-tauri/src/native_player.rs`; supported
-  Twitch live pages are resolved by `src-tauri/src/twitch_resolver.rs` before
+- Playback is native libmpv through `src-tauri/src/player/`; supported Twitch
+  live pages are resolved by `src-tauri/src/player/twitch_resolver.rs` before
   libmpv loads the loopback stream. Never add an HTML `<video>` fallback or a
   browser-only player.
-- Frontend native calls go through the typed wrappers in `src/api/ipc.ts`.
+- Frontend native calls go through the typed wrappers in
+  `src/platform/tauri.ts` and `src/platform/desktop.ts`.
 - Player commands that start, stop, or reconfigure mpv use
   `#[tauri::command(async)]`; playback state comes from mpv events.
 - Keep remote/server data in TanStack Query and local interaction state in
   Zustand. Provider-backed query keys must include the opaque source scope.
 - Store passwords only through the OS credential vault. Redact URLs, headers,
   credentials, and local paths from diagnostics.
-- Use the shared CSS tokens and controls. Run `npm run design:check` after CSS
+- Use the shared CSS tokens and controls. Run `npm run check:design` after CSS
   or token changes.
 - Do not add local provider tag/color maps, ad-hoc badges, native selects, or
   page-local copies of shared settings/sidebar/catalog controls.
 - `WorkspaceSidebar.module.css`'s `.resizing` state must keep `transition:
-  none` on the dragged `.sidebar` element. A `transition: width` active
+none` on the dragged `.sidebar` element. A `transition: width` active
   during the pointer drag fights the 1:1 cursor tracking in
   `WorkspaceSidebar.tsx`'s `handleResizeMove` — the sidebar visibly lags
   behind the cursor, easing a catch-up on every pixel step instead of
@@ -69,15 +70,15 @@ behavior instead of relying on documentation or assumptions.
 ## Local verification
 
 ```bash
-npm run design:check
+npm run check:design
 npm run setup:twitch
 npm run format:rust:check
-npm run typecheck
-npm run typecheck:test
+npm run check:types
+npm run check:types:frontend
 npm test
 npm run test:coverage
 npm run test:rust
-npm run cargo-check
+npm run check:rust
 npm run check
 ```
 

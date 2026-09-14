@@ -22,5 +22,10 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "vite.ui-qa.config.ts", "vitest.config.ts", "playwright.ui.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "config/vite.ui.config.ts",
+    "vitest.config.ts",
+    "config/playwright.ui.config.ts"
+  ]
 }

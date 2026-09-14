@@ -1,0 +1,645 @@
+.backdropContainer {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 260px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.backdrop {
+  width: 100%;
+  height: 100%;
+  background-position: center 20%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: var(--alpha-30);
+  filter: blur(16px);
+  transform: scale(1.1);
+}
+
+.backdropOverlay {
+  position: absolute;
+  inset: 0;
+  /* Must fade to the modal panel's own background (--surface-elevated), not
+     --bg-surface — those are two different shades, and the wrong one here
+     left a visible seam where the 260px backdrop band met the rest of the
+     modal instead of blending into it. */
+  background:
+    linear-gradient(to bottom, var(--surface-detail-scrim) 0%, var(--surface-elevated) 100%),
+    linear-gradient(to right, rgba(var(--neutral-black-rgb), var(--alpha-50)) 0%, transparent 60%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  gap: var(--space-6);
+  min-height: 0;
+  height: calc(100% - 32px);
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+}
+
+.posterColumn {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+}
+
+.posterWrapper {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-detail-control);
+  background: var(--surface-control);
+  border: 1px solid var(--border-subtle);
+}
+
+.poster {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.posterPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-subtle);
+  text-align: center;
+}
+
+.posterPlaceholderIcon {
+  color: var(--text-muted);
+  opacity: var(--alpha-75);
+}
+
+.posterPlaceholderTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.actionButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.playBtn,
+.favoriteBtn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-instant) var(--ease-standard);
+}
+
+.playBtn {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  background: var(--text-primary);
+  color: var(--bg-base);
+  box-shadow: var(--shadow-detail-control);
+}
+
+.playBtn:hover {
+  opacity: var(--alpha-90);
+}
+
+.playBtn:active,
+.favoriteBtn:active {
+  transform: scale(0.98);
+}
+
+.playBtnLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.playBtnHint {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+  opacity: var(--alpha-70);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actionProgress {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: rgba(var(--neutral-black-rgb), var(--alpha-20));
+}
+
+.actionProgressFill {
+  display: block;
+  height: 100%;
+  background: var(--accent-color);
+}
+
+.favoriteBtn {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-control);
+  color: var(--text-secondary);
+}
+
+.favoriteBtn:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.activeFavoriteBtn,
+.activeFavoriteBtn:hover {
+  border-color: rgba(var(--accent-color-rgb), var(--alpha-40));
+  background: rgba(var(--accent-color-rgb), var(--alpha-12));
+  color: var(--accent-foreground);
+}
+
+.detailsArea {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  overflow-y: auto;
+  padding-right: var(--space-3);
+}
+
+.headerBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  padding-right: var(--space-10);
+  color: var(--text-primary);
+  font-size: var(--font-size-page);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.12;
+  letter-spacing: -0.5px;
+  text-shadow: var(--shadow-detail-title);
+}
+
+.mediaFacts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.factItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.factItem + .factItem::before {
+  content: '·';
+  margin-inline: var(--space-2);
+  color: var(--text-muted);
+}
+
+.starIcon {
+  color: var(--color-warning);
+}
+
+.technicalFact {
+  color: var(--badge-accent, var(--text-primary));
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.plot {
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-relaxed);
+}
+
+.collapsedText {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.expandedText {
+  overflow: visible;
+}
+
+.detailsToggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: calc(-1 * var(--space-2));
+  padding: var(--space-1) 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.detailsToggle:hover {
+  color: var(--accent-foreground);
+}
+
+.episodeSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  margin-top: var(--space-2);
+}
+
+.episodeBrowserHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  min-height: 40px;
+  flex-wrap: nowrap;
+}
+
+.downloadSeasonBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-control);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.downloadSeasonBtn:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.episodesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.episodeCard {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-instant) var(--ease-standard);
+}
+
+.episodeCard:hover {
+  background: var(--surface-control-hover);
+  border-color: var(--border-strong);
+}
+
+.episodeCard:active {
+  transform: scale(0.995);
+}
+
+.currentEpisodeCard {
+  border-color: rgba(var(--accent-color-rgb), var(--alpha-40));
+  background: rgba(var(--accent-color-rgb), var(--alpha-8));
+}
+
+.requestedEpisodeCard {
+  border-color: var(--accent-color);
+  background: var(--surface-selection);
+}
+
+.requestedEpisodeCard .episodeMeta {
+  color: var(--text-secondary);
+}
+
+.episodeImageWrapper {
+  position: relative;
+  width: 140px;
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg-base);
+}
+
+.episodeImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.episodeCard:hover .episodeImage {
+  transform: scale(1.04);
+}
+
+.playOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--neutral-black-rgb), var(--alpha-45));
+  color: var(--text-primary);
+  opacity: var(--alpha-0);
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.playCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--text-primary);
+  color: var(--bg-base);
+  box-shadow: var(--shadow-detail-control);
+  padding-left: var(--space-0-5);
+}
+
+.episodeCard:hover .playOverlay,
+.episodeCard:focus-visible .playOverlay {
+  opacity: var(--alpha-98);
+}
+
+.episodeDownloadedBadge {
+  position: absolute;
+  top: var(--space-1-5);
+  right: var(--space-1-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: rgba(var(--neutral-black-rgb), var(--alpha-55));
+  color: var(--text-primary);
+  border: 1px solid rgba(var(--neutral-white-rgb), var(--alpha-12));
+}
+
+.episodeProgress {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: rgba(var(--neutral-black-rgb), var(--alpha-30));
+}
+
+.episodeProgressFill {
+  display: block;
+  height: 100%;
+  background: var(--accent-color);
+}
+
+.watchedEpisodeProgress .episodeProgressFill {
+  background: var(--color-success);
+}
+
+.episodeInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.episodeHeaderLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.episodeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-px) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--surface-control-active);
+  color: var(--text-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.episodeTitle {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.episodePlot {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-normal);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.episodeMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-0-5);
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+}
+
+.episodeStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent-foreground);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.watchedStatus {
+  color: var(--color-success);
+}
+
+.emptyEpisodes {
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--font-size-body);
+  text-align: center;
+}
+
+.creditsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.creditBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.creditLabel {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.creditValue {
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+}
+
+.castTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.castTag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-75) var(--space-2-5);
+  border-radius: var(--radius-full);
+  background: var(--surface-control);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    gap: var(--space-4);
+    height: calc(100% - 32px);
+    margin-top: var(--space-6);
+    padding: var(--space-4);
+    overflow-y: auto;
+  }
+
+  .posterColumn {
+    width: 100%;
+    flex-direction: row;
+    align-items: flex-start;
+    overflow-y: visible;
+  }
+
+  .posterWrapper {
+    width: 110px;
+  }
+
+  .actionButtons {
+    flex: 1;
+  }
+
+  .title {
+    font-size: var(--font-size-section);
+  }
+
+  .detailsArea {
+    overflow-y: visible;
+    padding-right: 0;
+  }
+}

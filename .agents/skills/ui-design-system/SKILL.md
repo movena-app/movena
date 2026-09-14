@@ -6,11 +6,12 @@ description: CSS tokens, guidelines, layout math formulas, and custom component 
 # UI design system
 
 Canonical documentation: [docs/DESIGN_SYSTEM.md](../../../docs/DESIGN_SYSTEM.md)
-Global tokens: `src/index.css`
+Global tokens: `src/shared/design/index.css`
 
 ## Surface tokens quick-reference
 
 Repeated surfaces use semantic tokens such as:
+
 - `--bg-surface`
 - `--surface-control`
 - `--surface-elevated`
@@ -23,4 +24,4 @@ Category counts and action slots must remain stable on hover (do not shift the c
 
 ## Verification commands
 
-Run `npm run design:check` after CSS or token changes.
+Run `npm run check:design` after CSS or token changes.

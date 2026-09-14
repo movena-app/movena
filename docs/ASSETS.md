@@ -29,7 +29,7 @@ includes Discover, Live TV, timeline guide, VOD player, series player with
 episode drawer, movie and series details, upcoming release schedule, global
 search, M3U visual and raw code workspace, downloads, sources, playback
 settings, and light appearance. The deterministic fixture in
-`tests-ui/harness/ReadmeHarness.tsx` supplies an in-memory M3U playlist, XMLTV guide, library history, download
+`tests/ui/harness/ReadmeHarness.tsx` supplies an in-memory M3U playlist, XMLTV guide, library history, download
 queue, player state, and track metadata. Movie and series surfaces use real
 titles, factual metadata, and TMDB poster/backdrop artwork. Live TV surfaces use
 the real channel identities and marks documented below; their schedule times
@@ -60,25 +60,25 @@ is non-commercial, is attributed in the README and Movena About screen, and
 does not imply endorsement by TMDB or any title owner. TMDB content remains
 subject to TMDB's terms and any underlying rights. Exact poster and backdrop
 CDN URLs are recorded alongside the fixture constants in
-`tests-ui/harness/ReadmeHarness.tsx`. TMDB does not identify the original poster
+`tests/ui/harness/ReadmeHarness.tsx`. TMDB does not identify the original poster
 and backdrop creators or rightsholders on the title pages used here; no creator
 credit beyond the supplying title record was available.
 
-| Title | TMDB record |
-| --- | --- |
-| Dune: Part Two | https://www.themoviedb.org/movie/693134 |
-| Parasite | https://www.themoviedb.org/movie/496243 |
-| Spirited Away | https://www.themoviedb.org/movie/129 |
-| The Matrix | https://www.themoviedb.org/movie/603 |
-| Arrival | https://www.themoviedb.org/movie/329865 |
+| Title                    | TMDB record                             |
+| ------------------------ | --------------------------------------- |
+| Dune: Part Two           | https://www.themoviedb.org/movie/693134 |
+| Parasite                 | https://www.themoviedb.org/movie/496243 |
+| Spirited Away            | https://www.themoviedb.org/movie/129    |
+| The Matrix               | https://www.themoviedb.org/movie/603    |
+| Arrival                  | https://www.themoviedb.org/movie/329865 |
 | The Grand Budapest Hotel | https://www.themoviedb.org/movie/120467 |
-| Mad Max: Fury Road | https://www.themoviedb.org/movie/76341 |
-| The Godfather | https://www.themoviedb.org/movie/238 |
-| Severance | https://www.themoviedb.org/tv/95396 |
-| The Bear | https://www.themoviedb.org/tv/136315 |
-| Dark | https://www.themoviedb.org/tv/70523 |
-| Arcane | https://www.themoviedb.org/tv/94605 |
-| Shōgun | https://www.themoviedb.org/tv/126308 |
+| Mad Max: Fury Road       | https://www.themoviedb.org/movie/76341  |
+| The Godfather            | https://www.themoviedb.org/movie/238    |
+| Severance                | https://www.themoviedb.org/tv/95396     |
+| The Bear                 | https://www.themoviedb.org/tv/136315    |
+| Dark                     | https://www.themoviedb.org/tv/70523     |
+| Arcane                   | https://www.themoviedb.org/tv/94605     |
+| Shōgun                   | https://www.themoviedb.org/tv/126308    |
 
 ### Live TV channel marks
 
@@ -87,16 +87,16 @@ Each linked file page identifies the uploaded artwork as public domain. The
 marks may additionally be protected as trademarks; their appearance in an
 accurate product screenshot is nominative and does not imply endorsement.
 
-| Channel | Wikimedia Commons source |
-| --- | --- |
-| BBC News | https://commons.wikimedia.org/wiki/File:BBC_News_2022_(Alt,_boxed).svg |
-| CNN International | https://commons.wikimedia.org/wiki/File:CNN_International_logo.svg |
-| ARTE | https://commons.wikimedia.org/wiki/File:Arte_Logo_2017.svg |
+| Channel             | Wikimedia Commons source                                                |
+| ------------------- | ----------------------------------------------------------------------- |
+| BBC News            | https://commons.wikimedia.org/wiki/File:BBC_News_2022_(Alt,_boxed).svg  |
+| CNN International   | https://commons.wikimedia.org/wiki/File:CNN_International_logo.svg      |
+| ARTE                | https://commons.wikimedia.org/wiki/File:Arte_Logo_2017.svg              |
 | National Geographic | https://commons.wikimedia.org/wiki/File:National_Geographic_Channel.svg |
-| Eurosport | https://commons.wikimedia.org/wiki/File:Eurosport_Logo_2015.svg |
-| MTV | https://commons.wikimedia.org/wiki/File:MTV_2021_(brand_version).svg |
-| Cartoon Network | https://commons.wikimedia.org/wiki/File:Cartoon_Network_2010_logo.svg |
-| Deutsche Welle | https://commons.wikimedia.org/wiki/File:Deutsche_Welle_symbol_2012.svg |
+| Eurosport           | https://commons.wikimedia.org/wiki/File:Eurosport_Logo_2015.svg         |
+| MTV                 | https://commons.wikimedia.org/wiki/File:MTV_2021_(brand_version).svg    |
+| Cartoon Network     | https://commons.wikimedia.org/wiki/File:Cartoon_Network_2010_logo.svg   |
+| Deutsche Welle      | https://commons.wikimedia.org/wiki/File:Deutsche_Welle_symbol_2012.svg  |
 
 Do not add screenshots, channel logos, provider logos, posters, video, audio,
 or other third-party media without recording the creator, source URL, exact

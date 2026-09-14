@@ -1,0 +1,5 @@
+export const EPG_ROW_HEIGHT = 68;
+export const EPG_RULER_HEIGHT = 44;
+export const EPG_CHANNEL_WIDTH = 248;
+export const MILLISECONDS_PER_MINUTE = 60_000;
+export const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;

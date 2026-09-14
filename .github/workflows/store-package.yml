@@ -66,10 +66,12 @@ jobs:
         shell: pwsh
         env:
           STORE_TENANT_ID: ${{ secrets.STORE_TENANT_ID }}
+          STORE_SELLER_ID: ${{ secrets.STORE_SELLER_ID }}
           STORE_CLIENT_ID: ${{ secrets.STORE_CLIENT_ID }}
           STORE_CLIENT_SECRET: ${{ secrets.STORE_CLIENT_SECRET }}
         run: |
           $configured = (-not [string]::IsNullOrWhiteSpace($env:STORE_TENANT_ID)) -and `
+                        (-not [string]::IsNullOrWhiteSpace($env:STORE_SELLER_ID)) -and `
                         (-not [string]::IsNullOrWhiteSpace($env:STORE_CLIENT_ID)) -and `
                         (-not [string]::IsNullOrWhiteSpace($env:STORE_CLIENT_SECRET))
           if ($configured) {
@@ -79,7 +81,7 @@ jobs:
           }
       - name: Setup Microsoft Store Developer CLI
         if: inputs.publish_to_store && steps.check-store-credentials.outputs.has_credentials == 'true'
-        uses: microsoft/microsoft-store-apppublisher@v1
+        uses: microsoft/microsoft-store-apppublisher@v1.4
       - name: Publish to Microsoft Store
         if: inputs.publish_to_store && steps.check-store-credentials.outputs.has_credentials == 'true'
         shell: pwsh
@@ -90,10 +92,8 @@ jobs:
           STORE_SELLER_ID: ${{ secrets.STORE_SELLER_ID }}
           STORE_PRODUCT_ID: ${{ secrets.STORE_PRODUCT_ID || '9P2T0QGGHQGQ' }}
         run: |
-          $reconfigArgs = @('reconfigure', '--tenantId', $env:STORE_TENANT_ID, '--clientId', $env:STORE_CLIENT_ID, '--clientSecret', $env:STORE_CLIENT_SECRET)
-          if ($env:STORE_SELLER_ID) { $reconfigArgs += @('--sellerId', $env:STORE_SELLER_ID) }
+          $reconfigArgs = @('reconfigure', '--tenantId', $env:STORE_TENANT_ID, '--sellerId', $env:STORE_SELLER_ID, '--clientId', $env:STORE_CLIENT_ID, '--clientSecret', $env:STORE_CLIENT_SECRET)
           & msstore @reconfigArgs
-          $msix = (Get-ChildItem -Path "store-artifacts" -Filter "*.msix" | Select-Object -First 1).FullName
-          & msstore publish $msix -id $env:STORE_PRODUCT_ID
-
-
+          $msixFiles = @(Get-ChildItem -Path "store-artifacts" -Filter "*.msix" -File)
+          if ($msixFiles.Count -ne 1) { throw "Expected exactly one MSIX artifact, found $($msixFiles.Count)." }
+          & msstore publish "." --inputFile $msixFiles[0].FullName --appId $env:STORE_PRODUCT_ID

@@ -12,6 +12,7 @@
 <p align="center">
   <a href="https://github.com/movena-app/movena/releases/latest"><img src="https://img.shields.io/github/v/release/movena-app/movena?display_name=tag&sort=semver&style=flat-square" alt="Latest release"></a>
   <a href="https://github.com/movena-app/movena/actions/workflows/compliance.yml"><img src="https://img.shields.io/github/actions/workflow/status/movena-app/movena/compliance.yml?branch=main&label=verify&style=flat-square" alt="Verify workflow status"></a>
+  <a href="https://discord.gg/hRHpwVPjBN"><img src="https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord community"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-3b82f6?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-58677d?style=flat-square" alt="Windows, macOS, and Linux">
 </p>
@@ -20,9 +21,10 @@
   <strong><a href="https://github.com/movena-app/movena/releases/latest">Download</a></strong>
   · <a href="https://apps.microsoft.com/detail/9P2T0QGGHQGQ">Microsoft Store</a>
   · <a href="https://movena.frtx.cc/">Website</a>
+  · <a href="https://discord.gg/hRHpwVPjBN">Discord</a>
   · <a href="https://github.com/movena-app/movena/issues">Report an issue</a>
-  · <a href="SUPPORT.md">Support</a>
-  · <a href="CONTRIBUTING.md">Contribute</a>
+  · <a href=".github/SUPPORT.md">Support</a>
+  · <a href=".github/CONTRIBUTING.md">Contribute</a>
 </p>
 
 > [!IMPORTANT]
@@ -114,21 +116,21 @@ official channel marks; programme times remain deterministic example XMLTV
 data. Provider accounts, stream URLs, downloads, and playback state use
 reserved `.test` fixture data. No commercial video is included.
 
-| Live TV catalogue | Timeline programme guide |
-| :---: | :---: |
-| ![Movena Live TV catalogue with real channel identities and logos](.github/assets/readme/live-tv.webp) | ![Movena timeline programme guide with real channels and example XMLTV scheduling](.github/assets/readme/live-epg.webp) |
-| Movie details and playback actions | Seasons and episode browser |
-| ![Movena movie details showing real Dune Part Two metadata and TMDB poster artwork](.github/assets/readme/library-details.webp) | ![Movena series details showing Severance with its correct two seasons and 19 episodes](.github/assets/readme/series-details.webp) |
-| Upcoming release calendar | Light appearance |
-| ![Movena upcoming release schedule with live countdowns](.github/assets/readme/upcoming.webp) | ![Movena Discover view in clean light appearance](.github/assets/readme/light-theme.webp) |
-| VOD player controls | Series playback & episode navigation |
-| ![Movena native VOD player controls over a TMDB backdrop with timeline, chapters, and playback settings](.github/assets/readme/player-vod.webp) | ![Movena series player with episode drawer and skip prompts](.github/assets/readme/player-series.webp) |
-| M3U visual channel workspace | M3U raw syntax editor |
-| ![Movena M3U editor with example channels, categories, filters, and stream-health status](.github/assets/readme/m3u-editor.webp) | ![Movena M3U raw syntax editor with line numbers and editing controls](.github/assets/readme/m3u-raw-editor.webp) |
-| Download queue | Source management |
-| ![Movena downloads page with real movie titles and deterministic example transfers](.github/assets/readme/downloads.webp) | ![Movena source settings with a reserved example M3U library](.github/assets/readme/settings.webp) |
-| Global library search | Playback configuration |
-| ![Movena global search returning a real movie title and example Live TV results](.github/assets/readme/search.webp) | ![Movena player and video settings for decoding, buffering, playback behavior, and subtitles](.github/assets/readme/playback-settings.webp) |
+|                                                                Live TV catalogue                                                                |                                                          Timeline programme guide                                                           |
+| :---------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: |
+|                     ![Movena Live TV catalogue with real channel identities and logos](.github/assets/readme/live-tv.webp)                      |           ![Movena timeline programme guide with real channels and example XMLTV scheduling](.github/assets/readme/live-epg.webp)           |
+|                                                       Movie details and playback actions                                                        |                                                         Seasons and episode browser                                                         |
+|         ![Movena movie details showing real Dune Part Two metadata and TMDB poster artwork](.github/assets/readme/library-details.webp)         |     ![Movena series details showing Severance with its correct two seasons and 19 episodes](.github/assets/readme/series-details.webp)      |
+|                                                            Upcoming release calendar                                                            |                                                              Light appearance                                                               |
+|                          ![Movena upcoming release schedule with live countdowns](.github/assets/readme/upcoming.webp)                          |                          ![Movena Discover view in clean light appearance](.github/assets/readme/light-theme.webp)                          |
+|                                                               VOD player controls                                                               |                                                    Series playback & episode navigation                                                     |
+| ![Movena native VOD player controls over a TMDB backdrop with timeline, chapters, and playback settings](.github/assets/readme/player-vod.webp) |                   ![Movena series player with episode drawer and skip prompts](.github/assets/readme/player-series.webp)                    |
+|                                                          M3U visual channel workspace                                                           |                                                            M3U raw syntax editor                                                            |
+|        ![Movena M3U editor with example channels, categories, filters, and stream-health status](.github/assets/readme/m3u-editor.webp)         |              ![Movena M3U raw syntax editor with line numbers and editing controls](.github/assets/readme/m3u-raw-editor.webp)              |
+|                                                                 Download queue                                                                  |                                                              Source management                                                              |
+|            ![Movena downloads page with real movie titles and deterministic example transfers](.github/assets/readme/downloads.webp)            |                     ![Movena source settings with a reserved example M3U library](.github/assets/readme/settings.webp)                      |
+|                                                              Global library search                                                              |                                                           Playback configuration                                                            |
+|               ![Movena global search returning a real movie title and example Live TV results](.github/assets/readme/search.webp)               | ![Movena player and video settings for decoding, buffering, playback behavior, and subtitles](.github/assets/readme/playback-settings.webp) |
 
 ## Download and platform support
 
@@ -139,11 +141,12 @@ assets also include a
 an SPDX SBOM, GitHub build-provenance attestations, and updater signatures where
 applicable. Platform trust status remains explicitly disclosed below.
 
-| Platform | Published packages | Important notes |
-| --- | --- | --- |
-| Windows x64 | [Microsoft Store](https://apps.microsoft.com/detail/9P2T0QGGHQGQ), WinGet, NSIS `.exe`, `.msi`, portable `.zip` | Microsoft Store / WinGet (`winget install movena`). Standalone NSIS and portable packages bundle libmpv. |
-| macOS Apple Silicon | `.dmg` | Install the current mpv runtime with `brew install mpv`. Current builds are ad-hoc signed rather than Developer ID notarized. |
-| Linux x64 | `.deb`, `.AppImage` | A compatible system libmpv and normal Tauri/WebKit desktop libraries are required. Install `mpv` through your distribution if necessary. |
+| Platform            | Published packages                                                                                              | Important notes                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows x64         | [Microsoft Store](https://apps.microsoft.com/detail/9P2T0QGGHQGQ), WinGet, NSIS `.exe`, `.msi`, portable `.zip` | Microsoft Store / WinGet (`winget install movena`). Standalone NSIS and portable packages bundle libmpv.                                 |
+| macOS Apple Silicon | `.dmg` (`aarch64`)                                                                                              | Install the current mpv runtime with `brew install mpv`. Current builds are ad-hoc signed rather than Developer ID notarized.            |
+| macOS Intel         | `.dmg` (`x86_64`)                                                                                               | Install the current mpv runtime with `brew install mpv`. Current builds are ad-hoc signed rather than Developer ID notarized.            |
+| Linux x64           | `.deb`, `.AppImage`                                                                                             | A compatible system libmpv and normal Tauri/WebKit desktop libraries are required. Install `mpv` through your distribution if necessary. |
 
 If installation or playback fails, search the
 [existing issues](https://github.com/movena-app/movena/issues) before opening a
@@ -153,29 +156,29 @@ real viewing data in an issue.
 <details>
 <summary><strong>Keyboard shortcuts</strong></summary>
 
-| Area | Shortcut | Action |
-| --- | --- | --- |
-| Navigation | <kbd>Ctrl/Cmd</kbd> + <kbd>1–5</kbd> | Open Home, Live TV, TV Guide, Movies, or Series |
-| Navigation | <kbd>Ctrl/Cmd</kbd> + <kbd>K</kbd> | Open Search |
-| Navigation | <kbd>Ctrl/Cmd</kbd> + <kbd>\</kbd> | Collapse or expand the sidebar |
-| Help | <kbd>?</kbd> | Show or hide the in-app shortcut guide |
-| Playback | <kbd>Space</kbd> or <kbd>K</kbd> | Play or pause |
-| Playback | <kbd>F</kbd> | Toggle fullscreen |
-| Playback | <kbd>M</kbd> | Mute or restore volume |
-| Playback | <kbd>←</kbd> / <kbd>→</kbd> | Seek backward or forward during VOD playback |
-| Playback | <kbd>↑</kbd> / <kbd>↓</kbd> | Adjust volume, or change channels when the live drawer is open |
-| Playback | <kbd>Esc</kbd> | Close the active player menu, drawer, or player |
+| Area       | Shortcut                             | Action                                                         |
+| ---------- | ------------------------------------ | -------------------------------------------------------------- |
+| Navigation | <kbd>Ctrl/Cmd</kbd> + <kbd>1–5</kbd> | Open Home, Live TV, TV Guide, Movies, or Series                |
+| Navigation | <kbd>Ctrl/Cmd</kbd> + <kbd>K</kbd>   | Open Search                                                    |
+| Navigation | <kbd>Ctrl/Cmd</kbd> + <kbd>\</kbd>   | Collapse or expand the sidebar                                 |
+| Help       | <kbd>?</kbd>                         | Show or hide the in-app shortcut guide                         |
+| Playback   | <kbd>Space</kbd> or <kbd>K</kbd>     | Play or pause                                                  |
+| Playback   | <kbd>F</kbd>                         | Toggle fullscreen                                              |
+| Playback   | <kbd>M</kbd>                         | Mute or restore volume                                         |
+| Playback   | <kbd>←</kbd> / <kbd>→</kbd>          | Seek backward or forward during VOD playback                   |
+| Playback   | <kbd>↑</kbd> / <kbd>↓</kbd>          | Adjust volume, or change channels when the live drawer is open |
+| Playback   | <kbd>Esc</kbd>                       | Close the active player menu, drawer, or player                |
 
 </details>
 
 ## Technology
 
-| Layer | Technology |
-| --- | --- |
-| Desktop shell | [Tauri 2](https://tauri.app/) |
-| Interface | React, TypeScript, Zustand, and TanStack Query |
-| Native core | Rust |
-| Playback | [libmpv](https://mpv.io/) |
+| Layer                       | Technology                                      |
+| --------------------------- | ----------------------------------------------- |
+| Desktop shell               | [Tauri 2](https://tauri.app/)                   |
+| Interface                   | React, TypeScript, Zustand, and TanStack Query  |
+| Native core                 | Rust                                            |
+| Playback                    | [libmpv](https://mpv.io/)                       |
 | Twitch live-page resolution | [Streamlink 8.5](https://streamlink.github.io/) |
 
 React owns presentation and client state; Rust owns native playback,
@@ -227,11 +230,11 @@ Contributions are welcome. Before submitting a change:
 
 ```bash
 npm run check
-npm run licenses:check
+npm run check:licenses
 ```
 
 Every commit needs a DCO sign-off created with `git commit -s`. Please read
-[CONTRIBUTING.md](CONTRIBUTING.md),
+[Contributing guide](.github/CONTRIBUTING.md),
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and
 [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) before substantial changes.
 Project direction is documented in the [roadmap](docs/ROADMAP.md).
@@ -240,7 +243,7 @@ Project direction is documented in the [roadmap](docs/ROADMAP.md).
 
 Movena keeps app data local and operates no media proxy or project account.
 Read the [privacy documentation](docs/PRIVACY.md) and
-[security policy](SECURITY.md) for data handling and private vulnerability
+[security policy](.github/SECURITY.md) for data handling and private vulnerability
 reporting.
 
 Movena is licensed under [GPL-3.0-or-later](LICENSE). Packaging and distribution
@@ -250,5 +253,5 @@ Third-party notices and asset provenance are in
 [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md),
 [THIRD_PARTY_LICENSES.txt](THIRD_PARTY_LICENSES.txt), and
 [docs/ASSETS.md](docs/ASSETS.md). See the
-[Code of Conduct](CODE_OF_CONDUCT.md) and
+[Code of Conduct](.github/CODE_OF_CONDUCT.md) and
 [trademark guidance](docs/TRADEMARK.md) for community and branding terms.

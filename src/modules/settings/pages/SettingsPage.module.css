@@ -1,0 +1,311 @@
+.settingsPage {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.rightColumn {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.scrollContainer {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 var(--space-5) 0 var(--space-4);
+}
+
+.sectionTransition {
+  width: 100%;
+}
+
+.shortcutsContainer {
+  padding: var(--space-4) var(--space-5);
+}
+
+.shortcutsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-2);
+}
+
+.shortcutItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--control-height-lg);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-input);
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    border-color var(--duration-normal) var(--ease-standard);
+}
+
+.shortcutItem:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-control-hover);
+}
+
+.shortcutLabel {
+  color: var(--text-secondary);
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-medium);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 23px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-control-active);
+  box-shadow: var(--shadow-control);
+  color: var(--text-primary);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Consolas,
+    Liberation Mono,
+    monospace;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.aboutBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.aboutTagline {
+  max-width: 640px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-relaxed);
+}
+
+.aboutLinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.updatePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+}
+
+.updatePanelHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.updatePanelTitle {
+  color: var(--text-primary);
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-semibold);
+}
+
+.updatePanelMeta {
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+}
+
+.updatePanelNotes {
+  max-height: 160px;
+  margin: 0;
+  overflow-y: auto;
+  color: var(--text-secondary);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-relaxed);
+  white-space: pre-line;
+}
+
+.updatePanelActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.updatePanelProgress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.updatePanelProgress .progressTrack {
+  flex: 1;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--surface-control);
+}
+
+.progressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-color);
+  transition: width var(--duration-normal) var(--ease-standard);
+}
+
+.successText {
+  color: var(--color-success);
+}
+
+.spinner {
+  animation: spin var(--duration-loop-normal) linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.accountModal {
+  position: relative;
+  width: min(92vw, 500px);
+  box-sizing: border-box;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.sourceChooser {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sourceChooserHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sourceChooserHeader h2 {
+  margin: 0 0 var(--space-1);
+  color: var(--text-primary);
+  font-size: var(--font-size-heading);
+}
+
+.sourceChooserHeader p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-control);
+}
+
+.sourceChooserHeader button {
+  display: grid;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.sourceChoice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-normal) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard);
+}
+
+.sourceChoice:hover {
+  border-color: var(--accent-color);
+  background: var(--surface-control-hover);
+}
+
+.sourceChoice > svg {
+  color: var(--accent-foreground);
+}
+
+.sourceChoice span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-75);
+}
+
+.sourceChoice strong {
+  font-size: var(--font-size-body);
+}
+
+.sourceChoice small {
+  color: var(--text-secondary);
+  font-size: var(--font-size-control);
+}
+
+@media (max-width: 1024px) {
+  .shortcutsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .settingsPage {
+    flex-direction: column;
+  }
+
+  .rightColumn {
+    height: auto;
+  }
+
+  .scrollContainer {
+    padding-inline: var(--space-2);
+  }
+}

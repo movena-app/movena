@@ -1,0 +1,27 @@
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/lib/
+
+# Generated or externally maintained artifacts
+THIRD_PARTY_LICENSES.txt
+package-lock.json
+*.lock
+*.min.*
+
+# Binary and visual-baseline assets
+public/**/*.{png,jpg,jpeg,gif,webp,ico,icns,mp4,webm,woff,woff2}
+tests/ui/__screenshots__/
+
+# Local caches and release output
+.cache/
+*-artifacts/
+dist-source/
+portable-*/
+release-*/

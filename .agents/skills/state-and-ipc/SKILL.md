@@ -1,6 +1,6 @@
 ---
 name: state-and-ipc
-description: State management architecture with Zustand, TanStack Query caching, and Tauri IPC event flow. Use when modifying Zustand stores, TanStack Query hooks or keys, IPC wrappers in src/api/ipc.ts, or credential vault operations.
+description: State management architecture with Zustand, TanStack Query caching, and Tauri IPC event flow. Use when modifying Zustand stores, TanStack Query hooks or keys, IPC wrappers in src/platform/tauri.ts, or credential vault operations.
 ---
 
 # State and IPC
@@ -17,8 +17,10 @@ Derived visibility belongs in shared hooks such as `useCategories` and `useVisib
   active playback session and reset with it.
 - `useDebugStore`: In-memory application and network logs are capped at 200 and
   100 entries respectively and are redacted when exported.
-- Components and stores call typed `tauriApi` methods (in `src/api/ipc.ts`), never bare `invoke`.
-- Credential storage uses `services/credentialVault.ts` and native vault commands.
+- Components and stores call typed `tauriApi` methods (in
+  `src/platform/tauri.ts`), never bare `invoke`.
+- Credential storage uses the sources module's vault service and native
+  commands under `src-tauri/src/credentials/`.
 - Portable settings snapshots use the explicit `SETTINGS_SNAPSHOT_KEYS`
   allowlist and must not include credentials, provider URLs, or guide URLs.
 

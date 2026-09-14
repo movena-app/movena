@@ -31,11 +31,18 @@ export function validateBuildOutput(directory = buildOutputDirectory) {
   if (!existsSync(resolved) || !statSync(resolved).isDirectory()) {
     throw new Error('Build output is missing. Run the Vite build first.');
   }
-  const relativeFiles = walk(resolved).map((path) => relative(resolved, path).replaceAll('\\', '/'));
-  if (!relativeFiles.includes('index.html')) throw new Error('Build output does not contain index.html.');
-  const unexpected = relativeFiles.filter((path) => !allowedExtensions.has(extname(path).toLowerCase()));
+  const relativeFiles = walk(resolved).map((path) =>
+    relative(resolved, path).replaceAll('\\', '/'),
+  );
+  if (!relativeFiles.includes('index.html'))
+    throw new Error('Build output does not contain index.html.');
+  const unexpected = relativeFiles.filter(
+    (path) => !allowedExtensions.has(extname(path).toLowerCase()),
+  );
   if (unexpected.length > 0) {
-    throw new Error(`Build output contains unexpected file types:\n${unexpected.map((path) => `- ${path}`).join('\n')}`);
+    throw new Error(
+      `Build output contains unexpected file types:\n${unexpected.map((path) => `- ${path}`).join('\n')}`,
+    );
   }
   return relativeFiles;
 }

@@ -1,0 +1,652 @@
+/* No backdrop-filter anywhere over the video.
+   During playback the webview is transparent and the picture lives in a
+   separate window behind it, so there is nothing for WebKit to blur — the
+   filter cannot reach the video at all. What it does produce on macOS is a
+   halo tracing the element's shape, the "bubble" around the popovers and the
+   play/pause badge. A flat translucent fill gives the same look without it. */
+
+/* ============================
+   PlayerControls — Shared styles for all control bars
+   ============================ */
+
+/* ── Bottom bar wrapper ─────────────────────────────────── */
+
+.bottomBarWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.bottomBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftControls,
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* ── Icon buttons ───────────────────────────────────────── */
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: var(--alpha-80);
+  transition:
+    opacity var(--duration-normal),
+    transform var(--duration-normal),
+    color var(--duration-normal);
+  width: var(--control-height-lg);
+  height: var(--control-height-lg);
+  padding: 0;
+  border-radius: var(--radius-sm);
+  -webkit-app-region: no-drag;
+}
+
+.iconBtn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.iconBtn:disabled {
+  cursor: progress;
+  opacity: var(--alpha-55);
+}
+
+.activeIcon {
+  color: var(--accent-color) !important;
+  opacity: 1 !important;
+}
+
+.iconBtn[data-recording] {
+  color: var(--color-error);
+}
+
+/* ── Seekbar / Timeline ─────────────────────────────────── */
+
+.timelineContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.seekbarWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.timelineTooltip {
+  position: absolute;
+  bottom: calc(100% + var(--space-1-5));
+  transform: translateX(-50%);
+  background: var(--surface-player);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-player-controls);
+  user-select: none;
+}
+
+.timeText {
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(var(--neutral-black-rgb), var(--alpha-50));
+  min-width: 55px;
+  text-align: center;
+}
+
+.seekbar {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: var(--control-height-sm);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.seekbar::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    to right,
+    var(--accent-color) var(--progress),
+    rgba(var(--neutral-white-rgb), var(--alpha-30)) var(--progress)
+  );
+}
+
+.seekbar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  margin-top: calc(-1 * var(--space-1-5));
+  box-shadow: var(--shadow-control);
+  transition: transform var(--duration-instant);
+}
+
+.seekbar::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* The app-wide focus ring (`:focus-visible` in shared/design/index.css) is
+   sized for rectangular controls. On a slider it draws a large blue box
+   around the whole track instead of highlighting the thumb, which reads as
+   broken rather than as a focus indicator — the moving thumb and filled
+   track already show the current value and which control is active, so
+   these are the one place that ring is suppressed outright. */
+.seekbar:focus-visible,
+.volumeSlider:focus-visible,
+.imageSlider:focus-visible,
+.popoverRange:focus-visible {
+  outline: none;
+}
+
+/* ── Volume ─────────────────────────────────────────────── */
+
+.volumeContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 130px;
+}
+
+.volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: var(--control-height-sm);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--duration-normal),
+    width var(--duration-normal);
+}
+
+.volumeContainer:hover .volumeSlider,
+.volumeSlider:focus-visible {
+  opacity: 1;
+}
+
+.volumeSlider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    to right,
+    var(--accent-color) var(--progress),
+    rgba(var(--neutral-white-rgb), var(--alpha-30)) var(--progress)
+  );
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  margin-top: calc(-1 * var(--space-1));
+  box-shadow: var(--shadow-control);
+}
+
+/* ── LIVE Badge ─────────────────────────────────────────── */
+
+.liveBadge {
+  background-color: var(--color-error);
+  color: var(--text-on-error);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-1) var(--space-2-5);
+  border-radius: var(--radius-sm);
+  letter-spacing: 1px;
+  animation: livePulse var(--duration-loop-pulse) var(--ease-smooth) infinite;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--alpha-70);
+  }
+}
+
+/* ── EPG Container ──────────────────────────────────────── */
+
+.epgContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-control);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  align-self: flex-start;
+}
+
+.epgInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.epgTitle {
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.epgBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-0-5) var(--space-1-5);
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.03em;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.epgBadge[data-tag-type='gold'] {
+  color: var(--tag-gold);
+}
+.epgBadge[data-tag-type='purple'] {
+  color: var(--tag-purple);
+}
+.epgBadge[data-tag-type='cyan'] {
+  color: var(--tag-cyan);
+}
+.epgBadge[data-tag-type='green'] {
+  color: var(--tag-green);
+}
+.epgBadge[data-tag-type='blue'] {
+  color: var(--tag-blue);
+}
+.epgBadge[data-tag-type='coral'] {
+  color: var(--tag-coral);
+}
+
+/* ── Popover Menus ──────────────────────────────────────── */
+
+.popoverContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.popoverMenu {
+  position: absolute;
+  bottom: 50px;
+  right: 0;
+  background: var(--surface-player);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-player-controls);
+  animation: popoverFadeIn var(--duration-normal) var(--ease-standard);
+}
+
+.audioPopoverMenu {
+  width: min(220px, calc(100vw - 24px));
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.popoverTitle {
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  padding: var(--space-1-5) var(--space-2-5) var(--space-0-5);
+  margin-top: var(--space-1);
+}
+
+.popoverTitle:first-child {
+  margin-top: 0;
+}
+
+.popoverItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    color var(--duration-normal) var(--ease-standard);
+  white-space: nowrap;
+}
+
+.popoverItem:hover {
+  background: var(--bg-active);
+  color: var(--text-primary);
+}
+
+.popoverItemActive {
+  background: rgba(var(--accent-color-rgb), var(--alpha-25)) !important;
+  color: var(--accent-color) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
+.popoverAdjustment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-2-5);
+  color: var(--text-secondary);
+  font-size: var(--font-size-micro);
+}
+
+.popoverAdjustmentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.popoverAdjustmentHeader strong {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+.audioSyncControl {
+  padding: var(--space-0-5) var(--space-2-5) var(--space-2);
+}
+
+.audioSyncInputWrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+}
+
+.audioSyncInput {
+  min-width: 0;
+  flex: 1;
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+  text-align: right;
+}
+
+.audioSyncUnit {
+  flex: 0 0 auto;
+  padding-right: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--font-size-micro);
+  pointer-events: none;
+}
+
+.audioSyncNudgeButton {
+  flex: 0 0 var(--control-height-sm);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.audioSyncNudgeButton:hover,
+.audioSyncResetButton:hover {
+  background: var(--surface-control-hover);
+}
+
+.audioSyncResetButton {
+  flex: 0 0 var(--control-height-sm);
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--border-subtle);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.popoverRange {
+  width: 100%;
+  accent-color: var(--accent-color);
+}
+
+/* ── Image Adjustments Panel ────────────────────────────── */
+
+.imagePanel {
+  min-width: 260px;
+  max-height: none;
+  gap: var(--space-3-5);
+  padding: var(--space-3-5);
+}
+
+.imagePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.imageResetBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--duration-normal),
+    background var(--duration-normal);
+}
+
+.imageResetBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-active);
+}
+
+.imageResetBtn:disabled {
+  opacity: var(--alpha-40);
+  cursor: default;
+}
+
+.imageRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.imageRowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-small);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.imageRowValue {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.imageSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--control-height-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.imageSlider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    to right,
+    var(--accent-color) var(--progress),
+    rgba(var(--neutral-white-rgb), var(--alpha-30)) var(--progress)
+  );
+}
+
+.imageSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  margin-top: calc(-1 * var(--space-1));
+  box-shadow: var(--shadow-control);
+}
+
+/* ── Feedback HUD ───────────────────────────────────────── */
+
+.feedbackWrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: var(--z-player-popover);
+}
+
+.feedbackCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--surface-control);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feedbackText {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-top: var(--space-px);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px), (max-height: 420px) {
+  .bottomBarWrapper {
+    gap: var(--space-1);
+  }
+
+  .bottomBar {
+    align-items: flex-end;
+    gap: var(--space-1);
+  }
+
+  .leftControls,
+  .rightControls {
+    gap: var(--space-1);
+  }
+
+  .iconBtn {
+    width: var(--control-height-md);
+    height: var(--control-height-md);
+  }
+
+  .timelineContainer {
+    gap: var(--space-1);
+  }
+
+  .timeText {
+    min-width: var(--control-height-lg);
+    font-size: var(--font-size-small);
+  }
+
+  .volumeContainer {
+    width: var(--control-height-md);
+  }
+
+  .volumeSlider {
+    display: none;
+  }
+
+  .epgContainer {
+    max-width: 100%;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .epgTitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .popoverMenu {
+    right: max(calc(-1 * var(--space-2)), calc(100% - 100vw + var(--space-2)));
+    width: min(260px, calc(100vw - var(--space-4)));
+    max-height: calc(100dvh - var(--window-chrome-height) - var(--space-10));
+    min-width: 0;
+  }
+
+  .imagePanel {
+    min-width: 0;
+  }
+}

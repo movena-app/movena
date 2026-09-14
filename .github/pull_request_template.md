@@ -11,7 +11,7 @@ privacy, playback lifecycle, migration, or packaging risk.
 
 - [ ] Added or updated regression tests
 - [ ] `npm run check`
-- [ ] `npm run licenses:check`
+- [ ] `npm run check:licenses`
 - [ ] UI QA/manual native matrix completed where applicable
 - [ ] No credentials, provider data, private URLs, viewing history, or copyrighted media added
 - [ ] Commit includes DCO sign-off (`git commit -s`)

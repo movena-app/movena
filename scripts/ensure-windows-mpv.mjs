@@ -27,7 +27,9 @@ function sha256(buffer) {
 
 async function ensureWindowsMpv() {
   if (process.platform !== 'win32') {
-    console.log('[ensure-windows-mpv] Non-Windows OS detected; skipping Windows mpv DLL auto-fetch.');
+    console.log(
+      '[ensure-windows-mpv] Non-Windows OS detected; skipping Windows mpv DLL auto-fetch.',
+    );
     return;
   }
 
@@ -35,7 +37,9 @@ async function ensureWindowsMpv() {
   mkdirSync(ytdlpDir, { recursive: true });
 
   if (!existsSync(targetDllInMpvDev) || !existsSync(targetDllInLib)) {
-    console.log(`[ensure-windows-mpv] Windows libmpv-2.dll missing. Fetching pinned mpv-dev build ${MPV_RELEASE_TAG}...`);
+    console.log(
+      `[ensure-windows-mpv] Windows libmpv-2.dll missing. Fetching pinned mpv-dev build ${MPV_RELEASE_TAG}...`,
+    );
 
     try {
       const archivePath = join(root, 'src-tauri', 'mpv-dev.7z');
@@ -51,7 +55,9 @@ async function ensureWindowsMpv() {
       const archiveBuffer = Buffer.from(await downloadRes.arrayBuffer());
       const archiveSha256 = sha256(archiveBuffer);
       if (archiveSha256 !== MPV_ARCHIVE_SHA256) {
-        throw new Error(`mpv archive checksum mismatch: expected ${MPV_ARCHIVE_SHA256}, received ${archiveSha256}`);
+        throw new Error(
+          `mpv archive checksum mismatch: expected ${MPV_ARCHIVE_SHA256}, received ${archiveSha256}`,
+        );
       }
 
       writeFileSync(archivePath, archiveBuffer);
@@ -71,7 +77,9 @@ async function ensureWindowsMpv() {
         throw new Error('libmpv-2.dll was not found inside the downloaded archive.');
       }
 
-      console.log('[ensure-windows-mpv] Copying libmpv-2.dll and import libraries to src-tauri/lib...');
+      console.log(
+        '[ensure-windows-mpv] Copying libmpv-2.dll and import libraries to src-tauri/lib...',
+      );
       copyFileSync(extractedDll, targetDllInMpvDev);
       copyFileSync(extractedDll, targetDllInLib);
 
@@ -88,8 +96,13 @@ async function ensureWindowsMpv() {
 
       console.log('[ensure-windows-mpv] Successfully configured Windows libmpv engine binaries!');
     } catch (error) {
-      console.error('[ensure-windows-mpv] Error auto-provisioning Windows libmpv:', error.message || error);
-      console.error('[ensure-windows-mpv] Run npm run setup:mpv after fixing the download or provide the pinned files manually.');
+      console.error(
+        '[ensure-windows-mpv] Error auto-provisioning Windows libmpv:',
+        error.message || error,
+      );
+      console.error(
+        '[ensure-windows-mpv] Run npm run setup:mpv after fixing the download or provide the pinned files manually.',
+      );
       process.exitCode = 1;
       return;
     }
@@ -123,7 +136,9 @@ async function ensureWindowsMpv() {
       console.log(`[ensure-windows-mpv] yt-dlp ${YTDLP_RELEASE_TAG} is present.`);
       return;
     }
-    console.log('[ensure-windows-mpv] Existing yt-dlp checksum does not match the pinned release; replacing it.');
+    console.log(
+      '[ensure-windows-mpv] Existing yt-dlp checksum does not match the pinned release; replacing it.',
+    );
   }
 
   try {
@@ -136,13 +151,17 @@ async function ensureWindowsMpv() {
     const binary = Buffer.from(await downloadRes.arrayBuffer());
     const binarySha256 = sha256(binary);
     if (binarySha256 !== YTDLP_ASSET_SHA256) {
-      throw new Error(`yt-dlp checksum mismatch: expected ${YTDLP_ASSET_SHA256}, received ${binarySha256}`);
+      throw new Error(
+        `yt-dlp checksum mismatch: expected ${YTDLP_ASSET_SHA256}, received ${binarySha256}`,
+      );
     }
     writeFileSync(targetYtdlp, binary);
     console.log('[ensure-windows-mpv] Successfully configured the YouTube stream resolver!');
   } catch (error) {
     console.error('[ensure-windows-mpv] Error auto-provisioning yt-dlp:', error.message || error);
-    console.error('[ensure-windows-mpv] Run npm run setup:mpv after fixing the download or provide the pinned file manually.');
+    console.error(
+      '[ensure-windows-mpv] Run npm run setup:mpv after fixing the download or provide the pinned file manually.',
+    );
     process.exitCode = 1;
   }
 }

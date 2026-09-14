@@ -1,0 +1,368 @@
+/* ============================
+   PlayerShell — Main overlay container
+   ============================ */
+
+.playerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-player);
+  background-color: transparent !important;
+  background: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  overflow: hidden;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* The app-wide focus ring (`:focus-visible` in shared/design/index.css) is
+   sized for rectangular controls in normal document flow. Over the video —
+   icon buttons on a transparent overlay, drawers, popovers — it draws a blue
+   box that looks like stray UI rather than a focus indicator, and every
+   control here already has its own hover/active/selected treatment. Kill it
+   for every descendant of the player, not just the sliders, rather than
+   chase it control by control as new reports come in. */
+.playerOverlay :focus-visible {
+  outline: none;
+}
+
+/* Keeps the window's top strip draggable while a video plays. The overlay
+   above covers the full viewport for its click-to-toggle-play handler, which
+   would otherwise sit above (and swallow) the app-level drag strip from
+   AppLayout.module.css — that one lives outside the player and is z-indexed far
+   below it. `.topBar` doesn't fill this gap either: it only appears once
+   `showControls` fades it in, and controlsContainer's own padding starts it
+   `--window-chrome-height` down, clear of the window-chrome buttons. This is
+   always mounted, so the strip stays draggable through idle-fade too.
+
+   z-index must strictly clear everything else in the player, not just match
+   it: .controlsContainer spans the *entire* overlay (0 to 100%) and only
+   *looks* like it starts `--window-chrome-height` down because that's
+   padding, not a smaller box — the padding band still eats pointer events
+   once showControls flips it to pointer-events:auto (which is most of the
+   time; reveal() fires on every mouse move). EpisodesDrawer/ChannelsDrawer
+   (PlayerDrawer.module.css) are also full-height and share
+   --z-player-popover with the volume/settings popovers. At equal z-index the
+   later sibling in the DOM wins ties, and both of those come after this in
+   markup — matching either one instead of clearing it just moves the same
+   bug to "open the drawer, dragging breaks again". +1 wins every tie. */
+.windowDragStrip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--window-chrome-height);
+  z-index: var(--z-player-drag);
+  -webkit-app-region: drag;
+}
+
+/* ============================
+   macOS bottom corner slivers
+   ============================
+
+   mpv's video surface is a second, separate NSWindow on macOS (see
+   src-tauri/src/macos_embed.rs), which never inherits the main window's own
+   OS-level corner rounding. The top two corners are handled natively there
+   (the surface is kept out from under the title bar entirely, via AppKit's
+   own `contentLayoutRect`) — but the bottom two have no title-bar-style
+   chrome to hide behind, so mpv's square corners can still show past the
+   window's rounded silhouette there.
+
+   These sit on the already-correctly-rounded main window, above the
+   transparent video hole, and are naturally clipped to its real curve by the
+   OS — same trick as the top would have used. Unlike a flat square patch, a
+   *shaped* sliver (radial-gradient carving out the actual quarter-circle)
+   degrades gracefully if SURFACE_CORNER_RADIUS in macos_embed.rs isn't an
+   exact match for the system's own radius: a few pixels off just reads as a
+   slightly different curve, not a hard notch cut into the picture. Skipped
+   in fullscreen: the screen's own edges are square there. */
+
+.cornerSliver {
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  z-index: var(--z-player);
+}
+
+.cornerSliver[data-corner='bl'] {
+  left: 0;
+  background: radial-gradient(circle at 100% 0%, transparent 10px, var(--neutral-black) 10px);
+}
+
+.cornerSliver[data-corner='br'] {
+  right: 0;
+  background: radial-gradient(circle at 0% 0%, transparent 10px, var(--neutral-black) 10px);
+}
+
+/* ============================
+   Loading & Buffering
+   ============================ */
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--neutral-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-player-backdrop);
+  pointer-events: auto;
+}
+
+.loadingOverlayBuffering {
+  background-color: transparent !important;
+  pointer-events: none;
+}
+
+.loadingSpinner {
+  width: 52px;
+  height: 52px;
+  border: 4px solid rgba(var(--neutral-white-rgb), var(--alpha-15));
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  filter: drop-shadow(0 2px 8px rgba(var(--neutral-black-rgb), var(--alpha-60)));
+}
+
+.radioStage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      rgba(var(--accent-color-rgb), var(--alpha-15)),
+      transparent 42%
+    ),
+    var(--neutral-black);
+  pointer-events: none;
+}
+
+.radioDisc {
+  width: min(26vw, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle,
+    var(--bg-surface-hover) 0 2px,
+    var(--neutral-black) 3px 5px
+  );
+  box-shadow: var(--shadow-xl);
+}
+
+.radioCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 360px;
+  color: var(--text-primary);
+}
+.radioCopy strong {
+  font-size: var(--font-size-display);
+}
+
+/* ============================
+   Error overlay
+   ============================ */
+
+.errorOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--neutral-black-rgb), var(--alpha-85));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  z-index: var(--z-player-controls);
+  pointer-events: auto;
+}
+
+.loadingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.loadingMessage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+}
+
+.loadingMessage strong {
+  color: var(--text-primary);
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ============================
+   Controls Container (shared layout)
+   ============================ */
+
+.controlsContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-6);
+  opacity: 0;
+  transition: opacity var(--duration-deliberate) var(--ease-standard);
+  /* No scrim bands: the video reaches the window edges cleanly. Legibility
+     comes from the drop shadow on the controls themselves instead. */
+  background: transparent;
+  pointer-events: none;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  /* Above .loadingOverlay/.errorOverlay (both `--z-player` - 1): without
+     this the title bar and close button were compositing *underneath* the
+     spinner's opaque backdrop, not merely hidden by the idle-timer — there
+     was no z-index here at all, so it never showed no matter what showControls
+     said. */
+  z-index: var(--z-player-controls);
+}
+
+.showControls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Replaces the removed scrim: keeps text readable on bright video without
+   laying a dark band across the top and bottom of the picture. Set once and
+   inherited — a `filter` on the container would clip its children's own
+   compositing to that container. */
+.controlsContainer {
+  text-shadow: 0 1px 3px rgba(var(--neutral-black-rgb), var(--alpha-65));
+}
+
+.controlsContainer svg {
+  filter: drop-shadow(0 1px 2px rgba(var(--neutral-black-rgb), var(--alpha-60)));
+}
+
+/* Badges carry their own translucent plate, so the shadow would only muddy them. */
+.controlsContainer .badge {
+  text-shadow: none;
+}
+
+/* ============================
+   Top Bar
+   ============================ */
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  -webkit-app-region: drag;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: calc(100% - 60px);
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-semibold);
+  text-shadow: 0 2px 4px rgba(var(--neutral-black-rgb), var(--alpha-50));
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badgeGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  flex-wrap: wrap;
+}
+
+/* One chip shape for every badge; only the accent hue changes. The previous
+   mix of saturated gradients and flat outlines read as three unrelated
+   systems and fought the title for attention. */
+.badge {
+  --badge-accent: rgba(var(--neutral-white-rgb), var(--alpha-92));
+
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.5px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+
+  color: var(--badge-accent);
+  background: color-mix(in srgb, var(--badge-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--badge-accent) 30%, transparent);
+}
+
+@media (max-width: 640px), (max-height: 420px) {
+  .controlsContainer {
+    padding: calc(var(--window-chrome-height) + var(--space-1)) var(--space-2) var(--space-2);
+  }
+
+  .titleGroup {
+    max-width: calc(100% - 150px);
+  }
+
+  .title {
+    font-size: var(--font-size-body);
+  }
+
+  .badgeGroup {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .radioStage {
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .radioCopy {
+    min-width: 0;
+  }
+
+  .radioCopy strong {
+    overflow: hidden;
+    font-size: var(--font-size-section);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .errorOverlay {
+    padding: var(--space-3);
+  }
+}

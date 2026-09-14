@@ -12,4 +12,3 @@ misrepresent their origin, compatibility, sponsorship, or endorsement.
 This policy does not restrict fair use, nominative use, commentary, or rights
 granted by applicable law. It also does not grant rights in third-party names,
 logos, provider marks, TMDB branding, TVmaze branding, IntroDB branding, or channel artwork.
-

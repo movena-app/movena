@@ -6,6 +6,7 @@ Pushing a matching version tag (`vX.Y.Z`) triggers the automated multi-platform
 release workflow (`.github/workflows/release.yml`).
 
 The workflow:
+
 1. Calls the reusable `compliance.yml` workflow and waits for its Linux,
    Windows, and macOS verification jobs.
 2. Builds source archives (`.tar.gz` and `.zip`).
@@ -14,6 +15,14 @@ The workflow:
 5. Builds Linux packages (`.deb` and `.AppImage`).
 6. Generates an SPDX SBOM and `SHA256SUMS.txt`, records GitHub build provenance
    attestations, and publishes the GitHub release.
+7. Submits the generated MSIX to Microsoft Store when the project credentials
+   are configured.
+
+If a Store submission needs to be retried after the GitHub release is complete,
+run `Publish Microsoft Store Package` with the immutable release tag. That
+workflow downloads the existing release MSIX instead of rebuilding it, so the
+Store submission stays tied to the exact tagged artifact. Store automation pins
+the CLI version because its package-input contract is release-sensitive.
 
 ## Release checklist
 
@@ -23,8 +32,8 @@ The workflow:
 2. Run `npm ci`, the platform's native setup (`npm run setup:mpv` on Windows
    and `npm run setup:twitch` everywhere),
    `npm audit --omit=dev --audit-level=high`,
-   `npm run licenses:check`, `npm run public-tree:check`, `npm run check`,
-   `npm run build`, and `npm run ui:qa:visual`. `setup:twitch` regenerates the
+   `npm run check:licenses`, `npm run check:public-tree`, `npm run check`,
+   `npm run build`, and `npm run test:ui:visual`. `setup:twitch` regenerates the
    license report before it is copied into the resolver bundle. The build
    cleans `dist/` first and rejects unexpected output extensions afterward.
 3. Run secret scanning and verify that no playlists, provider records,
@@ -77,11 +86,11 @@ Developer ID, enable hardened runtime, notarize, and staple before publication.
 The setup scripts are the executable manifest for fetched binaries. Keep this
 summary synchronized with them:
 
-| Component | Release input | SHA-256 / lock | Distribution note |
-| --- | --- | --- | --- |
+| Component          | Release input                                                                                                                                                       | SHA-256 / lock                                                     | Distribution note                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | Windows mpv/libmpv | [`mpv-dev-x86_64-20260811-git-f4d13e1c2c.7z`](https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20260811/mpv-dev-x86_64-20260811-git-f4d13e1c2c.7z) | `d849de71d4e57ac7f92cedbda50564af4431d84bd1898e9ee6f9a9fc21d42427` | GPL/version-3-enabled build; include the applicable mpv/FFmpeg corresponding source and build information. |
-| Windows yt-dlp | [`yt-dlp.exe` 2026.08.19](https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe) | `66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a` | Unlicense; source is the matching [`yt-dlp` tag](https://github.com/yt-dlp/yt-dlp/tree/2026.08.19). |
-| Twitch resolver | Streamlink 8.5.0, PyInstaller 6.16.0, Python 3.13.11 | `scripts/twitch-resolver/requirements.lock` with required hashes | Built independently on each target; no FFmpeg is included in this bundle. |
+| Windows yt-dlp     | [`yt-dlp.exe` 2026.08.19](https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe)                                                                 | `66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a` | Unlicense; source is the matching [`yt-dlp` tag](https://github.com/yt-dlp/yt-dlp/tree/2026.08.19).        |
+| Twitch resolver    | Streamlink 8.5.0, PyInstaller 6.16.0, Python 3.13.11                                                                                                                | `scripts/twitch-resolver/requirements.lock` with required hashes   | Built independently on each target; no FFmpeg is included in this bundle.                                  |
 
 Before publishing, verify every fetched or compiled native component has an
 exact version, source URL, checksum or hashed lock, license, patches/build

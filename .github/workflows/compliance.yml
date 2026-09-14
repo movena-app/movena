@@ -50,7 +50,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx playwright install chromium
       - name: Run accessibility, geometry, locale, and visual component QA
-        run: npm run ui:qa:visual
+        run: npm run test:ui:visual
       - name: Upload UI evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -75,7 +75,7 @@ jobs:
       - name: Provision pinned native playback runtime
         run: npm run setup:mpv
       - name: Build feature-gated desktop test binary
-        run: npm run desktop:e2e:build
+        run: npm run test:desktop:build
       - name: Stage native playback runtime beside desktop test binary
         shell: pwsh
         run: |
@@ -89,7 +89,7 @@ jobs:
             throw 'The staged desktop E2E libmpv runtime does not match the pinned source.'
           }
       - name: Exercise onboarding through the real Tauri boundary
-        run: npm run desktop:e2e
+        run: npm run test:desktop
       - name: Upload desktop E2E evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -127,8 +127,8 @@ jobs:
           npm run test:rust
       # Runtime dependencies ship to users; desktop-only test tooling does not.
       - run: npm audit --omit=dev --audit-level=high
-      - run: npm run licenses:check
-      - run: npm run public-tree:check
+      - run: npm run check:licenses
+      - run: npm run check:public-tree
       - name: Reject private media in Git history
         shell: bash
         run: |

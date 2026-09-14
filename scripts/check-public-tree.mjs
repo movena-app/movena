@@ -3,14 +3,21 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, extname, relative, resolve } from 'node:path';
 
 const projectRoot = resolve(import.meta.dirname, '..');
-const output = execFileSync('git', [
-  'ls-files', '--cached', '--others', '--exclude-standard', '-z',
-], { cwd: projectRoot, encoding: 'utf8' });
-const files = output.split('\0').filter(Boolean).filter((file) => existsSync(resolve(projectRoot, file)));
+const output = execFileSync(
+  'git',
+  ['ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+  { cwd: projectRoot, encoding: 'utf8' },
+);
+const files = output
+  .split('\0')
+  .filter(Boolean)
+  .filter((file) => existsSync(resolve(projectRoot, file)));
 const publishableRoots = ['public', 'docs', 'src-tauri/dmg', 'src-tauri/icons', 'src-tauri/msix'];
-const ignoredPublishableOutput = execFileSync('git', [
-  'ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', ...publishableRoots,
-], { cwd: projectRoot, encoding: 'utf8' });
+const ignoredPublishableOutput = execFileSync(
+  'git',
+  ['ls-files', '--others', '--ignored', '--exclude-standard', '-z', '--', ...publishableRoots],
+  { cwd: projectRoot, encoding: 'utf8' },
+);
 const ignoredPublishableFiles = ignoredPublishableOutput.split('\0').filter(Boolean);
 const failures = [];
 const playlistExtensions = new Set(['.m3u', '.m3u8', '.xspf', '.xmltv']);
@@ -28,7 +35,10 @@ const secretPatterns = [
   ['Stripe secret key', /\bsk_(?:live|test)_[0-9A-Za-z]{20,}\b/],
   ['npm authentication token', /(?:^|\n)\s*\/\/[^\s:]+\/:_authToken\s*=\s*[^\s${}][^\s]*/i],
   ['JWT', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/],
-  ['hardcoded credential', /\b(?:api[_-]?key|client[_-]?secret|password|passwd|private[_-]?key|secret|token)\s*[:=]\s*['"][A-Za-z0-9_+\/=.-]{16,}['"]/i],
+  [
+    'hardcoded credential',
+    /\b(?:api[_-]?key|client[_-]?secret|password|passwd|private[_-]?key|secret|token)\s*[:=]\s*['"][A-Za-z0-9_+\/=.-]{16,}['"]/i,
+  ],
 ];
 const credentialUrlPattern = /https?:\/\/[^\s"'<>]+/gi;
 const reservedFixtureHost = /(?:^|\.)(?:example(?:\.com|\.net|\.org)?|test|invalid)$/i;
@@ -38,14 +48,22 @@ const personalPathPatterns = [
   /\/(?:Users|home)\/([^/\s"'<>]+)(?:\/[^\s"'<>]*)?/gi,
 ];
 const skippedLocalDirectories = new Set([
-  '.git', '.offline-markdown-preview', 'coverage', 'coverage-m3u', 'dist', 'node_modules',
-  'playwright-report', 'target', 'test-results',
+  '.git',
+  '.offline-markdown-preview',
+  'coverage',
+  'coverage-m3u',
+  'dist',
+  'node_modules',
+  'playwright-report',
+  'target',
+  'test-results',
 ]);
 const skippedGeneratedPrefixes = [
   'src-tauri/.twitch-resolver-build/',
   'src-tauri/lib/twitch-resolver/',
 ];
-const sensitiveLocalName = /^(?:\.env(?:\..+)?|\.npmrc|\.pypirc|\.netrc|_netrc|id_rsa.*|id_ed25519.*|tauri-signing-key.*|credentials\.json|secrets\.(?:json|ya?ml|toml))$/i;
+const sensitiveLocalName =
+  /^(?:\.env(?:\..+)?|\.npmrc|\.pypirc|\.netrc|_netrc|id_rsa.*|id_ed25519.*|tauri-signing-key.*|credentials\.json|secrets\.(?:json|ya?ml|toml))$/i;
 const sensitiveLocalExtension = new Set(['.key', '.p12', '.pem', '.pfx']);
 
 function hasEncodedPrivateKey(text) {
@@ -66,7 +84,8 @@ function isCredentialUrl(value) {
     if (reservedFixtureHost.test(parsed.hostname)) return false;
     if (parsed.username || parsed.password) return true;
     return [...parsed.searchParams.keys()].some((key) =>
-      /^(?:api[_-]?key|password|passwd|secret|token|username)$/i.test(key));
+      /^(?:api[_-]?key|password|passwd|secret|token|username)$/i.test(key),
+    );
   } catch {
     return false;
   }
@@ -83,9 +102,19 @@ function inspectLocalArtifacts(directory) {
       continue;
     }
     if (!entry.isFile()) continue;
-    if (normalized === '.env.example' || normalized.endsWith('.example.json') || normalized === '.npmrc.example') continue;
-    if (sensitiveLocalName.test(basename(normalized)) || sensitiveLocalExtension.has(extname(normalized).toLowerCase())) {
-      failures.push(`${normalized}: sensitive local credential/signing artifact must live outside the repository`);
+    if (
+      normalized === '.env.example' ||
+      normalized.endsWith('.example.json') ||
+      normalized === '.npmrc.example'
+    )
+      continue;
+    if (
+      sensitiveLocalName.test(basename(normalized)) ||
+      sensitiveLocalExtension.has(extname(normalized).toLowerCase())
+    ) {
+      failures.push(
+        `${normalized}: sensitive local credential/signing artifact must live outside the repository`,
+      );
     }
   }
 }
@@ -102,7 +131,11 @@ for (const file of files) {
   const absolute = resolve(projectRoot, file);
   if (statSync(absolute).size > 2 * 1024 * 1024) continue;
   let text;
-  try { text = readFileSync(absolute, 'utf8'); } catch { continue; }
+  try {
+    text = readFileSync(absolute, 'utf8');
+  } catch {
+    continue;
+  }
   for (const [label, pattern] of secretPatterns) {
     if (pattern.test(text)) failures.push(`${relative(projectRoot, absolute)}: possible ${label}`);
   }
@@ -129,7 +162,9 @@ for (const file of ignoredPublishableFiles) {
   const normalized = file.replace(/\\/g, '/');
   const extension = extname(normalized).toLowerCase();
   if (playlistExtensions.has(extension)) {
-    failures.push(`${normalized}: ignored private playlist is inside a publishable source directory`);
+    failures.push(
+      `${normalized}: ignored private playlist is inside a publishable source directory`,
+    );
   }
   if (binaryMediaExtensions.has(extension)) {
     failures.push(`${normalized}: ignored audio/video is inside a publishable source directory`);
@@ -139,7 +174,11 @@ for (const file of ignoredPublishableFiles) {
 inspectLocalArtifacts(projectRoot);
 
 if (failures.length) {
-  console.error('Public-tree compliance check failed:\n' + failures.map((item) => `- ${item}`).join('\n'));
+  console.error(
+    'Public-tree compliance check failed:\n' + failures.map((item) => `- ${item}`).join('\n'),
+  );
   process.exit(1);
 }
-console.log(`Public-tree compliance check passed (${files.length} visible files; ${ignoredPublishableFiles.length} ignored publishable files inspected).`);
+console.log(
+  `Public-tree compliance check passed (${files.length} visible files; ${ignoredPublishableFiles.length} ignored publishable files inspected).`,
+);

@@ -9,8 +9,15 @@ const lock = source('scripts/twitch-resolver/requirements.lock');
 const wrapper = source('scripts/twitch-resolver/main.py');
 const builder = source('scripts/build-twitch-resolver.mjs');
 
-assert.match(lock, /streamlink==8\.5\.0[\s\S]*--hash=sha256:/, 'Streamlink must remain hash-pinned');
-assert.ok(builder.includes("expectedPythonVersion = '3.13.11'"), 'The resolver Python version changed');
+assert.match(
+  lock,
+  /streamlink==8\.5\.0[\s\S]*--hash=sha256:/,
+  'Streamlink must remain hash-pinned',
+);
+assert.ok(
+  builder.includes("expectedPythonVersion = '3.13.11'"),
+  'The resolver Python version changed',
+);
 
 for (const argument of [
   '--no-config',

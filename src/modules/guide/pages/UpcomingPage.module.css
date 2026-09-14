@@ -1,0 +1,119 @@
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.toolbarMeta {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbarMeta span + span::before {
+  margin-right: var(--space-2);
+  color: var(--border-strong);
+  content: '·';
+}
+
+.timelineContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-bottom: var(--space-7);
+}
+
+.timelineSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.recentSection {
+  padding-bottom: var(--space-1);
+}
+
+.timelineHeadingRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.timelineHeading {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.timelineHint {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.emptyFilter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  font-size: var(--font-size-body);
+  text-align: center;
+}
+
+.spinning {
+  animation: spin var(--duration-loop-normal) linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 760px) {
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .toolbarMeta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .toolbar {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .toolbarMeta {
+    order: 3;
+  }
+
+  .timelineHeadingRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
+}

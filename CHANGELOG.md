@@ -8,6 +8,128 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.17] - 2026-09-13
+
+### Added
+
+- added native macOS builds for Intel (x86_64) Macs, alongside the existing Apple Silicon (aarch64) builds
+
+## [0.1.16] - 2026-09-13
+
+### Fixed
+
+- fixed the next episode/channel starting in a normal window instead of staying fullscreen when switched while fullscreen
+- fixed a corrupted, "zoomed in" looking UI and missing window buttons (Minimize/Maximize/Close) that could appear after switching episodes or leaving fullscreen
+- fixed Esc closing the player entirely instead of leaving fullscreen first
+- fixed Esc doing nothing after clicking or dragging the seekbar or volume slider
+- removed the blue focus outline that could appear around player controls (seekbar, volume, buttons) after clicking or tabbing
+
+## [0.1.15] - 2026-09-11
+
+### Fixed
+
+- fixed LiveTV cards showing a fake quality badge (e.g. "4K") next to the real one once verified
+- reworked the "4K Ultra HD" category so it trusts a verified resolution over the provider's claim, both for its count and for what actually shows up when you open it
+
+### Added
+
+- added a one-time notice on the "4K Ultra HD" category explaining that unverified channels are grouped by the provider's own label, not a guarantee
+
+## [0.1.14] - 2026-09-09
+
+### Fixed
+
+- fixed Badges on LiveTV Section
+- fixed Skip Intro pausing the VOD
+- minor bug fixes
+
+## [0.1.13] - 2026-08-29
+
+This maintenance release reorganizes Movena around explicit product-domain
+boundaries, standardizes repository tooling and naming, and strengthens
+responsive, accessibility, visual, and packaged-desktop verification without
+changing routes, persisted data formats, Tauri commands, or playback events.
+
+### Added
+
+- Added automated architecture enforcement for layer violations, cross-module
+  private imports, direct Tauri usage outside the platform boundary, and
+  TypeScript dependency cycles.
+- Added Prettier configuration and repository-wide `format` and `format:check`
+  commands, with formatting enforced by the main quality gate.
+- Added broader production-surface visual baselines and Playwright coverage for
+  dark and light themes, translated copy, minimum logical window dimensions,
+  high-DPI rendering, intermediate workspace widths, and global layer order.
+- Added focused frontend units for application providers and startup behavior,
+  route composition, EPG rows and programme details, and intentional module
+  contracts exposed through `public` entry points.
+
+### Changed
+
+- Reorganized the frontend into `app`, domain `modules`, `platform`, and
+  `shared` layers, replacing catch-all API, component, hook, service, store,
+  utility, route, and page directories with explicit owners.
+- Reorganized the Rust backend into player, platform, source, credential,
+  download, metadata, and application-data domains while keeping native command
+  names, payloads, event contracts, and playback lifecycle semantics intact.
+- Made the Xtream client stateless, moved source orchestration into the sources
+  domain, extracted shared media and credential contracts, and decoupled i18n,
+  notifications, context menus, query infrastructure, and Tauri wrappers from
+  product stores.
+- Standardized internal naming for pages, dialogs, drawers, detail surfaces,
+  provider initialisms, portable settings, and Xtream integrations.
+- Consolidated frontend, UI, desktop, and fixture tests under `tests`, moved
+  specialized test configuration under `config`, and standardized developer
+  commands around `test:*`, `check:*`, and `format:*`.
+- Moved community policy files under `.github`, refreshed repository skills and
+  architecture documentation, and updated all canonical path references.
+- Improved narrow-layout behavior for the application shell and M3U workspace,
+  centralized dialog focus behavior, and kept off-screen EPG programmes out of
+  keyboard navigation.
+
+### Fixed
+
+- Made the packaged Windows first-run journey independent of previously saved
+  local settings by clearing browser persistence before reloading onboarding.
+- Corrected modal, drawer, checkbox, player-control, settings, and minimum-width
+  geometry and focus behavior covered by the expanded UI quality suite.
+- Pinned the Microsoft Store Developer CLI for deterministic direct-MSIX
+  submission and added an exact-artifact retry workflow.
+
+## [0.1.12] - 2026-08-28
+
+### Added
+
+- Added a Home Layout setting under Settings > Application: choose which
+  rows appear on the home page and reorder them.
+
+### Fixed
+
+- Fixed Skip Intro and Skip Recap: IntroDB's API always answered with a
+  CORS header scoped to its own site, so the app's request was silently
+  blocked before it ever reached the community timestamp data. The request
+  now goes through the desktop backend instead, bypassing that restriction.
+
+## [0.1.11] - 2026-08-28
+
+### Added
+
+- Added Recently Added Series and Popular Movies rows to the Discover home
+  page, alongside the existing Recently Added Movies and Popular Series.
+- Improved downloads:
+  - Downloaded movies and episodes now play straight from disk — instantly,
+    online or offline — with no provider round-trip, and resume from the
+    saved watch position.
+  - Added whole-season downloads from the series detail view.
+  - Downloads is now a grid of movies and series (with a local per-series
+    episode browser) instead of a flat transfer list, and completed
+    downloads persist across restarts with their title, poster, and
+    series/season/episode metadata.
+  - Added a "Downloaded" badge to catalogue cards, and removing a download
+    now deletes the file from disk instead of only forgetting it.
+  - The player's download button now hides itself once you're already
+    playing a local copy.
+
 ## [0.1.10] - 2026-08-27
 
 This maintenance release hardens native platform safety, cleans codebase
@@ -64,7 +186,7 @@ showcase, dependency, release, and quality-gate work into one tagged build.
 - Added Microsoft Store MSIX build and optional submission automation, WinGet
   manifests, distribution starting points for Homebrew, AUR, and Flathub, plus
   store listing copy, screenshots, and generated artwork.
-- Added dark/light accessibility, minimum-window, 200%-zoom, translated-copy,
+- Added dark/light accessibility, minimum-window, high-DPI, translated-copy,
   token-contract, and visual-regression coverage to the component QA harness,
   including checked-in Windows light-theme baselines.
 
@@ -195,7 +317,7 @@ public project considerably easier to evaluate.
 
 - Added a production-component Playwright harness covering primitives, content
   states, settings controls, overlays, and the developer HUD.
-- Added automated accessibility, geometry, 200%-zoom containment, German-copy,
+- Added automated accessibility, geometry, high-DPI containment, German-copy,
   and visual-regression checks for representative interface surfaces.
 - Added checked-in Windows visual baselines for core controls and settings.
 - Added accessibility and geometry evidence uploads to the compliance workflow.
@@ -368,7 +490,7 @@ public project considerably easier to evaluate.
 - Fixed unchecked array/index access and ambiguous optional-property handling
   across stores, utilities, API adapters, components, and tests.
 - Fixed catalogue and shared-control layouts that could overflow or lose
-  containment at narrow widths and the 200% zoom equivalent.
+  containment at narrow and minimum supported logical widths.
 - Fixed duplicate or ambiguous accessible queries by giving interactive
   controls stable roles, labels, descriptions, and scoping.
 - Fixed source, credential, cache, and app-data deletion paths so Movena-owned
@@ -403,7 +525,10 @@ public project considerably easier to evaluate.
   resolver teardown, accessibility, signing claims, checksums, licenses, and
   corresponding source.
 
-[Unreleased]: https://github.com/movena-app/movena/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/movena-app/movena/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/movena-app/movena/compare/v0.1.12...v0.1.13
+[0.1.12]: https://github.com/movena-app/movena/compare/v0.1.11...v0.1.12
+[0.1.11]: https://github.com/movena-app/movena/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/movena-app/movena/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/movena-app/movena/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/movena-app/movena/compare/v0.1.7...v0.1.8

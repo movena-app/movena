@@ -38,7 +38,7 @@ accent color for progress, indicators, and small state cues.
 
 Use the shared primitives before adding a local control:
 
-- `Button` in `src/components/common/Button.tsx` for default, primary, ghost,
+- `Button` in `src/shared/ui/Button.tsx` for default, primary, ghost,
   and danger actions.
 - `IconButton` from the same module for icon-only actions.
 - `uiField` for text, search, URL, number, and password fields. Add a local
@@ -100,17 +100,19 @@ player, but normal app navigation should always retain the functional bar.
 - The shell reserves one title-bar height; route content uses the responsive
   `--page-top-inset` only for breathing room below it. Do not add another
   page-level top spacer.
-- The 960×600 minimum and 1280×800 default desktop sizes are release
-  contracts. Content may scroll vertically, but the document must never gain
-  unintended horizontal overflow, including at 200% zoom.
+- The 960×600 logical-pixel minimum and 1280×800 default desktop sizes are
+  release contracts. OS display scaling does not reduce that CSS viewport:
+  200% DPI renders the same 960×600 logical layout at a 2× device scale.
+  Content may scroll vertically, but the document must never gain unintended
+  horizontal overflow.
 - Long titles and translated copy wrap or truncate non-destructively. Never
   hide the only label, value, recovery action, or destructive warning.
 
 ## Media and player rules
 
-Provider metadata remains normalized by `src/utils/mediaTags.ts` and
-`src/utils/titleParser.ts`; feature code must not create local provider tag or
-color maps. Use the semantic aliases in `src/components/shared/icons.ts` for
+Provider metadata remains normalized by `src/shared/lib/mediaTags.ts` and
+`src/modules/catalog/lib/titleParser.ts`; feature code must not create local provider tag or
+color maps. Use the semantic aliases in `src/shared/ui/icons.ts` for
 icons. Their implementations come from Lucide; active state belongs to the
 surrounding selected surface and accessible state rather than a separate icon
 library.
@@ -134,18 +136,19 @@ playback restores the saved theme without a separate player preference.
 Run these after visual changes:
 
 ```text
-npm run design:check
-npm run typecheck
+npm run check:design
+npm run check:types
 npm run test -- --run
-npm run ui:qa
+npm run test:ui
 ```
 
-The component QA harness is a separate Vite entry under `tests-ui/harness`.
+The component QA harness is a separate Vite entry under `tests/ui/harness`.
 It renders production primitives, content states, settings controls, and
 overlays without adding a development route or fixture code to the app.
-`npm run ui:qa` checks accessibility and the 960×600/200%-zoom geometry
-contracts; `npm run ui:qa:visual` also compares the representative Windows
-screenshots. Update a baseline only after reviewing the rendered difference.
+`npm run test:ui` checks accessibility and the 960×600 logical-pixel geometry
+contract, plus a 2× device-scale pass that preserves that viewport.
+`npm run test:ui:visual` also compares the representative Windows screenshots.
+Update a baseline only after reviewing the rendered difference.
 
 Shared controls should have role-based tests for keyboard navigation, focus,
 ARIA state, disabled behavior, dismissal, selection, and boundaries. Pure grid

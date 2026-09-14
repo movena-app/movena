@@ -17,9 +17,11 @@ Ready-to-use metadata, copy, and asset manifest for Microsoft Store / Partner Ce
 ## Listing fields
 
 ### App title
+
 `Movena: IPTV & Xtream 4K Player`
 
 ### Short description
+
 `4K IPTV player for Xtream Codes and M3U playlists. Hardware-accelerated libmpv, EPG guide, no ads.`
 
 ### Full description
@@ -70,10 +72,12 @@ BUILT-IN M3U PLAYLIST WORKSPACE
 =======================================================
 DISCLAIMER & USAGE POLICY
 =======================================================
+
 Movena is strictly a media player application. Movena does not provide, host, bundle, or sell any media, streams, subscriptions, or channel playlists. Users must supply their own authorized content. Movena respects intellectual property and does not bypass DRM or unauthorized access controls.
 ```
 
 ### Feature list
+
 1. Native libmpv video playback with GPU hardware acceleration (4K & HDR support)
 2. Interactive XMLTV timeline electronic programme guide (EPG) with now/next indicators
 3. Multi-source Xtream Codes API and M3U/M3U8 playlist management
@@ -88,6 +92,7 @@ Movena is strictly a media player application. Movena does not provide, host, bu
 12. 100% Private: Local credential vault encryption, zero ads, and zero telemetry
 
 ### Search keywords
+
 - `IPTV 4K`
 - `Xtream Codes`
 - `M3U player`
@@ -98,23 +103,21 @@ Movena is strictly a media player application. Movena does not provide, host, bu
 
 ## Store assets manifest
 
-| Target slot | Asset path | Resolution |
-| :--- | :--- | :--- |
-| 1:1 Box art | `docs/distribution/store-assets/BoxArt_1080x1080.png` | 1080 × 1080 |
-| 9:16 Poster art | `docs/distribution/store-assets/PosterArt_720x1080.png` | 720 × 1080 |
-| 16:9 Super hero art | `docs/distribution/store-assets/SuperHeroArt_1920x1080.png` | 1920 × 1080 |
-| 1:1 App tile icon | `docs/distribution/store-assets/AppTile_300x300.png` | 300 × 300 |
-| 1:1 Logo (150x150) | `docs/distribution/store-assets/Logo_150x150.png` | 150 × 150 |
-| 1:1 Logo (71x71) | `docs/distribution/store-assets/Logo_71x71.png` | 71 × 71 |
-| Desktop Screenshot 1 | `docs/distribution/screenshots/01_Home_Dashboard.png` | 1920 × 1080 |
-| Desktop Screenshot 2 | `docs/distribution/screenshots/02_Live_TV_Player.png` | 1920 × 1080 |
-| Desktop Screenshot 3 | `docs/distribution/screenshots/03_Electronic_Program_Guide.png` | 1920 × 1080 |
-| Desktop Screenshot 4 | `docs/distribution/screenshots/04_Native_libmpv_Player.png` | 1920 × 1080 |
-| Desktop Screenshot 5 | `docs/distribution/screenshots/05_Series_Player_Episodes.png` | 1920 × 1080 |
-| Desktop Screenshot 6 | `docs/distribution/screenshots/06_Movie_Details.png` | 1920 × 1080 |
-| Desktop Screenshot 7 | `docs/distribution/screenshots/07_Upcoming_Release_Calendar.png` | 1920 × 1080 |
-| Desktop Screenshot 8 | `docs/distribution/screenshots/08_M3U_Playlist_Workspace.png` | 1920 × 1080 |
-| Desktop Screenshot 9 | `docs/distribution/screenshots/09_Download_Manager.png` | 1920 × 1080 |
-| Desktop Screenshot 10 | `docs/distribution/screenshots/10_Light_Appearance.png` | 1920 × 1080 |
-
-
+| Target slot           | Asset path                                                       | Resolution  |
+| :-------------------- | :--------------------------------------------------------------- | :---------- |
+| 1:1 Box art           | `docs/distribution/store-assets/BoxArt_1080x1080.png`            | 1080 × 1080 |
+| 9:16 Poster art       | `docs/distribution/store-assets/PosterArt_720x1080.png`          | 720 × 1080  |
+| 16:9 Super hero art   | `docs/distribution/store-assets/SuperHeroArt_1920x1080.png`      | 1920 × 1080 |
+| 1:1 App tile icon     | `docs/distribution/store-assets/AppTile_300x300.png`             | 300 × 300   |
+| 1:1 Logo (150x150)    | `docs/distribution/store-assets/Logo_150x150.png`                | 150 × 150   |
+| 1:1 Logo (71x71)      | `docs/distribution/store-assets/Logo_71x71.png`                  | 71 × 71     |
+| Desktop Screenshot 1  | `docs/distribution/screenshots/01_Home_Dashboard.png`            | 1920 × 1080 |
+| Desktop Screenshot 2  | `docs/distribution/screenshots/02_Live_TV_Player.png`            | 1920 × 1080 |
+| Desktop Screenshot 3  | `docs/distribution/screenshots/03_Electronic_Program_Guide.png`  | 1920 × 1080 |
+| Desktop Screenshot 4  | `docs/distribution/screenshots/04_Native_libmpv_Player.png`      | 1920 × 1080 |
+| Desktop Screenshot 5  | `docs/distribution/screenshots/05_Series_Player_Episodes.png`    | 1920 × 1080 |
+| Desktop Screenshot 6  | `docs/distribution/screenshots/06_Movie_Details.png`             | 1920 × 1080 |
+| Desktop Screenshot 7  | `docs/distribution/screenshots/07_Upcoming_Release_Calendar.png` | 1920 × 1080 |
+| Desktop Screenshot 8  | `docs/distribution/screenshots/08_M3U_Playlist_Workspace.png`    | 1920 × 1080 |
+| Desktop Screenshot 9  | `docs/distribution/screenshots/09_Download_Manager.png`          | 1920 × 1080 |
+| Desktop Screenshot 10 | `docs/distribution/screenshots/10_Light_Appearance.png`          | 1920 × 1080 |

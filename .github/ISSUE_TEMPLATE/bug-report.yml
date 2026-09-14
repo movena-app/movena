@@ -1,6 +1,6 @@
 name: Bug report
 description: Report a reproducible Movena problem without private provider data.
-title: "[Bug]: "
+title: '[Bug]: '
 labels: [bug, needs-triage]
 body:
   - type: markdown

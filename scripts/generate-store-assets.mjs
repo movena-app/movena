@@ -451,4 +451,3 @@ try {
 }
 
 console.log('All store assets and Windows MSIX taskbar icons generated successfully.');
-

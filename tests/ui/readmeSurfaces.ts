@@ -1,0 +1,25 @@
+export const README_SURFACES = [
+  'hero',
+  'movies',
+  'series',
+  'continue-watching',
+  'favorites',
+  'collections',
+  'not-found',
+  'live-tv',
+  'live-epg',
+  'player-vod',
+  'player-series',
+  'library-details',
+  'series-details',
+  'upcoming',
+  'search',
+  'm3u-editor',
+  'm3u-raw-editor',
+  'downloads',
+  'settings',
+  'playback-settings',
+  'light-theme',
+] as const;
+
+export type ReadmeSurface = (typeof README_SURFACES)[number];

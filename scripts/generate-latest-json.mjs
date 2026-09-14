@@ -38,9 +38,14 @@ function readSignature(fileName) {
 }
 
 // { platformKey: assetFileName } — the one updatable artifact per platform.
+// The two darwin entries come from separate release.yml build-macos matrix
+// legs (native aarch64 and x86_64 builds) that rename their otherwise
+// identically-named `Movena.app.tar.gz` output to avoid clobbering each
+// other once both land in the same release — see that job's packaging step.
 const platforms = {
   'windows-x86_64': `Movena_${version}_x64-setup.exe`,
-  'darwin-aarch64': 'Movena.app.tar.gz',
+  'darwin-aarch64': 'Movena_aarch64.app.tar.gz',
+  'darwin-x86_64': 'Movena_x86_64.app.tar.gz',
   'linux-x86_64': `Movena_${version}_amd64.AppImage`,
 };
 
@@ -48,14 +53,18 @@ const manifestPlatforms = {};
 for (const [platformKey, fileName] of Object.entries(platforms)) {
   const signature = readSignature(fileName);
   if (!signature) {
-    console.warn(`No signature found for ${platformKey} (${fileName}.sig) — skipping from latest.json`);
+    console.warn(
+      `No signature found for ${platformKey} (${fileName}.sig) — skipping from latest.json`,
+    );
     continue;
   }
   manifestPlatforms[platformKey] = { signature, url: downloadUrl(fileName) };
 }
 
 if (Object.keys(manifestPlatforms).length === 0) {
-  console.error('No updater signatures found for any platform — refusing to write an empty latest.json');
+  console.error(
+    'No updater signatures found for any platform — refusing to write an empty latest.json',
+  );
   process.exit(1);
 }
 

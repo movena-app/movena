@@ -1,0 +1,148 @@
+.modal {
+  max-width: 640px;
+  height: auto;
+  max-height: 85vh;
+  padding: var(--space-6);
+  gap: var(--space-4);
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+.poster {
+  width: 88px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--bg-base);
+}
+
+.posterPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-sm);
+  background: var(--surface-control);
+  color: var(--text-muted);
+}
+
+.headerCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-bold);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-control);
+}
+
+.seasons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.season {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.seasonTitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-control);
+  font-weight: var(--font-weight-semibold);
+}
+
+.episodeList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.episodeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.episodeRow:hover {
+  background: var(--surface-control-hover);
+}
+
+.episodePlayBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-control);
+  text-align: left;
+  cursor: pointer;
+}
+
+.episodeLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.episodeSize {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+}
+
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.removeBtn:hover {
+  background: rgba(var(--color-error-rgb), var(--alpha-12));
+  color: var(--color-error);
+}
+
+.removeBtn:disabled {
+  opacity: var(--alpha-50);
+  cursor: default;
+}

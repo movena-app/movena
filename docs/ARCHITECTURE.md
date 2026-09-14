@@ -1,61 +1,123 @@
 # Movena architecture
 
-Movena is a desktop Tauri application. React owns presentation and client
-state; Rust owns native playback, credentials, filesystem access, and native
-network/cache operations.
+Movena is a domain-oriented Tauri desktop application. React owns presentation
+and client state; Rust owns native playback, credentials, filesystem access,
+downloads, and validated native network/cache operations.
 
-## Boundaries
+## Repository map
 
 ```text
-React UI
-  ├─ Zustand: local UI, player, library, source, and preference state
-  ├─ TanStack Query: source-scoped catalog and guide cache
-  ├─ src/api/ipc.ts: typed domain command boundary
-  └─ src/api/desktop.ts: typed desktop event/window boundary
-        │
-        ▼
-Tauri/Rust
-  ├─ native_player.rs: libmpv lifecycle, commands, and events
-  ├─ twitch_resolver.rs: Twitch URL routing and resolver process lifecycle
-  ├─ window_commands.rs: fullscreen and cursor behavior
-  ├─ credentials.rs / source_secrets.rs: operating-system credential vault
-  ├─ remote_media.rs / m3u_cache.rs / xmltv.rs: validated remote data and caches
-  ├─ downloads.rs / app_files.rs: downloads and allowlisted file operations
-  ├─ lib.rs: module registration, app-data deletion, and Tauri wiring
-  ├─ macos_embed.rs: macOS mpv child-window integration
-  └─ windows_window.rs: Windows frameless window and taskbar integration
+.github/                 community files, templates, and workflows
+config/                  specialized UI and desktop test configuration
+distribution/            store and package metadata
+docs/                    architecture, decisions, and release documentation
+public/                  allowlisted static application assets
+scripts/                 checks, setup, asset, and release tooling
+src/
+  app/                    providers, router, shell, startup, and composition
+  modules/                product domains and their focused public contracts
+  platform/               typed Tauri, window, and runtime boundaries
+  shared/                 UI, design, i18n, query, notifications, pure helpers
+src-tauri/src/
+  app_data/               allowlisted files and application-data cleanup
+  credentials/            source and Xtream operating-system vault adapters
+  downloads/              download lifecycle and file deletion
+  metadata/               native metadata integrations
+  platform/               window commands and OS-specific window behavior
+  player/                 libmpv lifecycle, options, properties, diagnostics, Twitch
+  sources/                M3U/XMLTV fetching and caches
+tests/
+  frontend/               Vitest suites grouped by domain
+  ui/                     Playwright accessibility, geometry, locale, and visual QA
+  desktop/                packaged Tauri WebDriver journey
+  fixtures/               shared test fixtures
 ```
 
-The frontend never talks to Rust through ad-hoc `invoke` calls. Add domain
-commands to `src/api/ipc.ts`, desktop/window and event operations to
-`src/api/desktop.ts`, register them in `src-tauri/src/lib.rs`, and test the
-wrapper.
+## Frontend dependency rules
 
-## State ownership
+The allowed direction is:
 
-- `usePlayerStore`: event-authoritative playback state and active stream.
-- `useSourceStore`: M3U profiles, playlist runtimes, and source enablement.
-- `useAuthStore`: Xtream profiles, credentials, and provider runtimes.
-- `useSettingsStore`: persisted preferences and layout settings.
-- `useLibraryStore`: favorites, collections, history, and watch progress.
-- `useDownloadStore`: session-only download queue and active/completion state.
-- `useNotificationStore`, `useSearchStore`, `useContextMenuStore`, `useDebugStore`, `useStreamVerificationStore`, `useUpdateStore`: focused UI, diagnostic, verification, and updater concerns.
-- TanStack Query: remote catalog/detail/EPG data keyed by source identity.
+```text
+shared  ←  platform  ←  modules  ←  app
+                         ↑
+                  focused public contracts
+```
 
-Keep server data in TanStack Query and app interaction state in Zustand. Do not
-duplicate query results in a second global store.
+- `shared` cannot import `platform`, `modules`, or `app`.
+- `platform` can import only `shared` and external libraries.
+- A module can import `shared`, `platform`, its own private files, and another
+  module's focused `public/` entrypoints.
+- `app` composes modules and owns no catalog, source, playback, or settings
+  business logic.
+- Cross-boundary imports use `@/`; relative imports stay within one boundary.
+- Direct `@tauri-apps` imports exist only in `platform`.
+- General catch-all `api`, `components`, `hooks`, `services`, `store`, and
+  `utils` roots are intentionally forbidden.
 
-### Query conventions
+`npm run check:architecture` enforces these rules, rejects dependency cycles,
+and rejects cross-module private imports. Modules expose small, intentional
+contracts under `public/` rather than eager general barrel files.
 
-Catalogues are mapped once in `src/api/useCatalog.ts` and shared by Home,
-catalog pages, search, and detail flows. Query keys come from
-`src/api/queryKeys.ts`; provider-backed keys include an opaque source scope so
-switching accounts cannot reuse another account’s cache. Never include a
-password or raw provider URL in a query key or diagnostic report.
+Naming follows the responsibility of the thing: route components end in
+`Page`; dialogs use `Dialog`, side panels use `Drawer`, non-dialog layers use
+`Overlay`, and media surfaces use plural `Details`. Components are PascalCase,
+hooks start with `use`, TypeScript utilities are camelCase, and directories are
+kebab-case. Initialisms use `M3u`, `Epg`, `Mpv`, `Tmdb`, `TvMaze`, `Xmltv`,
+`IntroDb`, and `Xtream` consistently.
 
-Categories are filtered through shared visibility rules before they reach a
-browsing screen. XMLTV and provider EPG data remain separate query sources and
-are selected by source configuration rather than merged ad hoc in pages.
+## Native boundary
+
+Frontend code never calls Tauri through ad-hoc `invoke` or event APIs. Typed
+commands and events live in `src/platform/tauri.ts`; desktop/window operations
+live in `src/platform/desktop.ts`. Rust commands are registered centrally in
+`src-tauri/src/lib.rs`.
+
+Tauri command names, camelCase payload mappings, `mpv-event`, resolver events,
+and download events are compatibility contracts. Moving implementation files
+must not rename or reshape those boundaries.
+
+The native layout mirrors product responsibilities:
+
+- `player/`: manager lifecycle, command handlers, diagnostic sampling,
+  allowlisted options/properties, recording paths, and Twitch resolver ownership.
+- `platform/`: fullscreen/cursor commands, Windows placement, and macOS
+  fullscreen, input, and mpv-surface concerns.
+- `sources/`: size-limited M3U/XMLTV access, validation, conditional requests,
+  and caches.
+- `credentials/`: operating-system vault entries for Xtream and M3U secrets.
+- `downloads/`, `metadata/`, and `app_data/`: focused native capabilities.
+- `lib.rs`: plugins, managed state, command registration, and app lifecycle
+  composition only.
+
+## State and data ownership
+
+Remote/server data belongs in TanStack Query. Local interaction and persisted
+client state belong in focused Zustand stores:
+
+- Playback: `src/modules/playback/store/usePlayerStore.ts`
+- Sources: `src/modules/sources/store/useSourceStore.ts` and `useAuthStore.ts`
+- Settings: `src/modules/settings/store/useSettingsStore.ts`
+- Library: `src/modules/library/store/useLibraryStore.ts`
+- Downloads: `src/modules/downloads/store/useDownloadStore.ts`
+- Search, diagnostics, updates, verification, notifications, and context menus:
+  their owning module or shared infrastructure.
+
+Provider query keys live in `src/modules/sources/model/queryKeys.ts` and always
+include an opaque source scope. They never include passwords or raw provider
+URLs. Catalog mapping lives in `src/modules/catalog/data/useCatalog.ts` and is
+shared through focused public contracts.
+
+Stores separate model types, persisted schemas, migrations, and runtime actions
+where responsibility warrants it. Existing localStorage keys and serialized
+wire formats are compatibility contracts; runtime refactors must retain the
+format or add an explicit tested migration.
+
+The Xtream client is stateless. Source promotion, persistence, notifications,
+and query invalidation are orchestrated by the sources module rather than by
+the transport client. i18n receives language from `I18nProvider`; translations
+outside React receive explicit language context. Shared notification and
+context-menu infrastructure receive runtime preferences from app composition
+and do not import product stores.
 
 ## Playback
 
@@ -63,106 +125,73 @@ Playback is native libmpv. Windows and Linux embed mpv using the main window
 handle; macOS adopts a separate mpv-owned surface behind the transparent
 webview. Do not replace this with HTML video or a browser-only fallback.
 
-Player commands are asynchronous because mpv teardown can cross the macOS main
-queue. Playback state returns through `mpv-event` and diagnostics through the
-diagnostic events; commands should not pretend to be authoritative state.
-
-The public playback commands are:
+Player commands are asynchronous because teardown can cross the macOS main
+queue. Playback state returns through `mpv-event`; commands do not pretend to
+be authoritative state. Public commands remain:
 
 `mpv_start`, `mpv_stop`, `mpv_play_pause`, `mpv_seek`,
 `mpv_seek_relative`, `mpv_set_volume`, `mpv_set_speed`,
-`mpv_set_audio_track`, `mpv_set_sub_track`, `mpv_set_recording`, and
-the allowlisted `mpv_set_property` boundary.
+`mpv_set_audio_track`, `mpv_set_sub_track`, `mpv_set_recording`, and the
+allowlisted `mpv_set_property` boundary.
 
-Canonical Twitch live-channel pages take a provider-specific path before
-`loadfile`: `twitch_resolver.rs` starts the bundled Streamlink 8.5.0 onedir
-runtime, validates its random `127.0.0.1` HTTP endpoint, and gives only that
-local URL to libmpv. Streamlink removes Twitch's stitched advertising segments;
-Movena represents the resulting unavailable interval with typed
-`resolver-status` events. VODs, clips, unrelated Twitch pages, and direct HLS
-URLs remain on the ordinary playback path.
+Canonical Twitch live pages are resolved before `loadfile` by
+`src-tauri/src/player/twitch_resolver.rs`. The resolver binds only to a random
+`127.0.0.1` port, disables external configuration/plugin sideloading, and gives
+only its validated local URL to libmpv. VODs, clips, unrelated Twitch pages,
+and direct HLS URLs stay on the ordinary path.
 
-The resolver can use an installed Chromium-based browser in headless mode when
-Twitch requires a client-integrity token. Streamlink state is redirected into
-Movena's application cache; Delete All App Data removes that cache. The local
-HTTP listener must bind only to a random `127.0.0.1` port.
+The active `NativePlayerManager` session owns both mpv and the resolver process
+group/listener. Replacement, stop, close, shutdown, and application-data
+deletion terminate those resources before resolver cache removal. Resolver
+URLs, tokens, paths, headers, and raw output never enter diagnostics.
 
-The resolver is owned by the same `NativePlayerManager` session as mpv. Stream
-replacement and shutdown disconnect mpv first, then stop the complete resolver
-process group within a bounded timeout. Resolver output is never passed through
-as raw diagnostics, and URL or token fields retained for failure classification
-are redacted.
+macOS keeps Movena's simple fullscreen behavior rather than a native fullscreen
+space. Its implementation is divided into `platform/macos/fullscreen.rs`,
+`input.rs`, and `surface.rs` while sharing one private module context so the
+ordering/compositing invariants remain atomic.
 
-Fullscreen and pointer visibility use `player_set_fullscreen` and
-`player_set_cursor_hidden`. Source, settings, cache, and download commands are
-also exposed only through `src/api/ipc.ts`; keep their Rust names and camelCase
-payload mappings covered by `tests/platform/ipc.test.ts`.
+## Sources, credentials, and portable settings
 
-## Sources and credentials
+Xtream and M3U sources retain independent profiles, runtimes, credentials,
+caches, and query keys. Provider passwords and M3U connection secrets are
+stored only in the operating-system credential vault. Playlist and XMLTV
+downloads are size-limited, URL-validated, and use conditional HTTP validators.
 
-Xtream and M3U sources share the source manager but keep independent profiles,
-runtimes, caches, and query keys. Provider passwords and M3U connection secrets
-are stored in the operating-system credential vault. Playlist and XMLTV
-downloads are size-limited, URL-validated, and cached with conditional HTTP
-validators where available.
+Settings backups are allowlisted versioned JSON. They can contain portable
+preferences and layouts, but never credentials, source or guide URLs, playlist
+headers, history, favorites, diagnostics, or media caches. Imports validate and
+sanitize the complete document before one store update.
 
-Media URLs and required stream headers are passed to libmpv only after source
-validation. Diagnostics must redact credentials and media URLs.
+## Repository checks
 
-Settings backups are an allowlisted, versioned JSON format. They may contain
-portable preferences and layout settings, but never credentials, source or
-guide URLs, playlist headers, history, favorites, diagnostics, or media caches.
-Imports validate and sanitize the complete document before one store update.
+- `format` / `format:check`: Prettier for TS/TSX, JS/MJS, JSON, YAML, Markdown,
+  and CSS. Generated licenses, builds, binaries, screenshots, caches, and
+  dependency trees are excluded.
+- `check:architecture`: dependency direction, public boundaries, direct Tauri
+  use, and cycles.
+- `check:design`: token integrity, CSS modules, shared primitives, and drift.
+- `check:dead-code`: production, tests, harnesses, config, and scripts.
+- `check:licenses` / `check:public-tree`: dependency notices and release-tree
+  hygiene.
+- `test:ui`, `test:ui:visual`, and `test:desktop`: UI and packaged desktop QA.
 
-The Tauri capability file grants the frontend only the required app/event,
-window, opener, dialog, updater, and restart permissions. The CSP keeps scripts
-self-hosted and disables objects and framing. Images and frontend connections
-currently permit broad `https:` and legacy `http:` destinations because users
-can configure arbitrary providers; Rust commands still validate remote URLs.
-Plain HTTP is accepted when configured but is unencrypted, so HTTPS should be
-preferred wherever the source supports it.
-
-## Repository map
-
-```text
-src/                 React app, stores, API clients, components, and pages
-src-tauri/src/       Rust commands and native playback
-src-tauri/capabilities/ Tauri permissions
-scripts/             Local checks and pinned native setup
-tests/               Frontend and Rust-adjacent regression tests
-tests-ui/            Playwright accessibility, geometry, locale, and visual QA
-tests-desktop/       Feature-gated WebDriver journeys against the real Tauri binary
-docs/adr/            Durable architecture decisions and their consequences
-```
-
-`npm run dead-code:check` runs Knip across production modules, tests, UI
-harnesses, configuration, and JavaScript build scripts. `npm run design:check`
-also rejects orphaned or unused CSS-module selectors, undefined or unused
-design tokens, and forbidden style drift. Dynamic CSS-module variants have a
-small explicit allowlist in the checker.
-
-The normal frontend build removes only the repository-root `dist/` directory
-before Vite runs, then validates every emitted file against the release asset
-allowlist. Unexpected media or unrelated extensions fail the build instead of
-surviving from an earlier build.
+The production build cleans only repository-root `dist/`, then validates every
+emitted asset against the release allowlist.
 
 ## Verification
 
 ```bash
 npm run check
 npm run build
-npm run public-tree:check
+npm run check:licenses
+npm run check:public-tree
+npm run test:ui
+npm run test:ui:visual
+npm run test:desktop:all
 ```
 
-Push and pull-request CI run through `.github/workflows/compliance.yml`; release
-jobs call the same reusable verification workflow before building artifacts.
-Native playback still needs manual testing in a real Tauri window: stream
-start/stop, seek, fullscreen, track switching, recording, resize, and teardown.
-For Twitch, cover startup, pre-roll and mid-roll waiting states, recovery,
-replacement, close, resolver-process teardown, and loopback-listener teardown.
-
-`npm run desktop:e2e:all` compiles a separate `com.movena.desktop.e2e` binary
-with an embedded WebDriver and isolated credential-vault service. Production
-capabilities explicitly exclude that driver. The journey proves real IPC,
-vault/cache writes, and first-run navigation; it does not replace the native
-compositing and teardown matrix above.
+Push and pull-request CI use `.github/workflows/compliance.yml`; Linux, Windows,
+and macOS jobs compile the native domains. Automated tests cannot prove native
+compositing or process teardown. Before release, manually cover start/stop,
+seek, tracks, fullscreen, recording, replacement, resize, close, Twitch
+startup/wait/recovery, process-group teardown, and loopback-listener teardown.

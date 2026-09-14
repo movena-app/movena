@@ -1,0 +1,54 @@
+.gridContainer {
+  --grid-card-width: 180px;
+  --grid-row-height: 270px;
+  --grid-gap: var(--space-4);
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  padding: 0 var(--space-4) var(--space-4);
+  box-sizing: border-box;
+}
+
+.listContainer {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.listSurface {
+  overflow: hidden;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-sizing: border-box;
+}
+
+.rowWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: var(--grid-gap);
+  width: 100%;
+  height: var(--grid-row-height);
+  contain: layout style;
+  transition: z-index var(--duration-instant) var(--ease-standard);
+}
+
+.itemWrapper {
+  width: var(--grid-card-width);
+  flex: 0 0 var(--grid-card-width);
+}
+
+.rowWrapper:hover {
+  z-index: var(--z-header) !important;
+}
+
+.listRow {
+  border-bottom: 1px solid var(--border-subtle);
+  box-sizing: border-box;
+}
+
+.listRowLast {
+  border-bottom: 0;
+}

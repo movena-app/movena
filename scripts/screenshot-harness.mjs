@@ -32,23 +32,31 @@ async function waitForServer(baseUrl) {
 export async function startScreenshotHarness(projectRoot) {
   const port = await getAvailablePort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  const server = spawn(process.execPath, [
-    path.join(projectRoot, 'node_modules', 'vite', 'bin', 'vite.js'),
-    '--config',
-    path.join(projectRoot, 'vite.ui-qa.config.ts'),
-    '--host',
-    '127.0.0.1',
-    '--port',
-    String(port),
-    '--strictPort',
-  ], {
-    cwd: projectRoot,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const server = spawn(
+    process.execPath,
+    [
+      path.join(projectRoot, 'node_modules', 'vite', 'bin', 'vite.js'),
+      '--config',
+      path.join(projectRoot, 'config', 'vite.ui.config.ts'),
+      '--host',
+      '127.0.0.1',
+      '--port',
+      String(port),
+      '--strictPort',
+    ],
+    {
+      cwd: projectRoot,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
 
   let output = '';
-  server.stdout.on('data', (chunk) => { output += chunk.toString(); });
-  server.stderr.on('data', (chunk) => { output += chunk.toString(); });
+  server.stdout.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+  server.stderr.on('data', (chunk) => {
+    output += chunk.toString();
+  });
 
   try {
     await waitForServer(baseUrl);
@@ -73,7 +81,9 @@ export async function waitForPageAssets(page, delayMs) {
   await page.locator('#root').waitFor({ state: 'visible' });
   await page.evaluate(async () => {
     await document.fonts.ready;
-    await Promise.all(Array.from(document.images, (image) => image.decode().catch(() => undefined)));
+    await Promise.all(
+      Array.from(document.images, (image) => image.decode().catch(() => undefined)),
+    );
   });
   await page.waitForTimeout(delayMs);
 }

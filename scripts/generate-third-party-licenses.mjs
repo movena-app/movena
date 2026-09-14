@@ -52,15 +52,25 @@ function npmPackages() {
 }
 
 function cargoPackages() {
-  const metadata = JSON.parse(execFileSync('cargo', [
-    'metadata', '--locked', '--format-version', '1',
-    '--manifest-path', join(projectRoot, 'src-tauri', 'Cargo.toml'),
-  ], {
-    cwd: projectRoot,
-    encoding: 'utf8',
-    maxBuffer: 32 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'inherit'],
-  }));
+  const metadata = JSON.parse(
+    execFileSync(
+      'cargo',
+      [
+        'metadata',
+        '--locked',
+        '--format-version',
+        '1',
+        '--manifest-path',
+        join(projectRoot, 'src-tauri', 'Cargo.toml'),
+      ],
+      {
+        cwd: projectRoot,
+        encoding: 'utf8',
+        maxBuffer: 32 * 1024 * 1024,
+        stdio: ['ignore', 'pipe', 'inherit'],
+      },
+    ),
+  );
   return metadata.packages
     .filter((pkg) => pkg.source && pkg.name !== 'movena')
     .map((pkg) => ({
@@ -72,28 +82,40 @@ function cargoPackages() {
 }
 
 function nativePackages() {
-  return [{
-    ecosystem: 'native',
-    key: 'yt-dlp@2026.08.19',
-    license: 'Unlicense',
-    files: [{
-      name: 'UNLICENSE',
-      text: normalizeText(readFileSync(join(projectRoot, 'scripts', 'licenses', 'yt-dlp-UNLICENSE.txt'), 'utf8')),
-    }],
-  }];
+  return [
+    {
+      ecosystem: 'native',
+      key: 'yt-dlp@2026.08.19',
+      license: 'Unlicense',
+      files: [
+        {
+          name: 'UNLICENSE',
+          text: normalizeText(
+            readFileSync(join(projectRoot, 'scripts', 'licenses', 'yt-dlp-UNLICENSE.txt'), 'utf8'),
+          ),
+        },
+      ],
+    },
+  ];
 }
 
 function pythonPackages() {
   const resolverRoot = join(projectRoot, 'src-tauri', '.twitch-resolver-build');
-  const python = process.platform === 'win32'
-    ? join(resolverRoot, 'venv', 'Scripts', 'python.exe')
-    : join(resolverRoot, 'venv', 'bin', 'python');
+  const python =
+    process.platform === 'win32'
+      ? join(resolverRoot, 'venv', 'Scripts', 'python.exe')
+      : join(resolverRoot, 'venv', 'bin', 'python');
   if (!existsSync(python)) {
     throw new Error('The pinned Twitch resolver environment is missing. Run: npm run setup:twitch');
   }
-  const lockText = readFileSync(join(projectRoot, 'scripts', 'twitch-resolver', 'requirements.lock'), 'utf8');
+  const lockText = readFileSync(
+    join(projectRoot, 'scripts', 'twitch-resolver', 'requirements.lock'),
+    'utf8',
+  );
   const bundledNames = new Set(
-    [...lockText.matchAll(/^([a-z0-9][a-z0-9._-]*)==/gmi)].map((match) => match[1].toLowerCase().replaceAll('_', '-')),
+    [...lockText.matchAll(/^([a-z0-9][a-z0-9._-]*)==/gim)].map((match) =>
+      match[1].toLowerCase().replaceAll('_', '-'),
+    ),
   );
   const collector = String.raw`
 import importlib.metadata
@@ -144,13 +166,19 @@ if python_license.is_file():
     })
 print(json.dumps(records))
 `;
-  const records = JSON.parse(execFileSync(python, ['-c', collector], {
-    cwd: projectRoot,
-    encoding: 'utf8',
-    maxBuffer: 32 * 1024 * 1024,
-  }));
+  const records = JSON.parse(
+    execFileSync(python, ['-c', collector], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+    }),
+  );
   return records
-    .filter((record) => record.name === 'Python' || bundledNames.has(record.name.toLowerCase().replaceAll('_', '-')))
+    .filter(
+      (record) =>
+        record.name === 'Python' ||
+        bundledNames.has(record.name.toLowerCase().replaceAll('_', '-')),
+    )
     .map((record) => ({
       ecosystem: 'python',
       key: `${record.name}@${record.version}`,
@@ -161,8 +189,12 @@ print(json.dumps(records))
     }));
 }
 
-const packages = [...npmPackages(), ...cargoPackages(), ...nativePackages(), ...pythonPackages()]
-  .sort((a, b) => a.ecosystem.localeCompare(b.ecosystem) || a.key.localeCompare(b.key));
+const packages = [
+  ...npmPackages(),
+  ...cargoPackages(),
+  ...nativePackages(),
+  ...pythonPackages(),
+].sort((a, b) => a.ecosystem.localeCompare(b.ecosystem) || a.key.localeCompare(b.key));
 
 const grouped = new Map();
 for (const pkg of packages) {
@@ -212,12 +244,19 @@ for (const [hash, entry] of [...uniqueTexts].sort(([a], [b]) => a.localeCompare(
 
 const generated = `${lines.join('\n').trimEnd()}\n`;
 if (checkOnly) {
-  if (!existsSync(outputPath) || readFileSync(outputPath, 'utf8').replace(/\r\n/g, '\n') !== generated) {
+  if (
+    !existsSync(outputPath) ||
+    readFileSync(outputPath, 'utf8').replace(/\r\n/g, '\n') !== generated
+  ) {
     console.error('THIRD_PARTY_LICENSES.txt is missing or stale. Run npm run licenses:generate.');
     process.exit(1);
   }
-  console.log(`Third-party license report is current (${packages.length} packages, ${uniqueTexts.size} unique texts).`);
+  console.log(
+    `Third-party license report is current (${packages.length} packages, ${uniqueTexts.size} unique texts).`,
+  );
 } else {
   writeFileSync(outputPath, generated, 'utf8');
-  console.log(`Wrote THIRD_PARTY_LICENSES.txt (${packages.length} packages, ${uniqueTexts.size} unique texts).`);
+  console.log(
+    `Wrote THIRD_PARTY_LICENSES.txt (${packages.length} packages, ${uniqueTexts.size} unique texts).`,
+  );
 }

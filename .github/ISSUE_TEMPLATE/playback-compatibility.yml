@@ -1,6 +1,6 @@
 name: Playback compatibility
 description: Report a native playback problem with a lawful, redacted source.
-title: "[Playback]: "
+title: '[Playback]: '
 labels: [playback, needs-triage]
 body:
   - type: input

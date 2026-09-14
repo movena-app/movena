@@ -17,7 +17,12 @@ export default tseslint.config(
   },
   ...tseslint.configs.recommended,
   {
-    files: ['src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'tests-ui/**/*.{ts,tsx}', 'tests-desktop/**/*.{ts,tsx}'],
+    files: [
+      'src/**/*.{ts,tsx}',
+      'tests/**/*.{ts,tsx}',
+      'tests/ui/**/*.{ts,tsx}',
+      'tests/desktop/**/*.{ts,tsx}',
+    ],
     languageOptions: {
       ecmaVersion: 2023,
       globals: { ...globals.browser, ...globals.node },
@@ -32,27 +37,36 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'no-restricted-imports': ['error', {
-        patterns: [{
-          group: ['@tauri-apps/*'],
-          message: 'Use the typed desktopApi or tauriApi boundary instead.',
-        }],
-      }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@tauri-apps/*'],
+              message: 'Use the typed desktopApi or tauriApi boundary instead.',
+            },
+          ],
+        },
+      ],
     },
   },
   {
-    files: ['scripts/**/*.mjs', '*.config.{js,ts}', '*.conf.ts', 'vite*.ts', 'playwright*.ts'],
+    files: ['scripts/**/*.mjs', 'config/**/*.{js,ts}', '*.config.{js,ts}', '*.conf.ts', 'vite*.ts'],
     languageOptions: {
       ecmaVersion: 2023,
       globals: { ...globals.node },
     },
   },
   {
-    files: ['src/api/desktop.ts', 'src/api/ipc.ts', 'tests/**/*.{ts,tsx}'],
+    files: ['src/platform/**/*.ts', 'tests/**/*.{ts,tsx}'],
     rules: { 'no-restricted-imports': 'off' },
   },
   {
     files: ['tests/**/*.{ts,tsx}'],
     rules: { '@typescript-eslint/no-explicit-any': 'off' },
+  },
+  {
+    files: ['src/shared/i18n/i18n.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 );
