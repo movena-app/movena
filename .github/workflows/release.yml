@@ -251,7 +251,7 @@ jobs:
           # executable before Tauri packaged and signed it — re-checking the
           # actually-shipped binary here catches anything the bundling step
           # itself could not: packaging re-introducing an absolute reference.
-          test -n "$(find "$app/Contents/Frameworks" -maxdepth 1 -name '*.dylib' -print -quit)"
+          test -n "$(find "$app/Contents/Resources/Frameworks" -maxdepth 1 -name '*.dylib' -print -quit)"
           if otool -L "$app/Contents/MacOS/movena" | grep -E '/(usr/local|opt/homebrew)/'; then
             echo 'Homebrew-absolute library paths leaked into the packaged app.' >&2
             exit 1

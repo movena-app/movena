@@ -3,9 +3,12 @@
 // executable but before Tauri assembles, signs, and (if configured)
 // notarizes the .app. Makes the build self-contained: copies libmpv and its
 // full transitive dependency closure (ffmpeg, libass, freetype, ...) into a
-// staging directory Tauri then bundles as Contents/Frameworks (see this
-// config's `resources` entry), and rewrites the executable's own load
-// commands to point there — instead of shipping a binary that only launches
+// staging directory Tauri then bundles as Contents/Resources/Frameworks (see
+// this config's `resources` entry — Tauri's generic resource copier always
+// places files under Contents/Resources on macOS, never at the bundle-root
+// Contents/Frameworks a plain `resources` value like "Frameworks/" might
+// suggest), and rewrites the executable's own load commands to point there
+// — instead of shipping a binary that only launches
 // if the end user happens to already have that *exact* set of libraries
 // installed via Homebrew at the same prefix the CI runner used. That
 // mismatch is what crashed with a dyld "Library not loaded" error for
@@ -64,7 +67,16 @@ console.log(`Bundling libmpv and its dependencies into ${frameworksDir} ...`);
 console.log(
   execFileSync(
     'dylibbundler',
-    ['-od', '-b', '-x', executable, '-d', frameworksDir, '-p', '@executable_path/../Frameworks/'],
+    [
+      '-od',
+      '-b',
+      '-x',
+      executable,
+      '-d',
+      frameworksDir,
+      '-p',
+      '@executable_path/../Resources/Frameworks/',
+    ],
     { encoding: 'utf8' },
   ),
 );
@@ -89,6 +101,37 @@ if (bundledDylibs.length === 0) {
     `dylibbundler produced no .dylib files in ${frameworksDir} — that can't be right.`,
   );
 }
+
+// dylibbundler rewrites each of a library's *existing* rpath entries
+// individually (`install_name_tool -rpath <old> <new>`), one call per
+// original entry. A Homebrew library that shipped with more than one
+// distinct rpath (e.g. libmpv linking against two different Swift toolchain
+// paths) ends up with every one of them rewritten to the same new value —
+// producing duplicate LC_RPATH commands in a single file. Older dyld
+// tolerated that; current dyld refuses to load the library at all
+// ("Library not loaded ... duplicate LC_RPATH"), which would silently
+// re-break the exact crash this script exists to prevent. Collapse any
+// duplicates back down to one entry per unique path before signing.
+function dedupeRpaths(filePath) {
+  const info = execFileSync('otool', ['-l', filePath], { encoding: 'utf8' });
+  const rpaths = [...info.matchAll(/cmd LC_RPATH\s*\n\s*cmdsize \d+\s*\n\s*path (.+?) \(offset \d+\)/g)].map(
+    (m) => m[1],
+  );
+  const counts = new Map();
+  for (const path of rpaths) counts.set(path, (counts.get(path) ?? 0) + 1);
+  for (const [path, count] of counts) {
+    // -delete_rpath removes exactly one matching entry per call.
+    for (let i = 1; i < count; i++) {
+      execFileSync('install_name_tool', ['-delete_rpath', path, filePath]);
+    }
+  }
+}
+
+for (const name of bundledDylibs) {
+  dedupeRpaths(join(frameworksDir, name));
+}
+dedupeRpaths(executable);
+
 console.log(`Ad-hoc signing ${bundledDylibs.length} bundled libraries individually...`);
 for (const name of bundledDylibs) {
   execFileSync('codesign', ['--force', '--sign', '-', join(frameworksDir, name)], {
@@ -98,5 +141,5 @@ for (const name of bundledDylibs) {
 
 console.log(
   'Bundled and signed libmpv and its dependencies — Tauri will copy them into ' +
-    'Contents/Frameworks and sign the app around them as usual.',
+    'Contents/Resources/Frameworks and sign the app around them as usual.',
 );
