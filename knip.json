@@ -24,6 +24,7 @@
     "@wdio/mocha-framework",
     "@wdio/spec-reporter"
   ],
+  "ignoreBinaries": ["dylibbundler", "otool", "brew"],
   "rules": {
     "exports": "off"
   }
