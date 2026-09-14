@@ -8,6 +8,12 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.20] - 2026-09-14
+
+### Fixed
+
+- fixed the macOS build packaging the bundled mpv/ffmpeg libraries in the wrong place, so the app failed to launch at all on a clean checkout of 0.1.19
+
 ## [0.1.19] - 2026-09-14
 
 ### Fixed
