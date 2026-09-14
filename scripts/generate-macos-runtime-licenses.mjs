@@ -56,12 +56,19 @@ function otoolDependencies(path) {
     .filter(Boolean);
 }
 
-function homebrewFormulaFromPath(dependencyPath) {
-  // Homebrew's own `/<prefix>/opt/<formula>/...` symlink convention embeds
-  // the formula name directly in the path, so no separate filename → formula
-  // lookup table is needed. Paths without an `/opt/<name>/` segment are
-  // system libraries (/usr/lib, /System/Library/...) — not ours to license.
-  const match = dependencyPath.match(/\/opt\/([^/]+)\//);
+function homebrewFormulaFromRealPath(realDependencyPath) {
+  // Deliberately keyed off Homebrew's actual install location — every
+  // formula's files live under `<prefix>/Cellar/<formula>/<version>/...`,
+  // regardless of which alias/symlink (`<prefix>/opt/<formula>/...`, or a
+  // flat `<prefix>/lib/...` symlink straight into the Cellar) a dependent
+  // binary happened to reference it by. Matching on `/opt/<name>/` instead
+  // looked reasonable but broke on Apple Silicon: the Homebrew *prefix*
+  // itself is `/opt/homebrew`, so a flat `/opt/homebrew/lib/libX.dylib`
+  // reference — no per-formula path segment at all — matched that pattern
+  // and misread "homebrew" itself as a formula name. Resolving to the real,
+  // symlink-free path first and matching `/Cellar/<formula>/` is unambiguous
+  // on both Homebrew prefixes.
+  const match = realDependencyPath.match(/\/Cellar\/([^/]+)\//);
   return match ? match[1] : null;
 }
 
@@ -90,10 +97,16 @@ function collectBundledFormulas(startPath) {
     }
     for (const dependency of dependencies) {
       if (dependency === real) continue;
-      const formula = homebrewFormulaFromPath(dependency);
+      let realDependency;
+      try {
+        realDependency = realpathSync(dependency);
+      } catch {
+        continue; // Not an actual file (e.g. a stale/relocated reference) — nothing to walk into or license.
+      }
+      const formula = homebrewFormulaFromRealPath(realDependency);
       if (!formula) continue;
       formulas.add(formula);
-      if (!visited.has(dependency)) queue.push(dependency);
+      if (!visited.has(realDependency)) queue.push(realDependency);
     }
   }
   return formulas;
