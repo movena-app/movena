@@ -8,6 +8,12 @@ yanked = "deny"
 # when Tauri upgrades those transitive dependencies; all other advisories fail.
 ignore = [
   "RUSTSEC-2024-0370",
+  # glib::VariantStrIter unsoundness (GHSA-wrw7-89jp-8q8g), fixed in glib
+  # 0.20.0. Tauri 2.11.5 itself pins `gtk = "^0.18"` (confirmed via
+  # `cargo update -p glib --precise 0.20.0`, which fails on that pin, not on
+  # anything in our own Cargo.toml) — same unmaintained-transitive situation
+  # as the cluster below, not something we can bump around.
+  "RUSTSEC-2024-0429",
   "RUSTSEC-2024-0411",
   "RUSTSEC-2024-0412",
   "RUSTSEC-2024-0413",
