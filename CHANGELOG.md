@@ -8,6 +8,12 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.23] - 2026-09-15
+
+### Fixed
+
+- fixed a black-screen-with-audio bug on some Intel Macs where `vo=gpu-next` couldn't get a GPU context; now falls back to the legacy `gpu` video output
+
 ## [0.1.22] - 2026-09-14
 
 ### Fixed
