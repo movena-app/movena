@@ -107,14 +107,15 @@ The workflow signs only when project-held credentials are configured. Windows
 uses `WINDOWS_CERTIFICATE` (base64 PFX) and
 `WINDOWS_CERTIFICATE_PASSWORD`; the imported certificate thumbprint is passed
 to Tauri and every generated executable/installer must pass
-`Get-AuthenticodeSignature`. macOS uses Tauri's `APPLE_CERTIFICATE`,
-`APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`,
-`APPLE_PASSWORD`, and `APPLE_TEAM_ID` inputs. A signed macOS job must pass deep
-codesign verification, Gatekeeper assessment, and stapler validation.
+`Get-AuthenticodeSignature`. macOS has no such path — the release workflow
+carries no Apple credentials, builds are always ad-hoc signed
+(`signingIdentity: "-"` in `tauri.conf.json`), and there is no
+notarization/stapling step.
 
-Missing signing credentials deliberately preserve the disclosed unsigned/ad-hoc
-status. Partial credentials fail rather than silently downgrade. Updater signing
-continues to use `TAURI_SIGNING_PRIVATE_KEY` and its password independently.
+Missing Windows signing credentials deliberately preserve the disclosed
+unsigned status; partial credentials fail rather than silently downgrade.
+Updater signing continues to use `TAURI_SIGNING_PRIVATE_KEY` and its password
+independently.
 
 Every published release includes `movena.spdx.json`, checksums that cover the
 SBOM, and GitHub artifact attestations for the complete `release-final` set.
