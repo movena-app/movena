@@ -1,14 +1,12 @@
 //! In-window video embedding for macOS.
 //!
 //! On Windows and X11 mpv honours `--wid` and parents its output into the
-//! window we hand it. macOS has no such path: `video/out/mac/common.swift`
-//! unconditionally calls `initWindow()`, so libmpv always spawns its own
-//! NSWindow and the `--wid` value is ignored. That is the stray window that
-//! shows up next to the app.
+//! window we hand it. macOS has no such path, and the GPU contexts mpv does
+//! offer there are Vulkan-only and unavailable on older Intel hardware — see
+//! `render.rs`, which is why video is rendered through libmpv's render API
+//! into a surface this module owns rather than by mpv into one of its own.
 //!
-//! Since libmpv runs in-process we can fix this from the AppKit side instead:
-//! mpv is told to title its window with `SURFACE_TITLE`, we wait for that
-//! window to appear, strip its chrome, and add it as a child window ordered
+//! That surface is a borderless child window titled `SURFACE_TITLE`, added
 //! *below* the main window. The webview is transparent while `is-playing` is
 //! set, so the video shows through it and the React controls keep compositing
 //! on top — same visual result as `--wid` embedding elsewhere.
@@ -26,7 +24,6 @@ use objc2_app_kit::{
     NSWindow, NSWindowCollectionBehavior, NSWindowOrderingMode, NSWindowStyleMask,
 };
 use objc2_foundation::{NSAlignmentOptions, NSData, NSPoint, NSRect, NSSize};
-use objc2_quartz_core::CACornerMask;
 use tauri::{AppHandle, Emitter, Manager};
 
 /// Window title handed to mpv via `--title`, used to recognise its NSWindow.
@@ -190,67 +187,33 @@ fn video_frame(parent: &NSWindow) -> NSRect {
     parent.backingAlignedRect_options(rect, NSAlignmentOptions::AlignAllEdgesOutward)
 }
 
-/// macOS rounds an ordinary window's corners at the system compositor level,
-/// which the mpv surface — a separate, borderless child window — never gets.
-/// `video_frame` already keeps it out from under the title bar entirely (see
-/// its own doc comment), which is what the *top* corners needed — there's a
-/// real API for "the part not obscured by the title bar" to line up with.
-/// The bottom two have no such chrome to hide behind and no public API
-/// reports the system's actual radius, so this only matches the commonly
-/// measured default for standard-style windows rather than something
-/// verified exact. `PlayerShell`'s corner-sliver overlay (rendered in the
-/// webview, above this surface) is the belt to this braces: a wrong radius
-/// here only leaves this layer's flat black square corner peeking a little
-/// past that overlay's own rounded cutout, or short of it — either way a
-/// small, forgiving mismatch rather than a hard edge. Screen-filling mode has
-/// no border to round to, so corners go back to square there.
-const SURFACE_CORNER_RADIUS: f64 = 10.0;
+// The surface's bottom corners used to be clipped to roughly the system's own
+// window corner radius, by making the content view layer-backed and masking
+// that layer. That is no longer possible: the content view is what the
+// `NSOpenGLContext` draws into (see `render.rs`), and turning a view with an
+// attached GL context layer-backed invalidates its drawable — done *while* the
+// render thread is mid-frame, as adoption did, it crashed outright.
+//
+// `PlayerShell`'s corner-sliver overlay, rendered in the webview above this
+// surface, was already the belt to that braces and still covers the corners.
+// What is left is that the surface's own flat black square corner can peek a
+// little past the overlay's rounded cutout, or stop short of it.
 
-/// Clip the surface's bottom two corners to (a close match of) the system's
-/// own window corner radius, so nothing paints past where the parent's
-/// rounded frame already stops contributing pixels. The top two are left
-/// square: `video_frame` no longer extends the surface under the title bar,
-/// so its top corners now land on the flat seam between the title bar and
-/// the content below — a straight line, nothing there to round off.
+/// Move the video surface to `frame`.
 ///
-/// This masks the *content view's* layer rather than making the window
-/// itself non-opaque: opacity is load-bearing elsewhere (see `adopt`'s note
-/// on the hairline seam an alpha-blended window edge produces), and clipping
-/// the layer leaves it intact — the corner simply paints the window's own
-/// black background instead of video, rather than turning translucent.
-fn round_surface_corners(surface: &NSWindow) {
-    let Some(content_view) = surface.contentView() else {
-        return;
-    };
-    content_view.setWantsLayer(true);
-    let Some(layer) = content_view.layer() else {
-        return;
-    };
-    let radius = if SIMPLE_FULLSCREEN.load(Ordering::SeqCst) {
-        0.0
-    } else {
-        SURFACE_CORNER_RADIUS
-    };
-    layer.setCornerRadius(radius);
-    layer.setMasksToBounds(true);
-    // AppKit/Core Animation's layer space has its origin at the bottom-left,
-    // so "MinY" is the *bottom* of the surface here.
-    layer.setMaskedCorners(CACornerMask::LayerMinXMinYCorner | CACornerMask::LayerMaxXMinYCorner);
-}
-
-/// Move mpv's window to `frame`.
-///
-/// `setFrame:display:` alone is not enough. mpv's NSWindow subclass overrides
-/// `constrainFrameRect:toScreen:` and clamps the frame to the screen's
-/// *visibleFrame* — the area below the menu bar (mpv's window.swift:465). In
-/// screen-filling mode that turns a requested 1470x956+0+0 into +0+-32, pushing
-/// the video down by exactly the menu bar height and leaving a strip of desktop
-/// showing through the top of the transparent webview. `setFrameOrigin:` is not
-/// routed through that constraint, so it puts the origin back.
+/// `setFrame:display:` is followed by `setFrameOrigin:` because AppKit runs the
+/// former through `constrainFrameRect:toScreen:`, which clamps to the screen's
+/// *visibleFrame* — the area below the menu bar. In screen-filling mode that
+/// turned a requested 1470x956+0+0 into +0+-32, pushing the video down by
+/// exactly the menu bar height and leaving a strip of desktop showing through
+/// the top of the transparent webview. `setFrameOrigin:` is not routed through
+/// that constraint, so it puts the origin back.
 fn place_surface(surface: &NSWindow, frame: NSRect) {
     surface.setFrame_display(frame, true);
     surface.setFrameOrigin(frame.origin);
-    round_surface_corners(surface);
+    // The GL drawable is sized in backing-store pixels and does not follow the
+    // window on its own.
+    resize();
 }
 
 /// Whether `surface` is currently parented to `parent`.
@@ -269,8 +232,10 @@ fn adopt(parent: &NSWindow, surface: &NSWindow) {
     surface.setStyleMask(NSWindowStyleMask::Borderless);
     surface.setHasShadow(false);
     surface.setMovable(false);
-    // Belt and braces only — mpv reassigns this property from its own
-    // `input-cursor-passthrough` option, which is where we actually set it.
+    // Nothing else may claim the pointer: a surface that becomes key takes
+    // mouse-moved events away from the webview, and the controls never come
+    // back. Ours is borderless and so cannot become key by default, but the
+    // property is what actually guarantees clicks pass straight through.
     surface.setIgnoresMouseEvents(true);
     // Opaque black behind the video: an alpha-blended window edge is exactly
     // what produces the hairline seams against the transparent webview.
@@ -322,4 +287,5 @@ fn apply_app_icon(mtm: MainThreadMarker) {
 
 include!("fullscreen.rs");
 include!("input.rs");
+include!("render.rs");
 include!("surface.rs");

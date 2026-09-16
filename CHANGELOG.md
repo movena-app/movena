@@ -8,6 +8,13 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.24] - 2026-09-16
+
+### Fixed
+
+- fixed video never starting on older Intel Macs, where audio played on alone until playback timed out — those GPUs are turned down by the Vulkan driver mpv needs, so the app now renders the video itself when that happens, instead of giving up
+- the debug report now records which video output was used, so this kind of playback problem can be diagnosed from a report alone
+
 ## [0.1.23] - 2026-09-15
 
 ### Fixed

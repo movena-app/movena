@@ -281,7 +281,11 @@ export function useMpvSession(): MpvSessionState {
                 : logData.level === 'info'
                   ? 'info'
                   : 'debug';
-          debugLog[level]('player', `[mpv] ${logData.prefix}: ${logData.text}`);
+          // The backend reports a few things of its own through this channel so
+          // they reach an exported diagnostic report; those are not mpv output
+          // and must not be labelled as such.
+          const origin = logData.prefix.startsWith('movena/') ? '' : '[mpv] ';
+          debugLog[level]('player', `${origin}${logData.prefix}: ${logData.text}`);
         }
       }
     });
@@ -418,6 +422,7 @@ export function useMpvSession(): MpvSessionState {
           url: activeStream.streamUrl,
           hwdec: startSettings.hardwareAcceleration ? startSettings.hwdecMode : 'no',
           hdr: startSettings.hdrMode === 'auto',
+          debugLogLevel: startSettings.debugLogLevel,
           toneMapping: startSettings.toneMappingMode,
           cacheSecs: startSettings.cacheSecs,
           demuxerMaxBytes: startSettings.demuxerMaxBytes,

@@ -18,6 +18,7 @@ describe('typed Tauri IPC wrapper', () => {
       url: 'https://stream.test/movie',
       hwdec: 'auto-safe',
       hdr: true,
+      debugLogLevel: 'info',
       toneMapping: 'hable',
       cacheSecs: 30,
       demuxerMaxBytes: '150MiB',

@@ -17,8 +17,10 @@ pub fn prepare_main_window(app: &AppHandle) {
 
 // ── Public API ───────────────────────────────────────────────
 
-/// Start watching for mpv's window and embed it as soon as it exists.
-/// Returns immediately; the polling runs on a background thread.
+/// Embed the video surface as soon as it exists. `render::start` creates it
+/// before this runs, so the watch normally succeeds on its first pass; it stays
+/// a poll because the adoption itself has to happen on the main thread and this
+/// is called from the player's own thread.
 pub fn attach(app: &AppHandle) {
     let app = app.clone();
     let generation = GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
@@ -38,7 +40,6 @@ pub fn attach(app: &AppHandle) {
                     return false;
                 };
                 adopt(&parent, &surface);
-                // mpv has stamped its own logo onto the dock by now.
                 apply_app_icon(mtm);
                 // `mpv_start` runs on every stream switch, not just the first
                 // one — including one that lands mid-fullscreen when a series
@@ -116,23 +117,26 @@ pub fn sync_after_settle(app: &AppHandle) {
     });
 }
 
-/// Release mpv's window from the view hierarchy. Must run to completion
-/// before `mpv_terminate_destroy`, because `addChildWindow:` makes the parent
-/// retain the child — without this the window would outlive mpv.
+/// Release the video surface from the view hierarchy and tear down rendering.
+///
+/// Must run to completion before `mpv_terminate_destroy`: `addChildWindow:`
+/// makes the parent retain the child, so without the detach the window would
+/// outlive mpv, and [`teardown`] has to free the render context while the mpv
+/// handle it belongs to is still alive.
 pub fn detach(app: &AppHandle) {
     GENERATION.fetch_add(1, Ordering::SeqCst);
-    if !ATTACHED.swap(false, Ordering::SeqCst) {
-        return;
+    if ATTACHED.swap(false, Ordering::SeqCst) {
+        with_main_blocking(app, Duration::from_millis(500), |app, mtm| {
+            if let (Some(surface), Some(parent)) = (find_surface(mtm), parent_window(app)) {
+                parent.removeChildWindow(&surface);
+                surface.orderOut(None);
+                // The window is opaque again once the player closes.
+                parent.setHasShadow(true);
+                parent.invalidateShadow();
+            }
+            apply_app_icon(mtm);
+            true
+        });
     }
-    with_main_blocking(app, Duration::from_millis(500), |app, mtm| {
-        if let (Some(surface), Some(parent)) = (find_surface(mtm), parent_window(app)) {
-            parent.removeChildWindow(&surface);
-            surface.orderOut(None);
-            // The window is opaque again once the player closes.
-            parent.setHasShadow(true);
-            parent.invalidateShadow();
-        }
-        apply_app_icon(mtm);
-        true
-    });
+    teardown(app);
 }
