@@ -80,6 +80,24 @@ fn main() {
 
     #[cfg(target_os = "macos")]
     {
+        // tauri.bundle.macos.conf.json declares this as a `bundle.resources`
+        // entry, and `tauri_build::build()` below validates that every
+        // declared resource path already exists — at *this* point in the
+        // build, before scripts/bundle-macos-mpv.mjs (which populates it via
+        // Tauri's `beforeBundleCommand`, running later, after this compile
+        // step) has had any chance to create it. An empty directory here is
+        // enough to satisfy that check; the bundler reads whatever is
+        // actually in it at the later bundling stage, by which point the
+        // hook has filled it with libmpv and its dependencies for real.
+        let macos_frameworks_path = std::path::Path::new(&manifest_dir).join("macos-frameworks");
+        if let Err(e) = std::fs::create_dir_all(&macos_frameworks_path) {
+            println!(
+                "cargo:warning=Failed to create {}: {}",
+                macos_frameworks_path.display(),
+                e
+            );
+        }
+
         // libmpv-sys's own build script only emits `cargo:rustc-link-lib=mpv`
         // — no `-L` of its own — so the `cargo:rustc-link-search` above is
         // the *only* thing telling the linker where to find it, and that

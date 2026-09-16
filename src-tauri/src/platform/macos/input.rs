@@ -29,9 +29,7 @@ fn focus_webview(parent: &NSWindow) {
 /// NOT FOUND, first responder is now WryWebViewParent", the container rather
 /// than the view that feeds the DOM.
 fn find_webview(view: &NSView) -> Option<Retained<NSView>> {
-    let Some(webkit) = AnyClass::get(c"WKWebView") else {
-        return None;
-    };
+    let webkit = AnyClass::get(c"WKWebView")?;
     if view.isKindOfClass(webkit) {
         return unsafe { Retained::retain(view as *const NSView as *mut NSView) };
     }
@@ -129,7 +127,7 @@ fn watch_key_window(app: &AppHandle, gen: u64) {
                         // too. Without it, key status comes back but keyboard
                         // shortcuts (starting with `F` to leave fullscreen) stay
                         // dead until a click on the video happens to refocus it.
-                        focus_webview(&parent);
+                        focus_webview(parent);
                         log::info!("mpv surface took key focus; handed it back");
                     }
                     // Mouse-moved events reach a window only if it opts in.

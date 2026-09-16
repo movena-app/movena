@@ -8,6 +8,26 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.23] - 2026-09-15
+
+### Fixed
+
+- fixed a black-screen-with-audio bug on some Intel Macs where `vo=gpu-next` couldn't get a GPU context; now falls back to the legacy `gpu` video output
+
+## [0.1.22] - 2026-09-14
+
+### Fixed
+
+- fixed the macOS build packaging the bundled mpv/ffmpeg libraries in the wrong place, so the app failed to launch at all on a clean checkout of 0.1.19
+- updated a bundled TLS library to patch a recently disclosed vulnerability (RUSTSEC-2026-0285)
+
+## [0.1.19] - 2026-09-14
+
+### Fixed
+
+- fixed macOS app not launching for anyone without mpv installed via Homebrew at the exact same path the build used — the app now bundles mpv and its full dependency chain into itself instead of depending on the machine's own install
+- fixed video not starting on macOS/Linux
+
 ## [0.1.17] - 2026-09-13
 
 ### Added
