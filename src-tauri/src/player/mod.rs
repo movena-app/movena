@@ -749,8 +749,7 @@ pub fn mpv_start(
                                     // decides whether the surface to embed is
                                     // the app's own OpenGL one or the window
                                     // mpv built for a Vulkan context.
-                                    let current_vo =
-                                        mpv_property_string(mpv_handle, "current-vo");
+                                    let current_vo = mpv_property_string(mpv_handle, "current-vo");
                                     macos_embed::adopt_video_output(&app, current_vo.as_deref());
                                 }
                                 #[cfg(target_os = "windows")]
