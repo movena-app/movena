@@ -8,6 +8,12 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.26] - 2026-09-17
+
+### Added
+
+- added Settings -> Sources -> Refresh All
+
 ## [0.1.25] - 2026-09-16
 
 ### Fixed
