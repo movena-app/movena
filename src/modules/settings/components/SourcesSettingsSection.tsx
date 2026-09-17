@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Check, Loader2, Pencil, Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
+import {
+  Check,
+  Loader2,
+  Pencil,
+  PlugZap,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 import { RiPlayList2Line } from '@/shared/ui/icons';
 import {
   useAuthStore,
@@ -39,7 +48,7 @@ export function SourcesSettingsSection({
   onEditM3u,
   onOpenM3uEditor,
 }: SourcesSettingsSectionProps) {
-  const { t, tn, number, date } = useI18n();
+  const { t, tn, number, date, list } = useI18n();
 
   const sourceCounts = (source: M3uSourceProfile): string => {
     const parts = [
@@ -65,6 +74,7 @@ export function SourcesSettingsSection({
   const enabledSourceIds = useSourceStore((state) => state.enabledSourceIds);
   const setSourceEnabled = useSourceStore((state) => state.setSourceEnabled);
   const refreshM3u = useSourceStore((state) => state.refreshSource);
+  const refreshAllM3u = useSourceStore((state) => state.refreshAllSources);
   const removeM3u = useSourceStore((state) => state.removeSource);
   const setEditorRefreshPolicy = useSourceStore((state) => state.setEditorRefreshPolicy);
   const setEditorWriteBack = useSourceStore((state) => state.setEditorWriteBack);
@@ -107,6 +117,48 @@ export function SourcesSettingsSection({
     }
   };
 
+  const runRefreshAll = async () => {
+    setBusy('refresh-all');
+    try {
+      const [playlists, xtreamResults] = await Promise.all([
+        refreshAllM3u(),
+        Promise.allSettled(xtreamProfiles.map((profile) => testXtream(profile.id))),
+      ]);
+      const xtreamFailures = xtreamProfiles.filter(
+        (_, index) => xtreamResults[index]?.status === 'rejected',
+      );
+      const unreachable = [...playlists.failed, ...xtreamFailures.map((profile) => profile.name)];
+      const reloaded = playlists.refreshed.length + xtreamProfiles.length - xtreamFailures.length;
+      const total = m3uProfiles.length + xtreamProfiles.length;
+
+      if (unreachable.length) {
+        notify.error(
+          'Refresh Incomplete',
+          `${reloaded} of ${total} sources reloaded. Could not reach: ${list(unreachable)}`,
+        );
+      } else {
+        notify.success('Sources Refreshed', `${reloaded} of ${total} sources reloaded.`);
+      }
+      // Reported separately so an edited copy never looks like a failure.
+      if (playlists.skipped.length) {
+        notify.info(
+          'Edited Playlists Kept',
+          `${list(playlists.skipped)} kept the edited copy. Allow refresh overwrite to replace it.`,
+        );
+      }
+    } catch (error: unknown) {
+      notify.error(
+        'Refresh Failed',
+        getUserFacingErrorMessage(
+          error,
+          'The existing playlist is still available. Try again in a moment.',
+        ),
+      );
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const confirmRemove = async () => {
     if (!removeTarget) return;
     setBusy(`remove-${removeTarget.profile.id}`);
@@ -130,6 +182,7 @@ export function SourcesSettingsSection({
   };
 
   const sourceCount = xtreamProfiles.length + m3uProfiles.length;
+  const refreshingAll = busy === 'refresh-all';
 
   return (
     <SettingsPageContent>
@@ -148,6 +201,20 @@ export function SourcesSettingsSection({
             }
             description="Xtream accounts and M3U playlists live together in one source list."
           >
+            {sourceCount > 0 && (
+              <SettingsButton
+                onClick={() => void runRefreshAll()}
+                disabled={refreshingAll}
+                title="Reload every playlist and Xtream catalogue now"
+              >
+                {refreshingAll ? (
+                  <Loader2 className={styles.spinner} size={13} />
+                ) : (
+                  <RefreshCw size={13} />
+                )}
+                {t(refreshingAll ? 'Refreshing…' : 'Refresh All')}
+              </SettingsButton>
+            )}
             <SettingsButton onClick={() => onOpenM3uEditor?.()}>
               <RiPlayList2Line size={13} /> {t('M3U Editor')}
             </SettingsButton>
@@ -198,7 +265,7 @@ export function SourcesSettingsSection({
                   {testing ? (
                     <Loader2 className={styles.spinner} size={15} />
                   ) : (
-                    <RefreshCw size={15} />
+                    <PlugZap size={15} />
                   )}
                 </SettingsButton>
                 <SettingsButton

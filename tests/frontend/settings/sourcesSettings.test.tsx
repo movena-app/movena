@@ -12,6 +12,7 @@ import { AccountConnectionForm } from '@/modules/sources/components/AccountConne
 import { SourcesSettingsSection } from '@/modules/settings/components/SourcesSettingsSection';
 import { useAuthStore, type XtreamSourceProfile } from '@/modules/sources/store/useAuthStore';
 import { useSourceStore, type M3uSourceProfile } from '@/modules/sources/store/useSourceStore';
+import { useNotificationStore } from '@/shared/notifications/useNotificationStore';
 
 const remoteProfile: M3uSourceProfile = {
   id: 'm3u-12345678',
@@ -68,6 +69,7 @@ const emptyProps = {
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
+  useNotificationStore.setState({ notifications: [] });
   useAuthStore.setState({
     profiles: [],
     runtimes: {},
@@ -176,6 +178,99 @@ describe('unified source settings', () => {
     expect(policy.getAttribute('aria-pressed')).toBe('true');
     await userEvent.click(policy);
     expect(setEditorRefreshPolicy).toHaveBeenCalledWith(editedProfile.id, 'replace-edits');
+  });
+
+  it('refreshes every source from one button and keeps protected edits', async () => {
+    const refreshSource = vi.fn().mockResolvedValue(undefined);
+    const testSource = vi.fn().mockResolvedValue(undefined);
+    const editedProfile: M3uSourceProfile = {
+      ...remoteProfile,
+      id: 'm3u-87654321',
+      name: 'Edited List',
+      hasLocalEdits: true,
+      editorRefreshPolicy: 'preserve-edits',
+    };
+    const readyRuntime = {
+      connection: { location: 'https://list.test/main.m3u' },
+      playlist: { entries: [], epgUrls: [], warnings: [] },
+      status: 'ready' as const,
+      error: null,
+      revision: 1,
+    };
+    useSourceStore.setState({
+      profiles: [remoteProfile, editedProfile],
+      runtimes: { [remoteProfile.id]: readyRuntime, [editedProfile.id]: readyRuntime },
+      enabledSourceIds: [remoteProfile.id, editedProfile.id],
+      refreshSource,
+    });
+    useAuthStore.setState({
+      profiles: [xtreamProfile],
+      runtimes: {
+        [xtreamProfile.id]: {
+          credentials: {
+            sourceId: xtreamProfile.id,
+            url: 'https://provider.test',
+            username: 'alice',
+            password: 'secret',
+          },
+          status: 'ready',
+          error: null,
+          revision: 1,
+        },
+      },
+      testSource,
+    });
+    render(<SourcesSettingsSection {...emptyProps} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh All' }));
+
+    await waitFor(() => expect(refreshSource).toHaveBeenCalledWith(remoteProfile.id));
+    expect(refreshSource).not.toHaveBeenCalledWith(editedProfile.id);
+    expect(testSource).toHaveBeenCalledWith(xtreamProfile.id);
+
+    // The store keeps notifications newest first.
+    const messages = useNotificationStore.getState().notifications;
+    expect(messages.map((item) => item.title)).toEqual([
+      'Edited Playlists Kept',
+      'Sources Refreshed',
+    ]);
+    expect(messages[0]?.message).toBe(
+      'Edited List kept the edited copy. Allow refresh overwrite to replace it.',
+    );
+    expect(messages[1]?.message).toBe('2 of 3 sources reloaded.');
+  });
+
+  it('names the sources a refresh could not reach', async () => {
+    const refreshSource = vi.fn().mockRejectedValue(new Error('Playlist host is offline'));
+    useSourceStore.setState({
+      profiles: [remoteProfile],
+      runtimes: {
+        [remoteProfile.id]: {
+          connection: { location: 'https://list.test/main.m3u' },
+          playlist: { entries: [], epgUrls: [], warnings: [] },
+          status: 'ready',
+          error: null,
+          revision: 1,
+        },
+      },
+      enabledSourceIds: [remoteProfile.id],
+      refreshSource,
+    });
+    render(<SourcesSettingsSection {...emptyProps} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Refresh All' }));
+
+    await waitFor(() => expect(useNotificationStore.getState().notifications).toHaveLength(1));
+    const [message] = useNotificationStore.getState().notifications;
+    expect(message?.type).toBe('error');
+    expect(message?.title).toBe('Refresh Incomplete');
+    expect(message?.message).toBe('0 of 1 sources reloaded. Could not reach: Living Room');
+  });
+
+  it('offers no refresh entry point until a source exists', () => {
+    render(<SourcesSettingsSection {...emptyProps} />);
+
+    expect(screen.queryByRole('button', { name: 'Refresh All' })).toBeNull();
   });
 
   it('manages multiple Xtream rows independently', async () => {

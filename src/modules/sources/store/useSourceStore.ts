@@ -43,6 +43,16 @@ export {
 } from '../model/sourceProfiles';
 export type { M3uSourceProfile, M3uSourceRuntime } from '../model/sourceProfiles';
 
+/** Outcome of a manual refresh across every configured playlist. Names are
+ * reported rather than ids so callers can put them straight into a message. */
+interface M3uRefreshAllReport {
+  refreshed: string[];
+  /** Edited copies whose policy keeps them from being replaced. */
+  skipped: string[];
+  /** Reported by name only; each row already shows its own error. */
+  failed: string[];
+}
+
 interface SourceState {
   profiles: M3uSourceProfile[];
   runtimes: Record<string, M3uSourceRuntime>;
@@ -60,6 +70,7 @@ interface SourceState {
   saveEditedSource: (sourceId: string, content: string, name?: string) => Promise<M3uSourceProfile>;
   refreshSource: (sourceId: string) => Promise<void>;
   refreshStaleSources: () => Promise<void>;
+  refreshAllSources: () => Promise<M3uRefreshAllReport>;
   setEditorRefreshPolicy: (sourceId: string, policy: M3uEditorRefreshPolicy) => void;
   setEditorWriteBack: (sourceId: string, enabled: boolean) => void;
   removeSource: (sourceId: string) => Promise<void>;
@@ -656,6 +667,28 @@ export const useSourceStore = create<SourceState>((set, get) => ({
         now - profile.lastRefreshAt >= profile.refreshIntervalMinutes * 60_000,
     );
     await Promise.allSettled(stale.map((profile) => get().refreshSource(profile.id)));
+  },
+
+  refreshAllSources: async () => {
+    const report: M3uRefreshAllReport = { refreshed: [], skipped: [], failed: [] };
+    // Unlike `refreshStaleSources` this ignores the refresh interval and covers
+    // local files too, so the button reloads whatever is on disk or online now.
+    const targets = get().profiles.filter((profile) => {
+      if (profile.hasLocalEdits && profile.editorRefreshPolicy !== 'replace-edits') {
+        report.skipped.push(profile.name);
+        return false;
+      }
+      return true;
+    });
+    const outcomes = await Promise.allSettled(
+      targets.map((profile) => get().refreshSource(profile.id)),
+    );
+    outcomes.forEach((outcome, index) => {
+      const name = targets[index]!.name;
+      if (outcome.status === 'fulfilled') report.refreshed.push(name);
+      else report.failed.push(name);
+    });
+    return report;
   },
 
   removeSource: async (id) => {
