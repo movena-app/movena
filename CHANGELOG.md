@@ -8,7 +8,7 @@ for tagged releases.
 
 ## [Unreleased]
 
-## [0.1.26] - 2026-09-17
+## [0.1.27] - 2026-09-17
 
 ### Added
 
