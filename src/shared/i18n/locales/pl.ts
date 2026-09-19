@@ -614,6 +614,9 @@ export const PL_MESSAGES: Record<string, string> = {
   Test: 'Testuj',
   'Test connection': 'Połączenie testowe',
   'Refresh playlist': 'Odśwież playlistę',
+  'Refresh All': 'Odśwież wszystko',
+  'Reload every playlist and Xtream catalogue now':
+    'Wczytaj teraz ponownie wszystkie playlisty i katalogi Xtream',
   'What do you want to add?': 'Co chcesz dodać?',
   'Both types become equal sources in the same merged library.':
     'Obydwa typy stają się równymi źródłami w tej samej połączonej bibliotece.',
@@ -706,6 +709,9 @@ export const PL_MESSAGES: Record<string, string> = {
     'Za pomocą tych danych konta nie można było uzyskać dostępu do żadnego z adresów serwerów.',
   'Playlist Refreshed': 'Playlista odświeżona',
   'Refresh Failed': 'Odświeżanie nie powiodło się',
+  'Sources Refreshed': 'Źródła odświeżone',
+  'Refresh Incomplete': 'Odświeżanie niepełne',
+  'Edited Playlists Kept': 'Zachowano edytowane playlisty',
   'Source Removed': 'Źródło usunięte',
   'Remove Failed': 'Usuń nie powiodło się',
   'M3U Source Updated': 'Zaktualizowano źródło M3U',
@@ -713,6 +719,11 @@ export const PL_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': 'Nie można zapisać listy odtwarzania',
   '{name} responded successfully.': '{name} odpowiedział pomyślnie.',
   '{name} has been updated.': '{name} został zaktualizowany.',
+  '{count} of {total} sources reloaded.': 'Wczytano ponownie {count} z {total} źródeł.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    'Wczytano ponownie {count} z {total} źródeł. Brak połączenia z: {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} zachowuje edytowaną kopię. Zezwól na nadpisanie przy odświeżaniu, aby ją zastąpić.',
   '{name} was removed from Movena.': '{name} został usunięty z Moveny.',
   '{name} is active with {count} entries.': '{name} jest aktywny z wpisami {count}.',
   'We couldn’t connect to this source. Check its details and try again.':

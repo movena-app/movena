@@ -73,6 +73,22 @@ unsafe fn set_mpv_option(mpv: *mut mpv_handle, key: &str, value: &str) -> Result
     }
 }
 
+/// Maps the frontend's `debugLogLevel` setting to the mpv client API log
+/// level requested via `mpv_request_log_messages`. mpv's own levels are more
+/// granular ("v", "debug", "trace" below "info"); "verbose" only goes one
+/// step past "info" rather than all the way to "trace" — that lowest tier is
+/// per-frame/per-packet chatter that would flood the event bridge to the
+/// frontend for little diagnostic gain. This only affects players who opt
+/// into verbose logging; everyone else keeps the "info" mpv has always sent.
+fn mpv_log_level(debug_log_level: &str) -> &'static str {
+    match debug_log_level {
+        "error" => "error",
+        "warn" => "warn",
+        "verbose" => "v",
+        _ => "info",
+    }
+}
+
 unsafe fn mpv_cmd(mpv: *mut mpv_handle, args: &[&str]) -> Result<(), String> {
     let c_args: Vec<CString> = args
         .iter()
@@ -200,6 +216,7 @@ pub struct MpvStartOptions {
     url: String,
     hwdec: String,
     hdr: bool,
+    debug_log_level: String,
     tone_mapping: Option<String>,
     cache_secs: u32,
     demuxer_max_bytes: String,
@@ -225,9 +242,27 @@ pub struct MpvStartOptions {
 
 /// RAII guard that destroys the mpv handle if not explicitly defused.
 /// Prevents handle leaks when `mpv_start` returns early after `mpv_create`.
+/// Read a string property, copying it out before handing mpv's buffer back.
+#[cfg(target_os = "macos")]
+unsafe fn mpv_property_string(mpv: *mut mpv_handle, name: &str) -> Option<String> {
+    let key = CString::new(name).ok()?;
+    let raw = mpv_get_property_string(mpv, key.as_ptr());
+    if raw.is_null() {
+        return None;
+    }
+    let value = CStr::from_ptr(raw).to_string_lossy().into_owned();
+    mpv_free(raw as *mut c_void);
+    Some(value)
+}
+
 struct MpvGuard {
     ptr: *mut mpv_handle,
     defused: bool,
+    /// Set once a render context exists for this handle. It has to be freed
+    /// before the handle it belongs to is destroyed, and start-up can still
+    /// fail between the two.
+    #[cfg(target_os = "macos")]
+    surface: Option<AppHandle>,
 }
 
 impl MpvGuard {
@@ -235,7 +270,17 @@ impl MpvGuard {
         Self {
             ptr,
             defused: false,
+            #[cfg(target_os = "macos")]
+            surface: None,
         }
+    }
+
+    /// Note that a video surface is now bound to this handle, so an early
+    /// return tears it down in the right order rather than leaving mpv to be
+    /// destroyed out from under a live render context.
+    #[cfg(target_os = "macos")]
+    fn holds_surface(&mut self, app: AppHandle) {
+        self.surface = Some(app);
     }
 
     /// Take ownership of the pointer, preventing automatic destruction.
@@ -247,10 +292,15 @@ impl MpvGuard {
 
 impl Drop for MpvGuard {
     fn drop(&mut self) {
-        if !self.defused && !self.ptr.is_null() {
-            unsafe {
-                mpv_terminate_destroy(self.ptr);
-            }
+        if self.defused || self.ptr.is_null() {
+            return;
+        }
+        #[cfg(target_os = "macos")]
+        if let Some(app) = self.surface.take() {
+            macos_embed::detach(&app);
+        }
+        unsafe {
+            mpv_terminate_destroy(self.ptr);
         }
     }
 }
@@ -266,6 +316,7 @@ pub fn mpv_start(
         url,
         hwdec,
         hdr,
+        debug_log_level,
         tone_mapping,
         cache_secs,
         demuxer_max_bytes,
@@ -311,9 +362,10 @@ pub fn mpv_start(
         let mut guard = MpvGuard::new(mpv);
 
         // Embedding: everywhere except macOS mpv reparents its output into the
-        // handle we pass as `wid`. mpv's macOS backend ignores `wid` and always
-        // opens its own NSWindow, so there we tag that window and adopt it into
-        // the view hierarchy afterwards (see macos_embed).
+        // handle we pass as `wid`. mpv's macOS backend ignores `wid`, and the
+        // GPU contexts it offers there are Vulkan-only and unavailable on older
+        // Intel Macs, so video is rendered through libmpv's render API into a
+        // surface the app owns instead (see macos_embed and its `render`).
         #[cfg(not(target_os = "macos"))]
         {
             let window = app
@@ -343,6 +395,11 @@ pub fn mpv_start(
 
         #[cfg(target_os = "macos")]
         {
+            // These shape the window mpv builds for its *own* video outputs.
+            // Which output wins is mpv's call (see the `vo` note below): if one
+            // of its Vulkan ones starts, this is the window that gets adopted,
+            // and if none do, mpv renders into ours instead and everything here
+            // is simply unused.
             set_mpv_option(mpv, "title", macos_embed::SURFACE_TITLE)?;
             set_mpv_option(mpv, "border", "no")?;
             set_mpv_option(mpv, "focus-on", "never")?;
@@ -381,16 +438,36 @@ pub fn mpv_start(
             }
         }
 
-        // A plain "gpu-next" is a hard requirement: if libplacebo can't get a
-        // GPU context (older/weaker GPUs, broken Vulkan-via-MoltenVK on some
-        // Intel Macs, ...), mpv logs "Failed initializing any suitable GPU
-        // context!" and never configures a video output — audio keeps
-        // playing while video silently never starts, until our own startup
-        // watchdog times out. The comma-separated form is mpv's own VO
-        // priority list: it tries each driver in order and falls through to
-        // the next on init failure, so we keep gpu-next's quality where it
-        // works and land on the far more broadly compatible legacy "gpu" VO
-        // where it doesn't, instead of failing outright.
+        // If libplacebo can't get a GPU context, mpv logs "Failed initializing
+        // any suitable GPU context!" and never configures a video output —
+        // audio keeps playing while video silently never starts, until our own
+        // startup watchdog times out. "gpu-next,gpu" is mpv's VO priority list:
+        // it tries each in order, which on Windows/Linux buys a real second
+        // chance because d3d11/angle/x11 give the legacy "gpu" VO alternative
+        // contexts to land on.
+        //
+        // macOS has no such alternative among mpv's own contexts. It registers
+        // exactly two there, "macvk" and "displayvk", and both are Vulkan
+        // through MoltenVK (video/out/gpu/context.c — every OpenGL ra_ctx is
+        // gated behind Windows, X11, Wayland or Android). MoltenVK refuses GPUs
+        // below its Metal feature-set floor outright, so on e.g. a 2015 Intel
+        // HD 6000 both fail at vkCreateInstance with
+        // VK_ERROR_INCOMPATIBLE_DRIVER and mpv runs out of outputs. Its own
+        // OpenGL path, cocoa-cb, is unreachable from a host app: it bails
+        // unless NSApp is mpv's own Application subclass.
+        //
+        // "libmpv" is appended there as a last resort: it renders through the
+        // render API into an OpenGL context the app owns (platform::macos
+        // ::render). It goes last on purpose — that backend is the legacy
+        // gl_video renderer, not libplacebo (video/out/gpu/libmpv_gpu.c calls
+        // gl_video_init), so it has no Dolby Vision and weaker scaling and tone
+        // mapping. Letting mpv exhaust its Vulkan outputs first keeps gpu-next
+        // wherever Vulkan works at all, which is everywhere except the Macs
+        // this fallback exists for. `adopt_video_output` reads back which one
+        // actually started.
+        #[cfg(target_os = "macos")]
+        set_mpv_option(mpv, "vo", "gpu-next,gpu,libmpv")?;
+        #[cfg(not(target_os = "macos"))]
         set_mpv_option(mpv, "vo", "gpu-next,gpu")?;
         set_mpv_option(mpv, "hwdec", &hwdec)?;
         set_mpv_option(mpv, "force-window", "no")?;
@@ -511,15 +588,19 @@ pub fn mpv_start(
             return Err("Failed to initialize mpv".to_string());
         }
 
-        let log_level = CString::new("info").map_err(|e| e.to_string())?;
+        let log_level = CString::new(mpv_log_level(&debug_log_level)).map_err(|e| e.to_string())?;
         mpv_request_log_messages(mpv, log_level.as_ptr());
 
-        mpv_cmd(mpv, &["loadfile", &playback_url])?;
-
-        // mpv builds its NSWindow lazily, once the first video frame is
-        // configured — start watching for it now.
+        // `vo_libmpv` fails its own preinit if no render context is set by the
+        // time it is configured, and that can happen as soon as the file is
+        // loaded — so this runs ahead of `loadfile`, not alongside the adoption.
         #[cfg(target_os = "macos")]
-        macos_embed::attach(&app);
+        {
+            macos_embed::start(&app, mpv);
+            guard.holds_surface(app.clone());
+        }
+
+        mpv_cmd(mpv, &["loadfile", &playback_url])?;
 
         let observe_props = [
             ("time-pos", mpv_format_MPV_FORMAT_DOUBLE),
@@ -662,6 +743,15 @@ pub fn mpv_start(
                                     }
                                     _ => Value::Null,
                                 };
+                                #[cfg(target_os = "macos")]
+                                if name == "vo-configured" && data == Value::Bool(true) {
+                                    // mpv has settled on an output. Which one
+                                    // decides whether the surface to embed is
+                                    // the app's own OpenGL one or the window
+                                    // mpv built for a Vulkan context.
+                                    let current_vo = mpv_property_string(mpv_handle, "current-vo");
+                                    macos_embed::adopt_video_output(&app, current_vo.as_deref());
+                                }
                                 #[cfg(target_os = "windows")]
                                 if name == "vo-configured" && data == Value::Bool(true) {
                                     // mpv just finished (re-)establishing its
@@ -987,13 +1077,24 @@ fn resolve_recording_path(path: &str, downloads: &Path) -> Result<PathBuf, Strin
 #[cfg(test)]
 mod recording_path_tests {
     use super::{
-        build_diagnostic_sample, build_http_options, first_existing_file, resolve_recording_path,
-        sanitize_mpv_log_text, set_mpv_option, ytdlp_script_option, MpvGuard,
-        DIAGNOSTIC_PROPERTIES,
+        build_diagnostic_sample, build_http_options, first_existing_file, mpv_log_level,
+        resolve_recording_path, sanitize_mpv_log_text, set_mpv_option, ytdlp_script_option,
+        MpvGuard, DIAGNOSTIC_PROPERTIES,
     };
     use serde_json::json;
     use std::collections::HashMap;
     use std::path::Path;
+
+    #[test]
+    fn maps_debug_log_level_to_mpv_log_level() {
+        assert_eq!(mpv_log_level("error"), "error");
+        assert_eq!(mpv_log_level("warn"), "warn");
+        assert_eq!(mpv_log_level("info"), "info");
+        assert_eq!(mpv_log_level("verbose"), "v");
+        // Unknown/future values must not silently request an overly chatty
+        // level from mpv.
+        assert_eq!(mpv_log_level("nonsense"), "info");
+    }
 
     #[test]
     fn resolves_relative_recording_paths_below_downloads() {

@@ -617,6 +617,9 @@ export const ES_MESSAGES: Record<string, string> = {
   Test: 'Probar',
   'Test connection': 'Conexión de prueba',
   'Refresh playlist': 'Actualizar lista de reproducción',
+  'Refresh All': 'Actualizar todo',
+  'Reload every playlist and Xtream catalogue now':
+    'Recargar ahora todas las listas de reproducción y catálogos Xtream',
   'What do you want to add?': '¿Qué quieres agregar?',
   'Both types become equal sources in the same merged library.':
     'Ambos tipos se convierten en fuentes iguales en la misma biblioteca fusionada.',
@@ -708,6 +711,9 @@ export const ES_MESSAGES: Record<string, string> = {
     'No se pudo acceder a ninguna de las direcciones del servidor con estos detalles de cuenta.',
   'Playlist Refreshed': 'Lista de reproducción actualizada',
   'Refresh Failed': 'Error al actualizar',
+  'Sources Refreshed': 'Fuentes actualizadas',
+  'Refresh Incomplete': 'Actualización incompleta',
+  'Edited Playlists Kept': 'Listas editadas conservadas',
   'Source Removed': 'Fuente eliminada',
   'Remove Failed': 'Eliminar error',
   'M3U Source Updated': 'Fuente M3U actualizada',
@@ -715,6 +721,11 @@ export const ES_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': 'No se pudo guardar la lista de reproducción',
   '{name} responded successfully.': '{name} respondió exitosamente.',
   '{name} has been updated.': '{name} ha sido actualizado.',
+  '{count} of {total} sources reloaded.': '{count} de {total} fuentes recargadas.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    '{count} de {total} fuentes recargadas. No se pudo conectar con: {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} conserva la copia editada. Permite la sobrescritura al actualizar para reemplazarla.',
   '{name} was removed from Movena.': '{name} fue eliminado de Movena.',
   '{name} is active with {count} entries.': '{name} está activo con entradas {count}.',
   'We couldn’t connect to this source. Check its details and try again.':

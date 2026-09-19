@@ -38,6 +38,23 @@ describe('UI localization', () => {
     expect(translateUiText('A provider title', 'de')).toBe('A provider title');
   });
 
+  it('localizes refresh summaries that toasts translate after interpolation', () => {
+    // Toasts receive composed English and reverse-match it against a template,
+    // so these have to survive the round trip without their own values.
+    expect(translateUiText('2 of 3 sources reloaded.', 'de')).toBe('2 von 3 Quellen neu geladen.');
+    expect(translateUiText('0 of 1 sources reloaded. Could not reach: Living Room', 'de')).toBe(
+      '0 von 1 Quellen neu geladen. Nicht erreichbar: Living Room',
+    );
+    expect(
+      translateUiText(
+        'Edited List kept the edited copy. Allow refresh overwrite to replace it.',
+        'de',
+      ),
+    ).toBe(
+      'Edited List behält die bearbeitete Kopie. Erlauben Sie das Überschreiben, um sie zu ersetzen.',
+    );
+  });
+
   it('provides complete catalogue parity for every supported language', () => {
     const sourceKeys = Object.keys(DE_MESSAGES)
       .filter((key) => !key.includes('::'))

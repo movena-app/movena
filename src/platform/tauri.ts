@@ -6,6 +6,8 @@ export interface MpvStartOptions {
   url: string;
   hwdec: string;
   hdr: boolean;
+  /** Drives how verbose mpv's own log messages are; see settingsTypes.debugLogLevel. */
+  debugLogLevel: string;
   toneMapping?: string | undefined;
   cacheSecs: number;
   demuxerMaxBytes: string;

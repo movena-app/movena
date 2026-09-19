@@ -615,6 +615,9 @@ export const PT_BR_MESSAGES: Record<string, string> = {
   Test: 'Teste',
   'Test connection': 'Conexão de teste',
   'Refresh playlist': 'Atualizar lista de reprodução',
+  'Refresh All': 'Atualizar tudo',
+  'Reload every playlist and Xtream catalogue now':
+    'Recarregar agora todas as playlists e catálogos Xtream',
   'What do you want to add?': 'O que você deseja adicionar?',
   'Both types become equal sources in the same merged library.':
     'Ambos os tipos tornam-se fontes iguais na mesma biblioteca mesclada.',
@@ -707,6 +710,9 @@ export const PT_BR_MESSAGES: Record<string, string> = {
     'Nenhum dos endereços do servidor pôde ser alcançado com esses detalhes da conta.',
   'Playlist Refreshed': 'Lista de reprodução atualizada',
   'Refresh Failed': 'Falha na atualização',
+  'Sources Refreshed': 'Fontes atualizadas',
+  'Refresh Incomplete': 'Atualização incompleta',
+  'Edited Playlists Kept': 'Playlists editadas mantidas',
   'Source Removed': 'Fonte removida',
   'Remove Failed': 'Falha na remoção',
   'M3U Source Updated': 'Fonte M3U atualizada',
@@ -714,6 +720,11 @@ export const PT_BR_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': 'A lista de reprodução não pôde ser salva',
   '{name} responded successfully.': '{name} respondeu com sucesso.',
   '{name} has been updated.': '{name} foi atualizado.',
+  '{count} of {total} sources reloaded.': '{count} de {total} fontes recarregadas.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    '{count} de {total} fontes recarregadas. Não foi possível acessar: {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} mantém a cópia editada. Permita a sobrescrita na atualização para substituí-la.',
   '{name} was removed from Movena.': '{name} foi removido do Movena.',
   '{name} is active with {count} entries.': '{name} está ativo com entradas {count}.',
   'We couldn’t connect to this source. Check its details and try again.':

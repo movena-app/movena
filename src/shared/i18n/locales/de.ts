@@ -637,6 +637,9 @@ export const DE_MESSAGES: Record<string, string> = {
   Test: 'Testen',
   'Test connection': 'Verbindung testen',
   'Refresh playlist': 'Wiedergabeliste aktualisieren',
+  'Refresh All': 'Alle aktualisieren',
+  'Reload every playlist and Xtream catalogue now':
+    'Jetzt alle Wiedergabelisten und Xtream-Kataloge neu laden',
   'What do you want to add?': 'Was möchten Sie hinzufügen?',
   'Both types become equal sources in the same merged library.':
     'Beide Typen werden gleichwertige Quellen in derselben zusammengeführten Bibliothek.',
@@ -730,6 +733,9 @@ export const DE_MESSAGES: Record<string, string> = {
     'Keine der Serveradressen konnte mit diesen Kontodaten erreicht werden.',
   'Playlist Refreshed': 'Wiedergabeliste aktualisiert',
   'Refresh Failed': 'Aktualisierung fehlgeschlagen',
+  'Sources Refreshed': 'Quellen aktualisiert',
+  'Refresh Incomplete': 'Aktualisierung unvollständig',
+  'Edited Playlists Kept': 'Bearbeitete Wiedergabelisten behalten',
   'Source Removed': 'Quelle entfernt',
   'Remove Failed': 'Entfernen fehlgeschlagen',
   'M3U Source Updated': 'M3U-Quelle aktualisiert',
@@ -737,6 +743,11 @@ export const DE_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': 'Wiedergabeliste konnte nicht gespeichert werden',
   '{name} responded successfully.': '{name} hat erfolgreich geantwortet.',
   '{name} has been updated.': '{name} wurde aktualisiert.',
+  '{count} of {total} sources reloaded.': '{count} von {total} Quellen neu geladen.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    '{count} von {total} Quellen neu geladen. Nicht erreichbar: {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} behält die bearbeitete Kopie. Erlauben Sie das Überschreiben, um sie zu ersetzen.',
   '{name} was removed from Movena.': '{name} wurde aus Movena entfernt.',
   '{name} is active with {count} entries.': '{name} ist mit {count} Einträgen aktiv.',
   'We couldn’t connect to this source. Check its details and try again.':

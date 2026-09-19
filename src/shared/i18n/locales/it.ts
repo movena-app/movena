@@ -616,6 +616,9 @@ export const IT_MESSAGES: Record<string, string> = {
   Test: 'Prova',
   'Test connection': 'Testare la connessione',
   'Refresh playlist': 'Aggiorna playlist',
+  'Refresh All': 'Aggiorna tutto',
+  'Reload every playlist and Xtream catalogue now':
+    'Ricarica subito tutte le playlist e i cataloghi Xtream',
   'What do you want to add?': 'Cosa vuoi aggiungere?',
   'Both types become equal sources in the same merged library.':
     'Entrambi i tipi diventano fonti uguali nella stessa libreria unita.',
@@ -705,6 +708,9 @@ export const IT_MESSAGES: Record<string, string> = {
     "Non è stato possibile raggiungere nessuno degli indirizzi del server con questi dettagli dell'account.",
   'Playlist Refreshed': 'Playlist aggiornata',
   'Refresh Failed': 'Aggiornamento non riuscito',
+  'Sources Refreshed': 'Fonti aggiornate',
+  'Refresh Incomplete': 'Aggiornamento incompleto',
+  'Edited Playlists Kept': 'Playlist modificate mantenute',
   'Source Removed': 'Fonte rimossa',
   'Remove Failed': 'Rimozione non riuscita',
   'M3U Source Updated': 'Sorgente M3U aggiornata',
@@ -712,6 +718,11 @@ export const IT_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': 'Impossibile salvare la playlist',
   '{name} responded successfully.': '{name} ha risposto con successo.',
   '{name} has been updated.': '{name} è stato aggiornato.',
+  '{count} of {total} sources reloaded.': '{count} fonti su {total} ricaricate.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    '{count} fonti su {total} ricaricate. Non raggiungibile: {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} mantiene la copia modificata. Consenti la sovrascrittura per sostituirla.',
   '{name} was removed from Movena.': '{name} è stato rimosso da Movena.',
   '{name} is active with {count} entries.': '{name} è attivo con voci {count}.',
   'We couldn’t connect to this source. Check its details and try again.':

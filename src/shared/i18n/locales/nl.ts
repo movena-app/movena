@@ -619,6 +619,9 @@ export const NL_MESSAGES: Record<string, string> = {
   Test: 'Testen',
   'Test connection': 'Verbinding testen',
   'Refresh playlist': 'Vernieuw de afspeellijst',
+  'Refresh All': 'Alles verversen',
+  'Reload every playlist and Xtream catalogue now':
+    'Alle afspeellijsten en Xtream-catalogi nu opnieuw laden',
   'What do you want to add?': 'Wat wil je toevoegen?',
   'Both types become equal sources in the same merged library.':
     'Beide typen worden gelijke bronnen in dezelfde samengevoegde bibliotheek.',
@@ -710,6 +713,9 @@ export const NL_MESSAGES: Record<string, string> = {
     'Met deze accountgegevens kon geen van de serveradressen worden bereikt.',
   'Playlist Refreshed': 'Afspeellijst vernieuwd',
   'Refresh Failed': 'Vernieuwen mislukt',
+  'Sources Refreshed': 'Bronnen ververst',
+  'Refresh Incomplete': 'Verversen onvolledig',
+  'Edited Playlists Kept': 'Bewerkte afspeellijsten behouden',
   'Source Removed': 'Bron verwijderd',
   'Remove Failed': 'Verwijderen mislukt',
   'M3U Source Updated': 'M3U-bron bijgewerkt',
@@ -717,6 +723,11 @@ export const NL_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': 'Afspeellijst kon niet worden opgeslagen',
   '{name} responded successfully.': '{name} heeft succesvol gereageerd.',
   '{name} has been updated.': '{name} is bijgewerkt.',
+  '{count} of {total} sources reloaded.': '{count} van {total} bronnen opnieuw geladen.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    '{count} van {total} bronnen opnieuw geladen. Niet bereikbaar: {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} houdt de bewerkte kopie. Sta overschrijven bij verversen toe om die te vervangen.',
   '{name} was removed from Movena.': '{name} is verwijderd uit Movena.',
   '{name} is active with {count} entries.': '{name} is actief met {count} vermeldingen.',
   'We couldn’t connect to this source. Check its details and try again.':

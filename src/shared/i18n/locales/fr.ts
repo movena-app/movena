@@ -620,6 +620,9 @@ export const FR_MESSAGES: Record<string, string> = {
   Test: 'Tester',
   'Test connection': 'Tester la connexion',
   'Refresh playlist': 'Actualiser la playlist',
+  'Refresh All': 'Tout actualiser',
+  'Reload every playlist and Xtream catalogue now':
+    'Recharger maintenant toutes les playlists et catalogues Xtream',
   'What do you want to add?': 'Que veux-tu ajouter ?',
   'Both types become equal sources in the same merged library.':
     'Les deux types deviennent des sources égales dans la même bibliothèque fusionnée.',
@@ -713,6 +716,9 @@ export const FR_MESSAGES: Record<string, string> = {
     "Aucune des adresses de serveur n'a pu être atteinte avec ces détails de compte.",
   'Playlist Refreshed': 'Liste de lecture actualisée',
   'Refresh Failed': "Échec de l'actualisation",
+  'Sources Refreshed': 'Sources actualisées',
+  'Refresh Incomplete': 'Actualisation incomplète',
+  'Edited Playlists Kept': 'Playlists modifiées conservées',
   'Source Removed': 'Source supprimée',
   'Remove Failed': 'Échec de la suppression',
   'M3U Source Updated': 'Source M3U mise à jour',
@@ -720,6 +726,11 @@ export const FR_MESSAGES: Record<string, string> = {
   'Playlist Could Not Be Saved': "La liste de lecture n'a pas pu être enregistrée",
   '{name} responded successfully.': '{name} a répondu avec succès.',
   '{name} has been updated.': '{name} a été mis à jour.',
+  '{count} of {total} sources reloaded.': '{count} sources sur {total} rechargées.',
+  '{count} of {total} sources reloaded. Could not reach: {names}':
+    '{count} sources sur {total} rechargées. Injoignable : {names}',
+  '{names} kept the edited copy. Allow refresh overwrite to replace it.':
+    '{names} conserve la copie modifiée. Autorisez l’écrasement à l’actualisation pour la remplacer.',
   '{name} was removed from Movena.': '{name} a été supprimé de Movena.',
   '{name} is active with {count} entries.': '{name} est actif avec les entrées {count}.',
   'We couldn’t connect to this source. Check its details and try again.':
