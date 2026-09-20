@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,6 +17,7 @@ import { CategorySidebar } from '@/modules/catalog/components/CategorySidebar';
 import { useCatalogByType } from '@/modules/catalog/data/useCatalog';
 import { useCategories, useHiddenCategoryIds } from '@/modules/catalog/data/useCategories';
 import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
+import { useContextMenuStore } from '@/shared/ui/context-menu/useContextMenuStore';
 
 const categoryResult = {
   data: [
@@ -248,5 +249,77 @@ describe('category sidebar 4K disclaimer', () => {
 
     expect(onSelectCategory).toHaveBeenCalledWith('smart:4k');
     expect(screen.queryByText('About the 4K Ultra HD list')).toBeNull();
+  });
+});
+
+describe('category sidebar "hide all countries except" action', () => {
+  // Countries the fixture offers: AR, DE, ES, GB, TR, AD.
+  const hideAllExcept = (headerName: string, code: string) => {
+    fireEvent.contextMenu(screen.getByRole('button', { name: headerName }));
+    const item = useContextMenuStore
+      .getState()
+      .items.find((entry) => entry.id === `hide-other-countries-${code}`);
+    expect(item).toBeTruthy();
+    item?.action?.();
+    return item;
+  };
+
+  const renderSidebar = (activeCategoryId: string | null = null, onSelectCategory = vi.fn()) => {
+    render(
+      <CategorySidebar
+        type="live"
+        activeCategoryId={activeCategoryId}
+        onSelectCategory={onSelectCategory}
+      />,
+    );
+    return onSelectCategory;
+  };
+
+  beforeEach(() => {
+    useContextMenuStore.getState().closeContextMenu();
+  });
+
+  it('hides every other country and leaves the chosen one visible', () => {
+    renderSidebar();
+
+    const item = hideAllExcept('Collapse Germany', 'DE');
+
+    expect(item?.label).toBe('Hide all countries except Germany');
+    const hidden = useSettingsStore.getState().categoryPrefs.hiddenCountries.live;
+    expect([...hidden].sort()).toEqual(['AD', 'AR', 'ES', 'GB', 'TR']);
+  });
+
+  it('shows the chosen country again when it had been hidden before', () => {
+    useSettingsStore.getState().toggleCategoryPref('hiddenCountries', 'live', 'DE');
+    renderSidebar();
+    fireEvent.click(screen.getByRole('button', { name: /^Show \d+ hidden$/ }));
+
+    hideAllExcept('Collapse Germany', 'DE');
+
+    const hidden = useSettingsStore.getState().categoryPrefs.hiddenCountries.live;
+    expect(hidden).not.toContain('DE');
+    expect(hidden).toHaveLength(5);
+  });
+
+  it('leaves the other catalogues alone', () => {
+    renderSidebar();
+
+    hideAllExcept('Collapse Germany', 'DE');
+
+    const { vod, series } = useSettingsStore.getState().categoryPrefs.hiddenCountries;
+    expect(vod).toEqual([]);
+    expect(series).toEqual([]);
+  });
+
+  it('drops a selection that just went hidden, but keeps one inside the chosen country', () => {
+    const dropped = renderSidebar('country:AR');
+    hideAllExcept('Collapse Germany', 'DE');
+    expect(dropped).toHaveBeenCalledWith(null);
+  });
+
+  it('keeps a selection inside the chosen country', () => {
+    const kept = renderSidebar('country:DE');
+    hideAllExcept('Collapse Germany', 'DE');
+    expect(kept).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 
-import { render, screen, within } from '@testing-library/react';
+import { render as renderUi, screen, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -33,11 +35,25 @@ vi.mock('@/modules/search/lib/search', async (importOriginal) => {
 import { HeaderSearch } from '@/modules/search/components/HeaderSearch';
 import { useLiveStreams, useSeriesList, useVodStreams } from '@/modules/catalog/data/useCatalog';
 import { useLibraryStore } from '@/modules/library/store/useLibraryStore';
+import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
 import { useSearchStore } from '@/modules/search/store/useSearchStore';
 import { smartSearch } from '@/modules/search/lib/search';
 
+function render(ui: ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return renderUi(ui, {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+}
+
 beforeEach(() => {
   localStorage.clear();
+  useSettingsStore.getState().resetSettings();
+  vi.mocked(useVodStreams).mockReturnValue({ data: [movie] } as unknown as ReturnType<
+    typeof useVodStreams
+  >);
   useLibraryStore.setState({ favorites: [], collections: [], history: [], watched: [] });
   useSearchStore.setState({ recentSearches: [] });
   vi.mocked(smartSearch).mockClear();
@@ -208,5 +224,26 @@ describe('header search suggestions', () => {
     ).toBe('true');
     expect(onItemClick).not.toHaveBeenCalled();
     expect(screen.getByRole('grid', { name: 'Search suggestions' })).toBeTruthy();
+  });
+
+  it('leaves items from hidden categories out of the suggestions', async () => {
+    const user = userEvent.setup();
+    vi.mocked(useVodStreams).mockReturnValue({
+      data: [
+        { ...movie, id: 'movie-hidden', title: 'The Stranger Uncut', categoryId: 'cat-hidden' },
+        { ...movie, id: 'movie-shown', title: 'The Stranger Returns', categoryId: 'cat-shown' },
+      ],
+    } as unknown as ReturnType<typeof useVodStreams>);
+    useSettingsStore.getState().toggleCategoryPref('hidden', 'vod', 'cat-hidden');
+
+    render(
+      <MemoryRouter>
+        <HeaderSearch />
+      </MemoryRouter>,
+    );
+
+    await user.type(screen.getByRole('combobox'), 'stranger');
+    expect(await screen.findByText('The Stranger Returns')).toBeTruthy();
+    expect(screen.queryByText('The Stranger Uncut')).toBeNull();
   });
 });

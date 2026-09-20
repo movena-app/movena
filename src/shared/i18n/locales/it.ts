@@ -245,6 +245,7 @@ export const IT_MESSAGES: Record<string, string> = {
   'Pin {name}': 'Fissa {name}',
   'Show {name}': 'Mostra {name}',
   'Hide {name}': 'Nascondi {name}',
+  'Hide all countries except {name}': 'Nascondi tutti i paesi tranne {name}',
   'Expand {name}': 'Espandi {name}',
   'Collapse {name}': 'Comprimi {name}',
   'Actions for {name}': 'Azioni per {name}',

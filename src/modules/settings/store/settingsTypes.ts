@@ -180,6 +180,7 @@ export interface SettingsState {
       | 'resetSettings'
       | 'toggleCategoryPref'
       | 'setCollapsedCategories'
+      | 'setHiddenCountries'
       | 'setSelectedCategory'
       | 'setCatalogSort'
       | 'addCustomTitleRule'
@@ -196,6 +197,7 @@ export interface SettingsState {
   rememberPlayerVolume: (volume: number) => void;
   toggleCategoryPref: (kind: keyof CategoryPrefs, type: CatalogType, id: string) => void;
   setCollapsedCategories: (type: CatalogType, ids: string[]) => void;
+  setHiddenCountries: (type: CatalogType, keys: string[]) => void;
   setSelectedCategory: (type: CatalogType, id: string | null) => void;
   setCatalogSort: (type: CatalogType, sort: CatalogSortMode) => void;
   addCustomTitleRule: (pattern: string, isRegex?: boolean) => void;

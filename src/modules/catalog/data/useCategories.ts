@@ -9,7 +9,7 @@ import {
   useSettingsStore,
   type CatalogType,
 } from '@/modules/settings/public/store/useSettingsStore';
-import { parseCategoryName } from '@/shared/lib/categoryName';
+import { parseProviderCategoryName } from '@/shared/lib/categoryName';
 import { useCatalogByType } from './useCatalog';
 import { queryKeys } from '@/modules/sources/public/model/queryKeys';
 import {
@@ -86,13 +86,53 @@ export function categoriesQueryOptions(type: CatalogType, sources: EnabledSource
   });
 }
 
-export function useCategories(type: CatalogType) {
+export function useCategories(type: CatalogType, options?: { enabled?: boolean | undefined }) {
   const sources = useEnabledSources();
 
   return useQuery({
     ...categoriesQueryOptions(type, sources),
-    enabled: sources.isAvailable,
+    enabled: sources.isAvailable && (options?.enabled ?? true),
   });
+}
+
+/** Stable empty list so an unresolved query does not thrash memo identities. */
+const EMPTY_LIST: never[] = [];
+
+interface HiddenCategoryState {
+  ids: Set<string>;
+  /**
+   * False while the answer is still incomplete — a hidden country only maps to
+   * category ids once the category list has arrived. Callers must hold items
+   * back until then, or they would show exactly what the user hid.
+   */
+  isResolved: boolean;
+}
+
+function useHiddenCategoryState(
+  type: CatalogType,
+  options?: { enabled?: boolean | undefined },
+): HiddenCategoryState {
+  const query = useCategories(type, options);
+  const categories = query.data;
+  const settled = query.isSuccess || query.isError;
+  const categoryPrefs = useSettingsStore((s) => s.categoryPrefs);
+
+  return useMemo(() => {
+    const hidden = categoryPrefs?.hidden?.[type] ?? [];
+    const hiddenCountries = categoryPrefs?.hiddenCountries?.[type] ?? [];
+    const ids = new Set(hidden);
+    // Direct ids need no lookup, so nothing is pending unless a country is hid.
+    if (hiddenCountries.length === 0) return { ids, isResolved: true };
+
+    const hiddenCountrySet = new Set(hiddenCountries);
+    for (const cat of categories ?? EMPTY_LIST) {
+      const { country } = parseProviderCategoryName(cat.category_name || '');
+      if (hiddenCountrySet.has(country ?? 'other')) ids.add(String(cat.category_id));
+    }
+    // A failed category request is as resolved as it will get: fall back to the
+    // ids we do know rather than leaving every surface permanently empty.
+    return { ids, isResolved: settled };
+  }, [categories, categoryPrefs, settled, type]);
 }
 
 /**
@@ -104,24 +144,44 @@ export function useCategories(type: CatalogType) {
  * channels carried on appearing under "All". The rule lives in one place now, so
  * the list and what it filters cannot disagree.
  */
-export function useHiddenCategoryIds(type: CatalogType): Set<string> {
-  const { data: categories = [] } = useCategories(type);
-  const categoryPrefs = useSettingsStore((s) => s.categoryPrefs);
+export function useHiddenCategoryIds(
+  type: CatalogType,
+  options?: { enabled?: boolean | undefined },
+): Set<string> {
+  return useHiddenCategoryState(type, options).ids;
+}
+
+export interface VisibleItems<T> {
+  data: T[];
+  /**
+   * True while it is not yet known what to drop. `data` is empty then, so a
+   * surface should show its loading state instead of "nothing found".
+   */
+  isPending: boolean;
+}
+
+/**
+ * Drops the items that sit in a hidden category from a catalogue fetched
+ * elsewhere — for surfaces such as search that run their own queries.
+ *
+ * `enabled` gates the category lookup, so a surface that is idle (a search box
+ * nobody has typed into) does not trigger category requests of its own.
+ */
+export function useWithoutHiddenCategories<T extends { categoryId?: string | undefined }>(
+  type: CatalogType,
+  items: T[],
+  options?: { enabled?: boolean | undefined },
+): VisibleItems<T> {
+  const { ids, isResolved } = useHiddenCategoryState(type, options);
 
   return useMemo(() => {
-    const hidden = categoryPrefs?.hidden?.[type] ?? [];
-    const hiddenCountries = categoryPrefs?.hiddenCountries?.[type] ?? [];
-    const ids = new Set(hidden);
-    if (hiddenCountries.length > 0) {
-      for (const cat of categories) {
-        const { country } = parseCategoryName(cat.category_name || '');
-        if (hiddenCountries.includes(country ?? 'other')) {
-          ids.add(String(cat.category_id));
-        }
-      }
-    }
-    return ids;
-  }, [categories, categoryPrefs, type]);
+    if (!isResolved) return { data: EMPTY_LIST as T[], isPending: true };
+    const data =
+      ids.size === 0
+        ? items
+        : items.filter((item) => !item.categoryId || !ids.has(item.categoryId));
+    return { data, isPending: false };
+  }, [items, ids, isResolved]);
 }
 
 /**
@@ -134,13 +194,7 @@ export function useHiddenCategoryIds(type: CatalogType): Set<string> {
  */
 export function useVisibleCatalog(type: CatalogType) {
   const query = useCatalogByType(type);
-  const { data: items = [] } = query;
-  const hiddenIds = useHiddenCategoryIds(type);
+  const { data, isPending } = useWithoutHiddenCategories(type, query.data ?? EMPTY_LIST);
 
-  const data = useMemo(
-    () => items.filter((item) => !item.categoryId || !hiddenIds.has(item.categoryId)),
-    [items, hiddenIds],
-  );
-
-  return { ...query, data };
+  return { ...query, data, isLoading: query.isLoading || isPending };
 }

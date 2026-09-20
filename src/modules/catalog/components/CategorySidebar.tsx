@@ -37,7 +37,7 @@ import {
   countryName,
   hasCountryFlag,
   isCountryOnlyLabel,
-  parseCategoryName,
+  parseProviderCategoryName,
 } from '@/shared/lib/categoryName';
 import { countHiddenCategories, isCategoryHidden } from '../lib/categorySidebar';
 import {
@@ -60,16 +60,6 @@ interface CategorySidebarProps {
   activeCategoryId: string | null;
   onSelectCategory: (id: string | null) => void;
 }
-
-const decodeHtml = (html: string) => {
-  if (!html) return '';
-  return html
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'");
-};
 
 interface Row {
   id: string;
@@ -118,6 +108,7 @@ export function CategorySidebar({
   const categoryPrefs = useSettingsStore((s) => s.categoryPrefs);
   const toggleCategoryPref = useSettingsStore((s) => s.toggleCategoryPref);
   const setCollapsedCategories = useSettingsStore((s) => s.setCollapsedCategories);
+  const setHiddenCountries = useSettingsStore((s) => s.setHiddenCountries);
   const openContextMenu = useContextMenuStore((s) => s.openContextMenu);
   const [showHidden, setShowHidden] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -260,7 +251,7 @@ export function CategorySidebar({
 
     for (const cat of categories) {
       const id = String(cat.category_id);
-      const { country, label, tags } = parseCategoryName(decodeHtml(cat.category_name || ''));
+      const { country, label, tags } = parseProviderCategoryName(cat.category_name || '');
       const count = counts.get(id) ?? 0;
       const groupKey = `${country ?? 'other'}::${label.toLowerCase()}`;
 
@@ -279,7 +270,8 @@ export function CategorySidebar({
           categoryIds: [id],
           label,
           country,
-          tags: tags ?? [],
+          // Copied: `tags` belongs to the shared parse cache, rows mutate theirs.
+          tags: tags ? [...tags] : [],
           count,
         });
       }
@@ -466,10 +458,37 @@ export function CategorySidebar({
     ];
   };
 
+  const countryKeys = useMemo(
+    () => [...new Set(rows.map((row) => row.country ?? 'other'))],
+    [rows],
+  );
+
+  /** How many of this catalogue's countries are hidden, ignoring stale keys. */
+  const hiddenCountryCount = useMemo(
+    () => countryKeys.reduce((count, key) => count + Number(hiddenCountrySet.has(key)), 0),
+    [countryKeys, hiddenCountrySet],
+  );
+
+  const hideAllCountriesExcept = (keepKey: string) => {
+    setHiddenCountries(type, [
+      ...hiddenCountries.filter((key) => key !== keepKey),
+      ...countryKeys.filter((key) => key !== keepKey),
+    ]);
+    const activeRow = activeCategoryId ? rowById.get(activeCategoryId) : undefined;
+    const activeCountry = activeCategoryId?.startsWith('country:')
+      ? activeCategoryId.slice('country:'.length)
+      : activeRow
+        ? (activeRow.country ?? 'other')
+        : undefined;
+    if (activeCountry !== undefined && activeCountry !== keepKey) onSelectCategory(null);
+  };
+
   const countryActions = (key: string, country: string | null): ContextMenuItem[] => {
     const isPinned = pinnedCountries.includes(key);
     const isHidden = hiddenCountrySet.has(key);
     const name = countryName(country, language);
+    // Every other country hidden and this one visible: nothing left to hide.
+    const isAlreadyExclusive = !isHidden && hiddenCountryCount === countryKeys.length - 1;
     return [
       {
         id: `pin-country-${key}`,
@@ -494,6 +513,13 @@ export function CategorySidebar({
           }
           toggleCategoryPref('hiddenCountries', type, key);
         },
+      },
+      {
+        id: `hide-other-countries-${key}`,
+        label: t('Hide all countries except {name}', { name }),
+        icon: <EyeOff size={15} />,
+        disabled: countryKeys.length <= 1 || isAlreadyExclusive,
+        action: () => hideAllCountriesExcept(key),
       },
     ];
   };
@@ -717,12 +743,13 @@ export function CategorySidebar({
               const countryId = `country:${key}`;
               const isActive = activeCategoryId === countryId;
               const isPinnedCountry = pinnedCountries.includes(key);
-              const menuItems = countryActions(key, group.country);
               return (
                 <div key={key} className={styles.group}>
                   <div
                     className={`${styles.groupHeaderRow} ${isActive ? styles.active : ''} ${isHiddenCountry ? styles.hiddenRow : ''}`}
-                    onContextMenu={(event) => openActions(event, menuItems)}
+                    onContextMenu={(event) =>
+                      openActions(event, countryActions(key, group.country))
+                    }
                   >
                     {!isDirectCountry && (
                       <button
@@ -774,7 +801,7 @@ export function CategorySidebar({
                     <button
                       type="button"
                       className={styles.rowMenuButton}
-                      onClick={(event) => openActions(event, menuItems)}
+                      onClick={(event) => openActions(event, countryActions(key, group.country))}
                       aria-label={t('Actions for {name}', {
                         name: countryName(group.country, language),
                       })}

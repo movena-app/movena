@@ -8,6 +8,21 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.28] - 2026-09-20
+
+### Added
+
+- added "Hide all countries except …" to a country's right-click menu in the category sidebar — keeps that one country and hides all others in one step
+
+### Fixed
+
+- fixed search showing movies, series, and channels from categories and countries you had hidden — search now leaves hidden material out, the way the home screen does
+- fixed hidden countries briefly showing up on the home screen right after start, before the category list had finished loading
+
+### Changed
+
+- improved performance
+
 ## [0.1.27] - 2026-09-17
 
 ### Added

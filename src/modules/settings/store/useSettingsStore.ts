@@ -512,6 +512,19 @@ export const useSettingsStore = create<SettingsState>()(
             },
           };
         }),
+      setHiddenCountries: (type, keys) =>
+        set((state) => {
+          const prefs = normalizeCategoryPrefs(state.categoryPrefs);
+          return {
+            categoryPrefs: {
+              ...prefs,
+              hiddenCountries: {
+                ...prefs.hiddenCountries,
+                [type]: [...new Set(keys)],
+              },
+            },
+          };
+        }),
       setSelectedCategory: (type, id) =>
         set((state) => ({
           selectedCategoryIds: {

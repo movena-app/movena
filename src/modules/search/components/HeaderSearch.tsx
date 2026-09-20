@@ -23,6 +23,7 @@ import {
   useVodStreams,
   useSeriesList,
 } from '@/modules/catalog/public/data/useCatalog';
+import { useWithoutHiddenCategories } from '@/modules/catalog/public/data/useCategories';
 import { getDisplayTitle, parseMediaDisplayTitle } from '@/modules/catalog/public/lib/titleParser';
 import { debugLog } from '@/modules/diagnostics/public/store/useDebugStore';
 import { useI18n } from '@/shared/i18n/i18n';
@@ -191,9 +192,17 @@ export function HeaderSearch({
   });
   const suggestionError = getCombinedErrorMessage([moviesError, seriesError, liveError], '');
 
+  // Hidden categories and countries stay out of search, as they do on Home.
+  const visibleMovies = useWithoutHiddenCategories('vod', movies, { enabled: searchEnabled });
+  const visibleSeries = useWithoutHiddenCategories('series', series, { enabled: searchEnabled });
+  const visibleLive = useWithoutHiddenCategories('live', live, { enabled: searchEnabled });
+  const isHiddenFilterPending =
+    searchEnabled && (visibleMovies.isPending || visibleSeries.isPending || visibleLive.isPending);
+
   const searchableItems = useMemo(
-    () => (searchEnabled ? [...movies, ...series, ...live] : []),
-    [searchEnabled, movies, series, live],
+    () =>
+      searchEnabled ? [...visibleMovies.data, ...visibleSeries.data, ...visibleLive.data] : [],
+    [searchEnabled, visibleMovies.data, visibleSeries.data, visibleLive.data],
   );
 
   // Calculate smart search suggestions
@@ -206,8 +215,9 @@ export function HeaderSearch({
   const showRecentDropdown = isFocused && !query.trim() && recentOptions.length > 0;
   const currentSuggestionQuery = query.trim();
   const isSuggestionPending =
-    currentSuggestionQuery.length >= MIN_SUGGESTION_QUERY_LENGTH &&
-    currentSuggestionQuery !== suggestionQuery;
+    (currentSuggestionQuery.length >= MIN_SUGGESTION_QUERY_LENGTH &&
+      currentSuggestionQuery !== suggestionQuery) ||
+    isHiddenFilterPending;
   const showSuggestionsDropdown =
     isFocused && suggestionQuery.length >= MIN_SUGGESTION_QUERY_LENGTH;
   const isDropdownOpen = showRecentDropdown || showSuggestionsDropdown;
@@ -577,7 +587,13 @@ export function HeaderSearch({
                 </span>
                 <span className={styles.noSuggestionsCopy}>
                   <strong>
-                    {t(suggestionError ? 'Quick search unavailable' : 'No quick matches')}
+                    {t(
+                      suggestionError
+                        ? 'Quick search unavailable'
+                        : isSuggestionPending
+                          ? 'Loading…'
+                          : 'No quick matches',
+                    )}
                   </strong>
                   <span className={suggestionError ? styles.technicalError : undefined}>
                     {suggestionError || t('Press Enter to search everything')}

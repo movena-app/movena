@@ -1,6 +1,6 @@
 import type { MediaItem } from '../model/media';
 import type { CatalogSortMode } from '@/modules/settings/public/store/useSettingsStore';
-import { parseCategoryName } from '@/shared/lib/categoryName';
+import { parseProviderCategoryName } from '@/shared/lib/categoryName';
 import { isUltraHdQuality } from '@/shared/lib/mediaTags';
 
 export interface SmartCatalogItem extends MediaItem {
@@ -11,16 +11,6 @@ export interface CategoryLike {
   category_id: string | number;
   category_name: string;
 }
-
-const decodeHtml = (html: string) => {
-  if (!html) return '';
-  return html
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'");
-};
 
 const COMMON_GENRES = [
   'Action',
@@ -236,7 +226,7 @@ export function filterItemsBySmartCategory<T extends SmartCatalogItem>(
     if (categories && categories.length > 0) {
       for (const cat of categories) {
         const catId = String(cat.category_id);
-        const parsed = parseCategoryName(decodeHtml(cat.category_name || ''));
+        const parsed = parseProviderCategoryName(cat.category_name || '');
         const cKey = parsed.country ?? 'other';
         if (cKey === targetCountry) {
           targetCategoryIds.add(catId);
@@ -316,10 +306,10 @@ export function filterItemsBySmartCategory<T extends SmartCatalogItem>(
   if (categories && categories.length > 0) {
     const activeCat = categories.find((c) => String(c.category_id) === activeCategoryId);
     if (activeCat) {
-      const activeParsed = parseCategoryName(decodeHtml(activeCat.category_name || ''));
+      const activeParsed = parseProviderCategoryName(activeCat.category_name || '');
       for (const cat of categories) {
         const catId = String(cat.category_id);
-        const parsed = parseCategoryName(decodeHtml(cat.category_name || ''));
+        const parsed = parseProviderCategoryName(cat.category_name || '');
         if (
           parsed.country === activeParsed.country &&
           parsed.label.toLowerCase() === activeParsed.label.toLowerCase()

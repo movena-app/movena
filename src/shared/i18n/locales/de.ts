@@ -253,6 +253,7 @@ export const DE_MESSAGES: Record<string, string> = {
   'Pin {name}': '{name} anheften',
   'Show {name}': '{name} anzeigen',
   'Hide {name}': '{name} ausblenden',
+  'Hide all countries except {name}': 'Alle Länder außer {name} ausblenden',
   'Expand {name}': '{name} ausklappen',
   'Collapse {name}': '{name} einklappen',
   'Actions for {name}': 'Aktionen für {name}',

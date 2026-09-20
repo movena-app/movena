@@ -247,6 +247,7 @@ export const FR_MESSAGES: Record<string, string> = {
   'Pin {name}': 'Épingler {name}',
   'Show {name}': 'Afficher {name}',
   'Hide {name}': 'Masquer {name}',
+  'Hide all countries except {name}': 'Masquer tous les pays sauf {name}',
   'Expand {name}': 'Développez {name}',
   'Collapse {name}': 'Réduire {name}',
   'Actions for {name}': 'Actions pour {name}',

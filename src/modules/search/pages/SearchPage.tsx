@@ -18,6 +18,7 @@ import {
   useVodStreams,
   useSeriesList,
 } from '@/modules/catalog/public/data/useCatalog';
+import { useWithoutHiddenCategories } from '@/modules/catalog/public/data/useCategories';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { getCombinedErrorMessage, getErrorPresentation } from '@/shared/lib/error';
 import { useEnabledSources } from '@/modules/sources/public/hooks/useEnabledSources';
@@ -112,24 +113,42 @@ export function SearchPage() {
   const liveQuery = useLiveStreams({ enabled: filterType === 'all' || filterType === 'live' });
   const { data: live = [], isLoading: loadingLive } = liveQuery;
 
+  // Hidden categories and countries stay out of search, as they do on Home.
+  const visibleMovies = useWithoutHiddenCategories('vod', movies, {
+    enabled: filterType === 'all' || filterType === 'movies',
+  });
+  const visibleSeries = useWithoutHiddenCategories('series', series, {
+    enabled: filterType === 'all' || filterType === 'series',
+  });
+  const visibleLive = useWithoutHiddenCategories('live', live, {
+    enabled: filterType === 'all' || filterType === 'live',
+  });
+
+  // A pending hidden set counts as loading: the items are held back until it is
+  // known which of them the user hid, so the alternative would be "no results".
   const isLoading =
     filterType === 'movies'
-      ? loadingMovies
+      ? loadingMovies || visibleMovies.isPending
       : filterType === 'series'
-        ? loadingSeries
+        ? loadingSeries || visibleSeries.isPending
         : filterType === 'live'
-          ? loadingLive
-          : loadingMovies || loadingSeries || loadingLive;
+          ? loadingLive || visibleLive.isPending
+          : loadingMovies ||
+            loadingSeries ||
+            loadingLive ||
+            visibleMovies.isPending ||
+            visibleSeries.isPending ||
+            visibleLive.isPending;
 
   // Memoize combined catalog references to avoid array re-allocations on every input keystroke
   const combinedCatalog = useMemo(() => {
     return {
-      all: [...movies, ...series, ...live],
-      movies,
-      series,
-      live,
+      all: [...visibleMovies.data, ...visibleSeries.data, ...visibleLive.data],
+      movies: visibleMovies.data,
+      series: visibleSeries.data,
+      live: visibleLive.data,
     };
-  }, [movies, series, live]);
+  }, [visibleMovies.data, visibleSeries.data, visibleLive.data]);
 
   // Filter and rank search results using smart multi-token fuzzy matching
   const searchResults = useMemo(() => {
@@ -160,7 +179,8 @@ export function SearchPage() {
     selectedQuery ? [selectedQuery.error] : [moviesQuery.error, seriesQuery.error, liveQuery.error],
     '',
   );
-  const relevantDataCount = selectedQuery?.data?.length ?? combinedCatalog.all.length;
+  const relevantDataCount =
+    selectedQuery?.data?.length ?? movies.length + series.length + live.length;
   const showLoadError = Boolean(catalogError) && relevantDataCount === 0;
   const errorPresentation = getErrorPresentation(catalogError, 'Search results');
   const relevantCatalogQueries = selectedQuery

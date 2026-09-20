@@ -246,6 +246,7 @@ export const NL_MESSAGES: Record<string, string> = {
   'Pin {name}': '{name} vastzetten',
   'Show {name}': 'Toon {name}',
   'Hide {name}': 'Verberg {name}',
+  'Hide all countries except {name}': 'Verberg alle landen behalve {name}',
   'Expand {name}': 'Vouw {name} uit',
   'Collapse {name}': 'Samenvouwen {name}',
   'Actions for {name}': 'Acties voor {name}',

@@ -363,6 +363,37 @@ function extractCategoryTags(label: string): { cleanLabel: string; tags: string[
   };
 }
 
+/** Providers ship category names with HTML entities left in them verbatim. */
+const decodeCategoryEntities = (name: string) =>
+  name
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'");
+
+const parsedProviderCategories = new Map<string, ParsedCategory>();
+
+/**
+ * `parseCategoryName` for a name as the provider sent it: entities decoded
+ * first, and the result kept.
+ *
+ * Every surface that groups, hides, or filters by category parses the entire
+ * category list, and parsing one name walks a few hundred country-name
+ * prefixes. Without this, a catalogue with thousands of categories re-does all
+ * of that on each recompute — for the sidebar, the catalogue pages, and search
+ * separately. Names are provider data, so the result never changes; the cap
+ * only guards against a pathological playlist.
+ */
+export function parseProviderCategoryName(name: string): ParsedCategory {
+  const key = name || '';
+  const cached = parsedProviderCategories.get(key);
+  if (cached) return cached;
+  const parsed = parseCategoryName(decodeCategoryEntities(key));
+  if (parsedProviderCategories.size < 20_000) parsedProviderCategories.set(key, parsed);
+  return parsed;
+}
+
 export function parseCategoryName(name: string): ParsedCategory {
   let trimmed = normalizeFancyUnicode(name || '').trim();
   // Strip decorative leading and trailing hashes (#), asterisks (*), equals (=), dashes (-), tildes (~)

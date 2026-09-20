@@ -47,6 +47,18 @@ describe('settings store', () => {
     });
   });
 
+  it('replaces the hidden countries of one catalogue without duplicates or side effects', () => {
+    const store = useSettingsStore.getState();
+    store.toggleCategoryPref('hiddenCountries', 'live', 'FR');
+    store.setHiddenCountries('vod', ['DE', 'GB', 'DE']);
+
+    expect(useSettingsStore.getState().categoryPrefs.hiddenCountries).toEqual({
+      live: ['FR'],
+      vod: ['DE', 'GB'],
+      series: [],
+    });
+  });
+
   it('deeply restores missing category preference branches during migration', () => {
     const migrated = migrateSettingsState({
       categoryPrefs: { hidden: { vod: ['10'] } },

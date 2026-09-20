@@ -7,7 +7,7 @@ import { getXtreamCredentials, useAuthStore } from '@/modules/sources/public/sto
 import { useLiveStreams } from '@/modules/catalog/public/data/useCatalog';
 import { useCategories, useHiddenCategoryIds } from '@/modules/catalog/public/data/useCategories';
 import { playableFromMediaItem } from '../lib/playback';
-import { parseCategoryName } from '@/shared/lib/categoryName';
+import { parseProviderCategoryName } from '@/shared/lib/categoryName';
 import { parseLiveChannelTitle } from '@/modules/catalog/public/lib/titleParser';
 import { getPrimaryMediaTags, getTagColorType, mergeMediaTags } from '@/shared/lib/mediaTags';
 import { useMediaContextMenus } from '@/modules/catalog/public/hooks/useMediaContextMenus';
@@ -62,16 +62,6 @@ function DrawerChannelLogo({
   );
 }
 
-const decodeHtml = (html: string) => {
-  if (!html) return '';
-  return html
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'");
-};
-
 export function ChannelsDrawer() {
   const { t } = useI18n();
   const { handleMediaCardContextMenu } = useMediaContextMenus();
@@ -117,7 +107,7 @@ export function ChannelsDrawer() {
   const categoryLabel = useMemo(() => {
     if (!activeCategoryId) return null;
     const match = categories.find((c) => String(c.category_id) === activeCategoryId);
-    return match ? parseCategoryName(decodeHtml(match.category_name || '')).label : null;
+    return match ? parseProviderCategoryName(match.category_name || '').label : null;
   }, [categories, activeCategoryId]);
 
   const channels = useMemo(() => {
