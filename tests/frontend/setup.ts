@@ -50,6 +50,26 @@ Object.defineProperty(globalThis, 'localStorage', {
   configurable: true,
 });
 
+/**
+ * Marks an animation's `finished` promise as handled before cancelling it.
+ *
+ * The Web Animations spec rejects the current `finished` promise with an
+ * `AbortError` on cancel *and* sets its [[PromiseIsHandled]] slot, so
+ * browsers never report it. happy-dom (as of 20.14) performs only the
+ * rejection. framer-motion cancels in-flight animations whenever a component
+ * unmounts or retargets, and without awaiting `finished`, so every such
+ * cancel surfaced as an unhandled rejection and failed the run. Attaching a
+ * no-op handler right before the rejection is the same step the spec takes.
+ * Suites that opt into the `node` environment have no `Animation` at all.
+ */
+if (typeof Animation !== 'undefined') {
+  const cancelAnimation = Animation.prototype.cancel;
+  Animation.prototype.cancel = function cancel(this: Animation) {
+    this.finished.catch(() => {});
+    cancelAnimation.call(this);
+  };
+}
+
 afterEach(() => {
   cleanup();
 });
