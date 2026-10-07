@@ -1,17 +1,46 @@
 version: 2
+
+# `tauri build` aborts when a Tauri crate and its npm package differ in
+# major.minor, so both sides move in one PR. The wdio Tauri plugin ships its
+# crates and npm packages in lockstep too. The regular entries ignore them.
+multi-ecosystem-groups:
+  tauri:
+    schedule: { interval: weekly }
+    commit-message: { prefix: chore, include: scope }
+
 updates:
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly }
     groups:
+      # @vitest/coverage-v8 pins vitest exactly, majors included.
+      vitest:
+        patterns: [vitest, '@vitest/*']
       frontend-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '@tauri-apps/*'
+      - dependency-name: '@wdio/tauri-*'
+      # typescript-eslint's peer range ends below TypeScript 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
   - package-ecosystem: cargo
     directory: /src-tauri
     schedule: { interval: weekly }
     groups:
       rust-minor:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: tauri
+      - dependency-name: tauri-*
+  - package-ecosystem: npm
+    directory: /
+    multi-ecosystem-group: tauri
+    patterns: ['@tauri-apps/*', '@wdio/tauri-*']
+  - package-ecosystem: cargo
+    directory: /src-tauri
+    multi-ecosystem-group: tauri
+    patterns: [tauri, tauri-*]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
