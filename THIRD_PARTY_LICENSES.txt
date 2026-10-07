@@ -250,7 +250,7 @@ cargo:MIT
 - tauri-winres@0.3.6
 - tokio-macros@2.7.2
 - tokio-util@0.7.19
-- tokio@1.53.1
+- tokio@1.53.2
 - tower-http@0.6.11
 - tower-layer@0.3.3
 - tower-service@0.3.3
@@ -392,7 +392,7 @@ cargo:MIT OR Apache-2.0
 - keyboard-types@0.7.0
 - keyring-core@1.0.0
 - keyring@4.2.0
-- libc@0.2.189
+- libc@0.2.190
 - lock_api@0.4.14
 - log@0.4.34
 - markup5ever@0.38.0
@@ -845,7 +845,7 @@ npm:ISC
 - lru-cache@10.4.3
 - lru-cache@5.1.1
 - lru-cache@7.18.3
-- lucide-react@1.49.0
+- lucide-react@1.51.0
 - minimatch@3.1.5
 - minimatch@5.1.9
 - minimatch@9.0.9
@@ -935,8 +935,8 @@ npm:MIT
 - @sec-ant/readable-stream@0.4.1
 - @sinclair/typebox@0.34.52
 - @sindresorhus/merge-streams@4.0.0
-- @tanstack/query-core@5.104.0
-- @tanstack/react-query@5.104.0
+- @tanstack/query-core@5.104.1
+- @tanstack/react-query@5.104.1
 - @tanstack/react-virtual@3.14.13
 - @tanstack/virtual-core@3.17.11
 - @testing-library/dom@10.4.1
@@ -954,7 +954,7 @@ npm:MIT
 - @types/json-schema@7.0.15
 - @types/mocha@10.0.10
 - @types/node@20.19.43
-- @types/node@26.6.3
+- @types/node@26.6.4
 - @types/normalize-package-data@2.4.4
 - @types/react-dom@19.3.0
 - @types/react@19.3.0
@@ -1105,7 +1105,7 @@ npm:MIT
 - escape-string-regexp@4.0.0
 - eslint-plugin-react-hooks@7.1.1
 - eslint-plugin-react-refresh@0.5.7
-- eslint@10.11.0
+- eslint@10.12.0
 - estree-walker@3.0.3
 - event-target-shim@5.0.1
 - events@3.3.0
@@ -1138,7 +1138,7 @@ npm:MIT
 - get-stream@9.0.1
 - get-tsconfig@4.14.3
 - get-uri@6.0.5
-- globals@17.12.0
+- globals@17.13.0
 - grapheme-splitter@1.0.4
 - happy-dom@20.14.5
 - has-flag@4.0.0
@@ -1334,7 +1334,7 @@ npm:MIT
 - urlpattern-polyfill@10.1.0
 - userhome@1.0.1
 - util-deprecate@1.0.2
-- vite@8.3.1
+- vite@8.3.2
 - vitest@5.0.3
 - wait-port@1.1.0
 - wcwidth@1.0.1
@@ -2199,7 +2199,7 @@ Used by:
 - npm:get-port@7.2.0 (license)
 - npm:get-stream@5.2.0 (license)
 - npm:get-stream@9.0.1 (license)
-- npm:globals@17.12.0 (license)
+- npm:globals@17.13.0 (license)
 - npm:is-plain-obj@4.1.0 (license)
 - npm:is-stream@2.0.1 (license)
 - npm:is-stream@4.0.1 (license)
@@ -4250,8 +4250,8 @@ SOFTWARE.
 
 SHA-256: 277d2a8e459713d6c596bab89ef857cb8b2433223fa9edb49ccc403a6ceb08ee
 Used by:
-- npm:@tanstack/query-core@5.104.0 (LICENSE)
-- npm:@tanstack/react-query@5.104.0 (LICENSE)
+- npm:@tanstack/query-core@5.104.1 (LICENSE)
+- npm:@tanstack/react-query@5.104.1 (LICENSE)
 - npm:@tanstack/react-virtual@3.14.13 (LICENSE)
 - npm:@tanstack/virtual-core@3.17.11 (LICENSE)
 
@@ -6302,7 +6302,7 @@ THE SOFTWARE.
 SHA-256: 3e1bef82aa0dfee4504ad211f7e4895153e3191db6ab179f94a7e20f990a0b67
 Used by:
 - cargo:tokio-util@0.7.19 (LICENSE)
-- cargo:tokio@1.53.1 (LICENSE)
+- cargo:tokio@1.53.2 (LICENSE)
 
 MIT License
 
@@ -7771,7 +7771,7 @@ SOFTWARE.
 
 SHA-256: 46cde592c339ed706afebd8e9c10d5cbcb2bbe7e190710cb4f1251218c30516d
 Used by:
-- npm:eslint@10.11.0 (LICENSE)
+- npm:eslint@10.12.0 (LICENSE)
 
 Copyright OpenJS Foundation and other contributors, <www.openjsf.org>
 
@@ -22522,7 +22522,7 @@ DEALINGS IN THE SOFTWARE.
 
 SHA-256: ee35498e6684b30c9efaae009415884772f4450b3f6a3ae49103cd550a2c8ceb
 Used by:
-- npm:lucide-react@1.49.0 (LICENSE)
+- npm:lucide-react@1.51.0 (LICENSE)
 
 ISC License
 
@@ -23321,9 +23321,9 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMANGE.
 
 ==============================================================================
 
-SHA-256: f9340566fc1a7502e86eada88bf17743df53432a2baefdcf6784c37b45e7eeaf
+SHA-256: f9a0c68ac4a23abffd4a4663bbbfda9918c12177f81e40dd6fb30348920fab6c
 Used by:
-- npm:vite@8.3.1 (LICENSE.md)
+- npm:vite@8.3.2 (LICENSE.md)
 
 # Vite core license
 Vite is released under the MIT license:
@@ -24001,35 +24001,6 @@ Repository: https://github.com/expressjs/cors
 
 ---------------------------------------
 
-## cross-spawn
-License: MIT
-By: André Cruz
-Repository: https://github.com/moxystudio/node-cross-spawn
-
-> The MIT License (MIT)
->
-> Copyright (c) 2018 Made With MOXY Lda <hello@moxy.studio>
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
-
----------------------------------------
-
 ## cssesc
 License: MIT
 By: Mathias Bynens
@@ -24553,29 +24524,6 @@ Repository: https://github.com/Rich-Harris/is-reference
 
 ---------------------------------------
 
-## isexe, which
-License: ISC
-By: Isaac Z. Schlueter
-Repositories: https://github.com/isaacs/isexe, https://github.com/isaacs/node-which
-
-> The ISC License
->
-> Copyright (c) Isaac Z. Schlueter and Contributors
->
-> Permission to use, copy, modify, and/or distribute this software for any
-> purpose with or without fee is hereby granted, provided that the above
-> copyright notice and this permission notice appear in all copies.
->
-> THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-> WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-> MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-> ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-> WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-> ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
-> IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
----------------------------------------
-
 ## js-tokens
 License: MIT
 By: Simon Lydell
@@ -24996,23 +24944,6 @@ Repository: https://github.com/pillarjs/parseurl
 
 ---------------------------------------
 
-## path-key, shebang-regex
-License: MIT
-By: Sindre Sorhus
-Repositories: https://github.com/sindresorhus/path-key, https://github.com/sindresorhus/shebang-regex
-
-> MIT License
->
-> Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----------------------------------------
-
 ## periscopic
 License: MIT
 Repository: https://github.com/Rich-Harris/periscopic
@@ -25323,23 +25254,6 @@ Repositories: https://github.com/lukeed/resolve.exports, https://github.com/luke
 
 ---------------------------------------
 
-## shebang-command
-License: MIT
-By: Kevin Mårtensson
-Repository: https://github.com/kevva/shebang-command
-
-> MIT License
->
-> Copyright (c) Kevin Mårtensson <kevinmartensson@gmail.com> (github.com/kevva)
->
-> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----------------------------------------
-
 ## shell-quote
 License: MIT
 By: James Halliday
@@ -25424,6 +25338,35 @@ Repository: https://github.com/antfu/strip-literal
 > MIT License
 >
 > Copyright (c) 2022 Anthony Fu <https://github.com/antfu>
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+
+---------------------------------------
+
+## tinyexec
+License: MIT
+By: James Garbutt
+Repository: https://github.com/tinylibs/tinyexec
+
+> MIT License
+>
+> Copyright (c) 2024 Tinylibs
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy
 > of this software and associated documentation files (the "Software"), to deal
@@ -26723,7 +26666,7 @@ Used by:
 - npm:@types/json-schema@7.0.15 (LICENSE)
 - npm:@types/mocha@10.0.10 (LICENSE)
 - npm:@types/node@20.19.43 (LICENSE)
-- npm:@types/node@26.6.3 (LICENSE)
+- npm:@types/node@26.6.4 (LICENSE)
 - npm:@types/normalize-package-data@2.4.4 (LICENSE)
 - npm:@types/react-dom@19.3.0 (LICENSE)
 - npm:@types/react@19.3.0 (LICENSE)
