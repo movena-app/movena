@@ -8,6 +8,8 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.29] - 2026-10-13
+
 ### Fixed
 
 - fixed auto-skip of intros and recaps: it now works with the Skip buttons switched off, waits until the episode is actually playing (a recap at 0:00 was "skipped" before playback began and then played anyway), and retries a skip that failed
