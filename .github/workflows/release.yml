@@ -62,6 +62,22 @@ jobs:
           python-version: '3.13.11'
       - uses: dtolnay/rust-toolchain@stable
       - run: npm ci
+      - name: Restore pinned Windows playback runtime
+        # shinchiro prunes its releases after about a month. The cached copy,
+        # verified against the pinned checksum when first fetched, keeps CI
+        # building once the pinned build is gone upstream.
+        uses: actions/cache@v6
+        with:
+          path: |
+            src-tauri/lib/mpv-dev
+            src-tauri/lib/yt-dlp
+            src-tauri/lib/libmpv-2.dll
+            src-tauri/lib/libmpv.dll.a
+            src-tauri/lib/mpv.dll.a
+            src-tauri/lib/mpv.lib
+            src-tauri/lib/libmpv.lib
+            src-tauri/lib/libmpv-2.lib
+          key: windows-playback-runtime-${{ hashFiles('scripts/ensure-windows-mpv.mjs') }}
       - name: Setup Windows mpv binaries
         run: npm run setup:mpv
       - name: Build pinned Twitch resolver

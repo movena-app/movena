@@ -14,9 +14,12 @@ const targetYtdlp = join(ytdlpDir, 'yt-dlp.exe');
 
 // Keep native development reproducible. Update these values deliberately when
 // upgrading mpv; do not silently move every developer to a new engine build.
-const MPV_RELEASE_TAG = '20260811';
-const MPV_ASSET_NAME = 'mpv-dev-x86_64-20260811-git-f4d13e1c2c.7z';
-const MPV_ARCHIVE_SHA256 = 'd849de71d4e57ac7f92cedbda50564af4431d84bd1898e9ee6f9a9fc21d42427';
+// shinchiro keeps only its latest ~30 builds, so a pin disappears upstream
+// after a month or two; CI caches the verified runtime under a key derived
+// from this file, and a 404 here means the pin needs moving to a current build.
+const MPV_RELEASE_TAG = '20261013';
+const MPV_ASSET_NAME = 'mpv-dev-x86_64-20261013-git-9d144e57b6.7z';
+const MPV_ARCHIVE_SHA256 = '10860837bc04491862c1e66a95dc1af1d7886d69757ce447a09e1e49ae993b52';
 const YTDLP_RELEASE_TAG = '2026.08.19';
 const YTDLP_ASSET_NAME = 'yt-dlp.exe';
 const YTDLP_ASSET_SHA256 = '66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a';
