@@ -63,6 +63,17 @@ export function getCombinedSourceQueryScope(scopes: readonly string[]): string {
   return `sources-${(hash >>> 0).toString(36)}`;
 }
 
+/** Order-insensitive fingerprint of a set of catalogue item ids. */
+export function getItemSetQueryScope(ids: readonly string[]): string {
+  let hash = 0x811c9dc5;
+  const identity = [...ids].sort().join('|');
+  for (let index = 0; index < identity.length; index += 1) {
+    hash ^= identity.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `items-${ids.length}-${(hash >>> 0).toString(36)}`;
+}
+
 export const queryKeys = {
   catalog: (type: CatalogType, authScope: string) => ['catalog', type, authScope] as const,
   categories: (type: CatalogType, authScope: string) => ['categories', type, authScope] as const,
@@ -81,6 +92,45 @@ export const queryKeys = {
     ['tmdb_tv', id, language, includeAdult, imageSize] as const,
   tmdbMovie: (id: number, language: string, includeAdult: boolean, imageSize: string) =>
     ['tmdb_movie', id, language, includeAdult, imageSize] as const,
+  /** `titleKey` is the normalized title the match was made for, not raw provider text. */
+  tmdbTitleMatch: (
+    mediaType: 'movie' | 'tv',
+    titleKey: string,
+    year: number | null,
+    tmdbId: number | null,
+    language: string,
+    includeAdult: boolean,
+  ) => ['tmdb_title_match', mediaType, titleKey, year, tmdbId, language, includeAdult] as const,
+  tmdbTitleDetails: (
+    mediaType: 'movie' | 'tv',
+    titleKey: string,
+    year: number | null,
+    tmdbId: number | null,
+    language: string,
+    includeAdult: boolean,
+    imageSize: string,
+  ) =>
+    [
+      'tmdb_title_details',
+      mediaType,
+      titleKey,
+      year,
+      tmdbId,
+      language,
+      includeAdult,
+      imageSize,
+    ] as const,
+  /** Every TMDB rating verdict collected so far, by catalogue item id. */
+  tmdbRatingVerdicts: (mediaType: 'movie' | 'tv', language: string, includeAdult: boolean) =>
+    ['tmdb_rating_verdicts', mediaType, language, includeAdult] as const,
+  /** `poolScope` fingerprints the ranked titles the checks ran over. */
+  tmdbRatingChecks: (
+    mediaType: 'movie' | 'tv',
+    poolScope: string,
+    genre: string | null,
+    language: string,
+    includeAdult: boolean,
+  ) => ['tmdb_rating_checks', mediaType, poolScope, genre, language, includeAdult] as const,
   tmdbUpcoming: (
     favoriteScope: string,
     language: string,

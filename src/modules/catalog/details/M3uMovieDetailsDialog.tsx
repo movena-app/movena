@@ -71,7 +71,6 @@ export function M3uMovieDetailsDialog({
       startPosition: historyItem?.currentTime || 0,
       knownDuration: entry.duration > 0 ? entry.duration : undefined,
     });
-    onClose();
   };
   const toggleFavorite = () => {
     if (isFavorite) removeFavorite(movieId);

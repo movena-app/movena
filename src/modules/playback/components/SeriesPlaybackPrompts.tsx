@@ -7,6 +7,8 @@ import { getXtreamCredentials, useAuthStore } from '@/modules/sources/public/sto
 import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
 import { debugLog } from '@/modules/diagnostics/public/store/useDebugStore';
 import { useSeriesInfo } from '@/modules/catalog/public/data/useDetails';
+import { normalizeTmdbId } from '@/modules/metadata/public/model/tmdb';
+import { getErrorMessage } from '@/shared/lib/error';
 import { useIntroDbSegments } from '../data/useIntroDb';
 import { findNextEpisode } from '../lib/seriesNavigation';
 import { resolvePlaybackPromptSegments } from '../lib/chapters';
@@ -23,6 +25,8 @@ import { useI18n } from '@/shared/i18n/i18n';
 
 /** How long the auto-play prompt waits before it actually advances. */
 const AUTO_PLAY_COUNTDOWN_SECONDS = 8;
+/** A segment whose skip keeps failing (an unseekable stream) is given up on after this many tries. */
+const MAX_AUTO_SKIP_ATTEMPTS = 3;
 
 /**
  * Everything about moving between episodes and skipping segments: the Skip
@@ -36,6 +40,7 @@ export function SeriesPlaybackPrompts() {
   const activeStream = usePlayerStore((s) => s.activeStream);
   const currentTime = usePlayerStore((s) => s.currentTime);
   const eofReached = usePlayerStore((s) => s.eofReached);
+  const hasPosition = usePlayerStore((s) => s.playback.hasPosition);
   const chapters = usePlayerStore((s) => s.chapters);
   const playStream = usePlayerStore((s) => s.playStream);
   const credentials = useAuthStore((s) =>
@@ -76,18 +81,34 @@ export function SeriesPlaybackPrompts() {
 
   // Shared with VodControls, so this is normally already in cache by the
   // time it's needed — no extra fetch on top of what the controls do.
-  const { data: seriesData } = useSeriesInfo(
+  const { data: seriesData, isLoading: isSeriesInfoLoading } = useSeriesInfo(
     activeStream?.seriesSourceItemId || activeStream?.seriesId,
     activeStream?.sourceId,
     isSeries && Boolean(activeStream?.seriesSourceItemId || activeStream?.seriesId),
   );
 
+  // The provider's year and TMDB id find the right show far more reliably
+  // than its title alone; the lookup waits for them rather than running twice.
+  const seriesReleaseDate = seriesData?.info?.releaseDate;
+  const seriesTmdbId = normalizeTmdbId(seriesData?.info?.tmdb ?? seriesData?.info?.tmdb_id);
+  const introDbSeries = useMemo(() => {
+    const year = seriesReleaseDate?.match(/\b(?:18|19|20)\d{2}\b/)?.[0];
+    return {
+      title: resolvedSeriesTitle,
+      year: year ? Number(year) : null,
+      tmdbId: seriesTmdbId,
+    };
+  }, [resolvedSeriesTitle, seriesReleaseDate, seriesTmdbId]);
+
   const anySkipActive = skipIntroEnabled || skipRecapEnabled || autoSkipIntro;
-  const { data: introDbSegments } = useIntroDbSegments(
-    resolvedSeriesTitle,
+  const { data: introDbSegments, error: introDbError } = useIntroDbSegments(
+    introDbSeries,
     resolvedSeasonNum,
     resolvedEpisodeNum,
-    anySkipActive && introDbEnabled && Boolean(resolvedSeasonNum && resolvedEpisodeNum),
+    anySkipActive &&
+      introDbEnabled &&
+      !isSeriesInfoLoading &&
+      Boolean(resolvedSeasonNum && resolvedEpisodeNum),
   );
 
   const next = useMemo(() => {
@@ -163,6 +184,15 @@ export function SeriesPlaybackPrompts() {
   );
 
   useEffect(() => {
+    if (!introDbError) return;
+    debugLog.warn(
+      'api',
+      'IntroDB timestamps are unavailable for this episode',
+      getErrorMessage(introDbError, 'IntroDB lookup failed.'),
+    );
+  }, [introDbError]);
+
+  useEffect(() => {
     if (!activeStream) return;
     debugLog.info('player', `Skip prompts: resolved segments for "${activeStream.title}"`, {
       chapterCount: chapters.length,
@@ -184,46 +214,48 @@ export function SeriesPlaybackPrompts() {
   ]);
 
   // ── Automatic Intro / Recap Skipping ──────────────────────────
+  //
+  // Independent of the Skip buttons: those settings only decide whether a
+  // button is shown when skipping is left to the viewer.
 
-  const autoSkippedSegmentsRef = useRef<Set<string>>(new Set());
+  /** Seek attempts per segment; a segment is done once its seek succeeded. */
+  const autoSkipAttemptsRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
-    autoSkippedSegmentsRef.current.clear();
+    autoSkipAttemptsRef.current.clear();
   }, [activeStream?.id]);
 
   useEffect(() => {
-    if (!autoSkipIntro || !activeStream) return;
+    // Only once mpv plays this file: a seek sent while it is still opening the
+    // stream fails, and a recap at 0:00 would be counted as skipped before
+    // playback even began.
+    if (!autoSkipIntro || !activeStream || !hasPosition) return;
 
-    if (skipRecapEnabled && segments.recap) {
-      const recapKey = `recap:${segments.recap.start}:${segments.recap.skipTo}`;
-      if (!autoSkippedSegmentsRef.current.has(recapKey)) {
-        if (currentTime >= segments.recap.start && currentTime < segments.recap.skipTo - 0.5) {
-          autoSkippedSegmentsRef.current.add(recapKey);
-          void tauriApi.mpvSeek(segments.recap.skipTo);
-          return;
-        }
-      }
+    for (const [kind, segment] of [
+      ['recap', segments.recap],
+      ['intro', segments.intro],
+    ] as const) {
+      if (!segment) continue;
+      if (currentTime < segment.start || currentTime >= segment.skipTo - 0.5) continue;
+      const key = `${kind}:${segment.start}:${segment.skipTo}`;
+      const attempts = autoSkipAttemptsRef.current.get(key) ?? 0;
+      // Once a seek is in flight or done, the entry stays ahead of the cap.
+      if (attempts >= MAX_AUTO_SKIP_ATTEMPTS) continue;
+      autoSkipAttemptsRef.current.set(key, MAX_AUTO_SKIP_ATTEMPTS);
+      const skippedFor = activeStream.id;
+      tauriApi.mpvSeek(segment.skipTo).catch((error: unknown) => {
+        if (usePlayerStore.getState().activeStream?.id !== skippedFor) return;
+        // Let a later position update inside the segment try again.
+        autoSkipAttemptsRef.current.set(key, attempts + 1);
+        debugLog.warn(
+          'player',
+          `Auto-skip ${kind} failed`,
+          getErrorMessage(error, 'mpv refused the seek.'),
+        );
+      });
+      return;
     }
-
-    if (skipIntroEnabled && segments.intro) {
-      const introKey = `intro:${segments.intro.start}:${segments.intro.skipTo}`;
-      if (!autoSkippedSegmentsRef.current.has(introKey)) {
-        if (currentTime >= segments.intro.start && currentTime < segments.intro.skipTo - 0.5) {
-          autoSkippedSegmentsRef.current.add(introKey);
-          void tauriApi.mpvSeek(segments.intro.skipTo);
-          return;
-        }
-      }
-    }
-  }, [
-    autoSkipIntro,
-    activeStream,
-    skipIntroEnabled,
-    skipRecapEnabled,
-    segments.intro,
-    segments.recap,
-    currentTime,
-  ]);
+  }, [autoSkipIntro, activeStream, hasPosition, segments.intro, segments.recap, currentTime]);
 
   // ── Manual Skip Buttons ───────────────────────────────────────
 

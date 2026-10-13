@@ -159,7 +159,6 @@ export function M3uSeriesDetailsDialog({
     const downloaded = downloadedByLibraryId[entry.id];
     if (downloaded) {
       playStream(playableFromDownloadedItem(downloaded, startPosition));
-      onClose();
       return;
     }
 
@@ -193,7 +192,6 @@ export function M3uSeriesDetailsDialog({
       startPosition,
       knownDuration: entry.duration > 0 ? entry.duration : historyItem?.duration,
     });
-    onClose();
   };
 
   const handleDownloadSeason = () => {

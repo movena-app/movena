@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { SmartCatalogItem } from '../lib/smartCatalogFilter';
+import type { RatingLookups, SmartCatalogItem } from '../lib/smartCatalogFilter';
 import { getAvailableGenres } from '../lib/smartCatalogFilter';
 import { useI18n } from '@/shared/i18n/i18n';
 import styles from './GenreFilterBar.module.css';
@@ -9,6 +9,8 @@ interface GenreFilterBarProps<T extends SmartCatalogItem> {
   selectedGenre: string | null;
   onSelectGenre: (genre: string | null) => void;
   categoryNameMap?: Map<string, string> | undefined;
+  /** TMDB's verdicts, whose genres count for the titles they cover. */
+  ratingLookups?: RatingLookups | undefined;
   className?: string | undefined;
 }
 
@@ -17,13 +19,14 @@ export function GenreFilterBar<T extends SmartCatalogItem>({
   selectedGenre,
   onSelectGenre,
   categoryNameMap,
+  ratingLookups,
   className,
 }: GenreFilterBarProps<T>) {
   const { t, number } = useI18n();
 
   const availableGenres = useMemo(() => {
-    return getAvailableGenres(items, categoryNameMap);
-  }, [items, categoryNameMap]);
+    return getAvailableGenres(items, categoryNameMap, ratingLookups);
+  }, [items, categoryNameMap, ratingLookups]);
 
   if (availableGenres.length === 0) {
     return null;

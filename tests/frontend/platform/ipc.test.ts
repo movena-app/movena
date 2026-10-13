@@ -108,6 +108,19 @@ describe('typed Tauri IPC wrapper', () => {
     ['m3uCacheLoad', ['m3u-source'], 'm3u_cache_load', { sourceId: 'm3u-source' }],
     ['m3uCacheDelete', ['m3u-source'], 'm3u_cache_delete', { sourceId: 'm3u-source' }],
     [
+      'catalogCacheStore',
+      ['xtream-one', 'vod', 'sources-abc', '[]'],
+      'catalog_cache_store',
+      { sourceId: 'xtream-one', kind: 'vod', scope: 'sources-abc', content: '[]' },
+    ],
+    [
+      'catalogCacheLoad',
+      ['xtream-one', 'series', 'sources-abc'],
+      'catalog_cache_load',
+      { sourceId: 'xtream-one', kind: 'series', scope: 'sources-abc' },
+    ],
+    ['catalogCacheDelete', ['xtream-one'], 'catalog_cache_delete', { sourceId: 'xtream-one' }],
+    [
       'appDataClear',
       [['m3u-source', 'xtream-source']],
       'app_data_clear',

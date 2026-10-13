@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { tauriApi } from '@/platform/tauri';
@@ -9,6 +9,8 @@ import { useSeriesInfo } from '@/modules/catalog/data/useDetails';
 import { useIntroDbSegments } from '@/modules/playback/data/useIntroDb';
 import { usePlayerStore } from '@/modules/playback/store/usePlayerStore';
 import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
+import { createIdlePlaybackState } from '@/modules/playback/lib/playbackState';
+import { debugLog } from '@/modules/diagnostics/store/useDebugStore';
 
 vi.mock('@/platform/tauri', () => ({
   tauriApi: {
@@ -37,6 +39,7 @@ const mockSeriesData = {
 describe('SeriesPlaybackPrompts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(tauriApi.mpvSeek).mockResolvedValue(undefined);
     useSettingsStore.setState({
       skipIntroEnabled: true,
       skipRecapEnabled: true,
@@ -71,6 +74,13 @@ describe('SeriesPlaybackPrompts', () => {
       currentTime: 0,
       eofReached: false,
       chapters: [],
+      // mpv has reported a position: the file is open and playing.
+      playback: {
+        ...createIdlePlaybackState(),
+        generation: 1,
+        status: 'playing',
+        hasPosition: true,
+      },
     });
   });
 
@@ -174,5 +184,102 @@ describe('SeriesPlaybackPrompts', () => {
     await user.click(screen.getByRole('button', { name: /Skip Intro/i }));
     expect(tauriApi.mpvSeek).toHaveBeenCalledWith(150);
     expect(overlayClick).not.toHaveBeenCalled();
+  });
+
+  describe('automatic skipping', () => {
+    beforeEach(() => useSettingsStore.setState({ autoSkipIntro: true }));
+
+    it('skips even with the Skip buttons switched off', () => {
+      useSettingsStore.setState({ skipIntroEnabled: false, skipRecapEnabled: false });
+      usePlayerStore.setState({ currentTime: 100 });
+
+      render(<SeriesPlaybackPrompts />);
+
+      expect(tauriApi.mpvSeek).toHaveBeenCalledWith(150);
+    });
+
+    it('waits for mpv to play the file before skipping a recap at 0:00', () => {
+      usePlayerStore.setState({
+        currentTime: 0,
+        playback: { ...createIdlePlaybackState(), generation: 1, status: 'loading' },
+      });
+
+      render(<SeriesPlaybackPrompts />);
+      expect(tauriApi.mpvSeek).not.toHaveBeenCalled();
+
+      act(() =>
+        usePlayerStore.setState({
+          currentTime: 0.4,
+          playback: {
+            ...createIdlePlaybackState(),
+            generation: 1,
+            status: 'playing',
+            hasPosition: true,
+          },
+        }),
+      );
+
+      expect(tauriApi.mpvSeek).toHaveBeenCalledTimes(1);
+      expect(tauriApi.mpvSeek).toHaveBeenCalledWith(30);
+    });
+
+    it('skips each segment once, not again after the viewer seeks back into it', () => {
+      usePlayerStore.setState({ currentTime: 100 });
+      render(<SeriesPlaybackPrompts />);
+      expect(tauriApi.mpvSeek).toHaveBeenCalledTimes(1);
+
+      act(() => usePlayerStore.setState({ currentTime: 151 }));
+      act(() => usePlayerStore.setState({ currentTime: 120 }));
+
+      expect(tauriApi.mpvSeek).toHaveBeenCalledTimes(1);
+    });
+
+    it('tries a failed skip again while still inside the segment, up to three times', async () => {
+      const warn = vi.spyOn(debugLog, 'warn');
+      vi.mocked(tauriApi.mpvSeek).mockRejectedValue(new Error('mpv command seek failed'));
+      usePlayerStore.setState({ currentTime: 100 });
+      render(<SeriesPlaybackPrompts />);
+
+      for (let time = 101; time <= 106; time += 1) {
+        await act(async () => usePlayerStore.setState({ currentTime: time }));
+      }
+
+      expect(tauriApi.mpvSeek).toHaveBeenCalledTimes(3);
+      expect(warn).toHaveBeenCalledWith(
+        'player',
+        'Auto-skip intro failed',
+        'mpv command seek failed',
+      );
+    });
+  });
+
+  it('looks IntroDB up with the series year and TMDB id once the series details are in', () => {
+    vi.mocked(useSeriesInfo).mockReturnValue({
+      data: {
+        ...mockSeriesData,
+        info: { name: 'Breaking Bad', releaseDate: '2008-01-20', tmdb: '1396' },
+      },
+      isLoading: false,
+    } as unknown as ReturnType<typeof useSeriesInfo>);
+
+    render(<SeriesPlaybackPrompts />);
+
+    expect(useIntroDbSegments).toHaveBeenLastCalledWith(
+      { title: 'Breaking Bad', year: 2008, tmdbId: 1396 },
+      1,
+      1,
+      true,
+    );
+  });
+
+  it('holds the IntroDB lookup while the series details are still loading', () => {
+    vi.mocked(useSeriesInfo).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    } as unknown as ReturnType<typeof useSeriesInfo>);
+
+    render(<SeriesPlaybackPrompts />);
+
+    expect(vi.mocked(useIntroDbSegments).mock.lastCall?.[3]).toBe(false);
   });
 });

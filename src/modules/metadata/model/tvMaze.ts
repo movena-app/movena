@@ -14,6 +14,8 @@ interface NormalizedTvmazeExternals {
 export interface NormalizedTvmazeShow {
   id: number;
   name: string;
+  /** Year of the premiere, which tells namesakes apart. */
+  premieredYear: number | null;
   externals: NormalizedTvmazeExternals;
 }
 
@@ -98,9 +100,11 @@ function normalizeTvmazeShow(payload: unknown): NormalizedTvmazeShow | null {
   if (!source || id === null || !name) return null;
 
   const externals = record(source.externals);
+  const premiered = text(source.premiered)?.match(/^(\d{4})-\d{2}-\d{2}$/)?.[1];
   return {
     id,
     name,
+    premieredYear: premiered ? Number(premiered) : null,
     externals: {
       imdb: externalImdbId(externals?.imdb),
       thetvdb: integer(externals?.thetvdb, 1),

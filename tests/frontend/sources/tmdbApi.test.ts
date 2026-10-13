@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getTmdbMovie, getTmdbTv, searchTmdb } from '@/modules/metadata/data/tmdbClient';
+import {
+  getTmdbMovie,
+  getTmdbTv,
+  searchTmdb,
+  searchTmdbTitles,
+} from '@/modules/metadata/data/tmdbClient';
+import { normalizeTmdbId } from '@/modules/metadata/model/tmdb';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -87,5 +93,75 @@ describe('TMDB API boundary', () => {
       'TMDB request failed (HTTP 401)',
     );
     await expect(searchTmdb('super-secret-key', 'Movie')).rejects.not.toThrow('super-secret-key');
+  });
+
+  it('searches one media type within a release year and keeps vote counts', async () => {
+    const json = (body: unknown) =>
+      new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        json({
+          results: [
+            {
+              id: 1,
+              title: 'City of Blood',
+              release_date: '2023-04-01',
+              vote_average: 4.8,
+              vote_count: 212,
+              genre_ids: [18, 53, 18, 'x', -1],
+            },
+            { id: 2, name: 'A Person', profile_path: '/p.jpg', media_type: 'person' },
+          ],
+        }),
+      )
+      .mockResolvedValueOnce(
+        json({ results: [{ id: 9, name: 'Blood Show', first_air_date: '2020-01-01' }] }),
+      )
+      .mockResolvedValueOnce(json({ results: [] }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const movies = await searchTmdbTitles('key', 'movie', ' City of Blood ', 2023);
+    expect(movies.results).toEqual([
+      expect.objectContaining({
+        id: 1,
+        mediaType: 'movie',
+        voteAverage: 4.8,
+        voteCount: 212,
+        genreIds: [18, 53],
+        releaseYear: 2023,
+      }),
+    ]);
+    const series = await searchTmdbTitles('key', 'tv', 'Blood Show', 2020, undefined, {
+      language: 'de-DE',
+    });
+    expect(series.results).toEqual([
+      expect.objectContaining({ id: 9, mediaType: 'tv', voteCount: 0 }),
+    ]);
+    await searchTmdbTitles('key', 'movie', 'Anything', null);
+    await expect(searchTmdbTitles('key', 'movie', '   ', 2023)).resolves.toMatchObject({
+      results: [],
+    });
+
+    const [movieUrl, tvUrl, anyYearUrl] = fetchMock.mock.calls.map(([url]) => new URL(String(url)));
+    expect(movieUrl!.pathname).toBe('/3/search/movie');
+    expect(movieUrl!.searchParams.get('query')).toBe('City of Blood');
+    expect(movieUrl!.searchParams.get('year')).toBe('2023');
+    expect(tvUrl!.pathname).toBe('/3/search/tv');
+    expect(tvUrl!.searchParams.get('first_air_date_year')).toBe('2020');
+    expect(tvUrl!.searchParams.get('language')).toBe('de-DE');
+    expect(anyYearUrl!.searchParams.has('year')).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('reads provider TMDB ids from numbers and numeric strings only', () => {
+    expect(normalizeTmdbId(550)).toBe(550);
+    expect(normalizeTmdbId(' 1399 ')).toBe(1399);
+    for (const value of ['0', 0, '', 'tt0944947', '12a', -4, 1.5, null, undefined, '1234567890']) {
+      expect(normalizeTmdbId(value), String(value)).toBeNull();
+    }
   });
 });

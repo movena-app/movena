@@ -1,10 +1,17 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import {
   getLiveStreams,
   getSeries,
   getStreamUrl,
   getVodStreams,
+  type XtreamLiveStream,
+  type XtreamSeries,
+  type XtreamVodStream,
 } from '@/modules/sources/public/data/xtreamClient';
+import { desktopApi } from '@/platform/desktop';
+import { debugLog } from '@/modules/diagnostics/public/store/useDebugStore';
+import { loadProviderList, rememberProviderList } from './catalogDiskCache';
 import type { MediaItem } from '../model/media';
 import { queryKeys } from '@/modules/sources/public/model/queryKeys';
 import { parseLiveChannelTitle, parseMediaDisplayTitle, parseMediaTitle } from '../lib/titleParser';
@@ -23,6 +30,7 @@ import { foldLiveChannels } from '../lib/streamFolding';
 import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
 import { notify } from '@/shared/notifications/useNotificationStore';
 import { getErrorMessage } from '@/shared/lib/error';
+import { parseProviderRating } from '@/shared/lib/rating';
 
 export interface CatalogItem extends MediaItem {
   categoryId?: string | undefined;
@@ -119,6 +127,112 @@ export function mapM3uCatalog(
   });
 }
 
+function playlistCatalog(
+  type: 'live' | 'vod' | 'series',
+  sources: EnabledSourcesSnapshot,
+): CatalogItem[] {
+  return sources.availableM3uSources.flatMap((source) =>
+    source.runtime?.playlist
+      ? mapM3uCatalog(source.runtime.playlist, type, source.profile.name)
+      : [],
+  );
+}
+
+/** The provider's raw list for one catalogue type, as the provider sent it. */
+async function fetchXtreamList(
+  type: 'live' | 'vod' | 'series',
+  source: EnabledXtreamSource,
+  signal?: AbortSignal,
+): Promise<unknown[]> {
+  const credentials = source.credentials!;
+  const response =
+    type === 'live'
+      ? await getLiveStreams(credentials, undefined, signal)
+      : type === 'vod'
+        ? await getVodStreams(credentials, undefined, signal)
+        : await getSeries(credentials, undefined, signal);
+  return Array.isArray(response) ? response : [];
+}
+
+function mapXtreamList(
+  type: 'live' | 'vod' | 'series',
+  source: EnabledXtreamSource,
+  list: unknown[],
+): CatalogItem[] {
+  return type === 'live'
+    ? mapXtreamLive(source, list as XtreamLiveStream[])
+    : type === 'vod'
+      ? mapXtreamVod(source, list as XtreamVodStream[])
+      : mapXtreamSeries(source, list as XtreamSeries[]);
+}
+
+const diskSeeds = new Map<string, Promise<void>>();
+
+/**
+ * Seeds a catalogue query with the copy kept on disk, so a start shows the
+ * last catalogue at once instead of waiting for the provider to send several
+ * megabytes. It runs beside the query's own fetch: the copy goes in only while
+ * the query still has nothing, under the time it was fetched, and the
+ * provider's answer replaces it when it lands. Every Xtream source needs a
+ * copy for its current account, or the query is left to the network alone.
+ */
+export function seedCatalogFromDisk(
+  client: QueryClient,
+  type: 'live' | 'vod' | 'series',
+  sources: EnabledSourcesSnapshot,
+): Promise<void> {
+  const queryKey = queryKeys.catalog(type, sources.queryScope);
+  if (
+    !desktopApi.isDesktop() ||
+    sources.availableXtreamSources.length === 0 ||
+    client.getQueryData(queryKey) !== undefined
+  )
+    return Promise.resolve();
+  const seedId = JSON.stringify(queryKey);
+  const running = diskSeeds.get(seedId);
+  if (running) return running;
+
+  const seed = (async () => {
+    const copies = await Promise.all(
+      sources.availableXtreamSources.map((source) =>
+        loadProviderList(source.id, type, source.queryScope),
+      ),
+    );
+    if (copies.some((copy) => copy === null) || client.getQueryData(queryKey) !== undefined) return;
+    const items = [
+      ...sources.availableXtreamSources.flatMap((source, index) =>
+        mapXtreamList(type, source, copies[index]!.list),
+      ),
+      ...playlistCatalog(type, sources),
+    ];
+    // The provider may have answered while the copy was read and mapped.
+    if (client.getQueryData(queryKey) !== undefined) return;
+    client.setQueryData<CatalogItem[]>(queryKey, items, {
+      updatedAt: Math.min(...copies.map((copy) => copy!.savedAt)),
+    });
+  })()
+    .catch((error: unknown) => {
+      debugLog.warn('api', 'Saved catalogue could not be read; waiting for the provider', {
+        type,
+        error: getErrorMessage(error, 'Reading the saved catalogue failed.'),
+      });
+    })
+    .finally(() => diskSeeds.delete(seedId));
+  diskSeeds.set(seedId, seed);
+  return seed;
+}
+
+function useCatalogDiskSeed(
+  type: 'live' | 'vod' | 'series',
+  sources: EnabledSourcesSnapshot,
+  enabled: boolean,
+) {
+  const client = useQueryClient();
+  useEffect(() => {
+    if (enabled && sources.isAvailable) void seedCatalogFromDisk(client, type, sources);
+  }, [client, enabled, sources, type]);
+}
+
 export function catalogQueryOptions(
   type: 'live' | 'vod' | 'series',
   sources: EnabledSourcesSnapshot,
@@ -126,19 +240,13 @@ export function catalogQueryOptions(
   return queryOptions({
     queryKey: queryKeys.catalog(type, sources.queryScope),
     queryFn: async ({ signal }): Promise<CatalogItem[]> => {
-      const playlistItems = sources.availableM3uSources.flatMap((source) =>
-        source.runtime?.playlist
-          ? mapM3uCatalog(source.runtime.playlist, type, source.profile.name)
-          : [],
-      );
+      const playlistItems = playlistCatalog(type, sources);
       const results = await Promise.allSettled(
-        sources.availableXtreamSources.map((source) =>
-          type === 'live'
-            ? liveFromXtream(source, signal)
-            : type === 'vod'
-              ? vodFromXtream(source, signal)
-              : seriesFromXtream(source, signal),
-        ),
+        sources.availableXtreamSources.map(async (source) => {
+          const list = await fetchXtreamList(type, source, signal);
+          rememberProviderList(source.id, type, source.queryScope, list);
+          return mapXtreamList(type, source, list);
+        }),
       );
       const providerItems = successful(results);
       const providerFailures = results.flatMap((result, index) =>
@@ -183,13 +291,8 @@ function successful<T>(results: PromiseSettledResult<T[]>[]): T[] {
   return results.flatMap((result) => (result.status === 'fulfilled' ? result.value : []));
 }
 
-async function liveFromXtream(
-  source: EnabledXtreamSource,
-  signal?: AbortSignal,
-): Promise<CatalogItem[]> {
+function mapXtreamLive(source: EnabledXtreamSource, response: XtreamLiveStream[]): CatalogItem[] {
   const credentials = source.credentials!;
-  const response = await getLiveStreams(credentials, undefined, signal);
-  if (!Array.isArray(response)) return [];
   return response.map((stream, index) => {
     const title = stream.name || 'Unknown Channel';
     const metadata = parseLiveChannelTitle(title);
@@ -231,24 +334,13 @@ async function liveFromXtream(
   });
 }
 
-async function vodFromXtream(
-  source: EnabledXtreamSource,
-  signal?: AbortSignal,
-): Promise<CatalogItem[]> {
+function mapXtreamVod(source: EnabledXtreamSource, streams: XtreamVodStream[]): CatalogItem[] {
   const credentials = source.credentials!;
-  const streams = await getVodStreams(credentials, undefined, signal);
-  if (!Array.isArray(streams)) return [];
   return streams.map((stream, index) => {
     const title = stream.name || 'Unknown Movie';
     const metadata = parseMediaDisplayTitle(title);
     const providerId = (stream.stream_id ?? stream.num ?? `movie-${index}`).toString();
-    let rating: number | undefined;
-    if (stream.rating && !Number.isNaN(Number.parseFloat(stream.rating))) {
-      const r = Number.parseFloat(stream.rating);
-      if (r > 0) rating = r <= 5 ? Math.round(r * 20) / 10 : Math.round(r * 10) / 10;
-    } else if (typeof stream.rating_5based === 'number' && stream.rating_5based > 0) {
-      rating = Math.round(stream.rating_5based * 20) / 10;
-    }
+    const rating = parseProviderRating(stream.rating, stream.rating_5based);
     return {
       id: xtreamItemId(source.id, 'vod', providerId),
       sourceItemId: providerId,
@@ -271,12 +363,7 @@ async function vodFromXtream(
   });
 }
 
-async function seriesFromXtream(
-  source: EnabledXtreamSource,
-  signal?: AbortSignal,
-): Promise<CatalogItem[]> {
-  const streams = await getSeries(source.credentials!, undefined, signal);
-  if (!Array.isArray(streams)) return [];
+function mapXtreamSeries(source: EnabledXtreamSource, streams: XtreamSeries[]): CatalogItem[] {
   return streams.map((stream, index) => {
     let year: string | undefined;
     if (stream.releaseDate) {
@@ -286,13 +373,7 @@ async function seriesFromXtream(
     const title = stream.name || 'Unknown Series';
     const metadata = parseMediaDisplayTitle(title, year);
     const providerId = (stream.series_id ?? stream.num ?? `series-${index}`).toString();
-    let rating: number | undefined;
-    if (stream.rating && !Number.isNaN(Number.parseFloat(stream.rating))) {
-      const r = Number.parseFloat(stream.rating);
-      if (r > 0) rating = r <= 5 ? Math.round(r * 20) / 10 : Math.round(r * 10) / 10;
-    } else if (typeof stream.rating_5based === 'number' && stream.rating_5based > 0) {
-      rating = Math.round(stream.rating_5based * 20) / 10;
-    }
+    const rating = parseProviderRating(stream.rating, stream.rating_5based);
     return {
       id: xtreamItemId(source.id, 'series', providerId),
       sourceItemId: providerId,
@@ -316,6 +397,7 @@ async function seriesFromXtream(
 export function useLiveStreams(options?: { enabled?: boolean | undefined }) {
   const sources = useEnabledSources();
   const streamFoldingEnabled = useSettingsStore((s) => s.streamFoldingEnabled);
+  useCatalogDiskSeed('live', sources, options?.enabled ?? true);
   return useQuery({
     ...catalogQueryOptions('live', sources),
     enabled: sources.isAvailable && (options?.enabled ?? true),
@@ -325,6 +407,7 @@ export function useLiveStreams(options?: { enabled?: boolean | undefined }) {
 
 export function useVodStreams(options?: { enabled?: boolean | undefined }) {
   const sources = useEnabledSources();
+  useCatalogDiskSeed('vod', sources, options?.enabled ?? true);
   return useQuery({
     ...catalogQueryOptions('vod', sources),
     enabled: sources.isAvailable && (options?.enabled ?? true),
@@ -333,6 +416,7 @@ export function useVodStreams(options?: { enabled?: boolean | undefined }) {
 
 export function useSeriesList(options?: { enabled?: boolean | undefined }) {
   const sources = useEnabledSources();
+  useCatalogDiskSeed('series', sources, options?.enabled ?? true);
   return useQuery({
     ...catalogQueryOptions('series', sources),
     enabled: sources.isAvailable && (options?.enabled ?? true),

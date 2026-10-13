@@ -44,8 +44,8 @@ export function DownloadedSeriesView({ group, onClose }: DownloadedSeriesViewPro
 
   const handlePlay = (episode: DownloadedItem) => {
     const resumeSeconds = history.find((entry) => entry.id === episode.id)?.currentTime;
+    // Plays over the view, which returns when the player closes.
     playStream(playableFromDownloadedItem(episode, resumeSeconds));
-    onClose();
   };
 
   const handleRemove = async (episode: DownloadedItem) => {

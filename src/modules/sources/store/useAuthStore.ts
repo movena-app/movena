@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { authenticateXtream } from '../data/xtreamClient';
 import { deleteProviderPassword, loadProviderPassword } from '../services/credentialVault';
 import {
+  deleteXtreamCatalogCache,
   deleteXtreamCredentials,
   loadXtreamCredentials,
   storeXtreamCredentials,
@@ -9,6 +10,7 @@ import {
 import { registerXtreamServerPromoter } from '../services/xtreamServerEvents';
 import { invalidateSourceQueries } from '@/shared/query/queryClient';
 import { getErrorMessage } from '@/shared/lib/error';
+import { debugLog } from '@/modules/diagnostics/public/store/useDebugStore';
 import { useSourceStore } from './useSourceStore';
 import type { XtreamCredentials, XtreamServerInfo, XtreamUserInfo } from '../model/xtream';
 
@@ -497,6 +499,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     set({ profiles, runtimes });
     useSourceStore.getState().setSourceEnabled(id, false);
+    // The saved catalogue is only a head start; failing to remove it must not
+    // undo a removal that already took the credentials and profile away.
+    await deleteXtreamCatalogCache(id).catch((error: unknown) => {
+      debugLog.warn('auth', 'Saved catalogue of a removed source could not be deleted', {
+        error: getErrorMessage(error, 'Deleting the saved catalogue failed.'),
+      });
+    });
   },
 
   setAuth: async (credentials, userInfo, serverInfo) => {

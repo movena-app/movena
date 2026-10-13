@@ -8,6 +8,25 @@ for tagged releases.
 
 ## [Unreleased]
 
+### Fixed
+
+- fixed auto-skip of intros and recaps: it now works with the Skip buttons switched off, waits until the episode is actually playing (a recap at 0:00 was "skipped" before playback began and then played anyway), and retries a skip that failed
+- fixed intro and recap timestamps being found for the wrong show or not at all: the series is now looked up by the provider's TMDB id or a checked title and year match (German titles included) instead of the first search hit, and a passing IntroDB outage is no longer remembered as "no timestamps" for a day
+- fixed closing the player always dropping you on the page underneath (often Home) — you now land back in the series or movie details you started from, on the episode you watched last, also after autoplay moved on
+- fixed provider ratings of 5 or less being doubled — a 4.8 film showed as 9.6 and pushed weak titles to the top of Popular and Top Rated
+- fixed the TMDB rating never showing for many titles: the lookup now searches the cleaned title and its year (or the provider's TMDB id) instead of the raw provider name, and only accepts a result that really is that title
+
+### Changed
+
+- movies, series and live channels open straight away after a restart: the last catalogue is kept on disk and shown while the provider is asked for a fresh one (only for the account it came from, never with your password)
+- sorting large catalogues by name or rating is up to 20× faster
+- the hidden library no longer recalculates every second while a stream plays
+- ratings now come from TMDB when it is enabled; titles with fewer than 10 TMDB votes show no rating, and a provider rating only stands in, labelled "Provider", when TMDB doesn't know the title
+- placeholder provider ratings above 9.5 (left over from a title's first vote) are no longer shown
+- Popular rows, Top Rated and sorting by rating check the top titles against TMDB and list the highest rating first; on equal ratings the one with more votes comes first
+- Top Rated always lists the best-rated titles first, whatever sort order the catalog is set to
+- genre filters now recognise genre names in categories in every app language ("Komödie", "Krimi", "Science-Fiction", …) and use TMDB's genres for every title TMDB has checked — films from Xtream sources carry no genre of their own, so genres in Top Rated now work for movies too
+
 ## [0.1.28] - 2026-09-20
 
 ### Added

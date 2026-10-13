@@ -107,13 +107,11 @@ describe('IntroDB API client & normalization', () => {
       expect(introDbFetchSegments).not.toHaveBeenCalled();
     });
 
-    it('safely handles a rejected IPC call', async () => {
-      introDbFetchSegments.mockRejectedValue(new Error('IPC error'));
-      expect(await fetchIntroDbSegments('tt0944947', 1, 1)).toEqual({
-        intro: null,
-        recap: null,
-        outro: null,
-      });
+    it('reports an unreachable IntroDB instead of answering "no data"', async () => {
+      introDbFetchSegments.mockRejectedValue(new Error('IntroDB could not be reached'));
+      await expect(fetchIntroDbSegments('tt0944947', 1, 1)).rejects.toThrow(
+        'IntroDB could not be reached',
+      );
     });
   });
 

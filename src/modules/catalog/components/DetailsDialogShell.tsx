@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { MOTION_DURATION, MOTION_EASE } from '@/shared/design/motion';
 import { IconButton } from '@/shared/ui/Button';
 import { useModalFocus } from '@/shared/ui/hooks/useModalFocus';
+import { usePlayerStore } from '@/modules/playback/public/store/usePlayerStore';
 import styles from './DetailsDialogShell.module.css';
 import { useI18n } from '@/shared/i18n/i18n';
 
@@ -29,8 +30,15 @@ export function DetailsDialogShell({
   ariaLabel = 'Media details',
   stateLayout = false,
 }: DetailsDialogShellProps) {
-  const modalRef = useModalFocus<HTMLDivElement>({ onClose });
+  // A film or episode started here plays over the dialog rather than closing
+  // it. The dialog stays mounted — season, episode list and loaded details
+  // intact — but draws nothing and lets go of keys and focus, so closing the
+  // player lands back where playback was started instead of on the page below.
+  const playbackActive = usePlayerStore((state) => state.activeStream !== null);
+  const modalRef = useModalFocus<HTMLDivElement>({ onClose, enabled: !playbackActive });
   const { t } = useI18n();
+
+  if (playbackActive) return null;
 
   return createPortal(
     <motion.div

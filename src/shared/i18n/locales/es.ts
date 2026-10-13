@@ -348,6 +348,13 @@ export const ES_MESSAGES: Record<string, string> = {
   Runtime: 'Tiempo de ejecución',
   Rating: 'Calificación',
   'Rating {rating}': 'Calificación {rating}',
+  Provider: 'Proveedor',
+  'TMDB rating {rating} out of 10 from {count} vote':
+    'Calificación de TMDB {rating} de 10 con {count} voto',
+  'TMDB rating {rating} out of 10 from {count} votes':
+    'Calificación de TMDB {rating} de 10 con {count} votos',
+  'Provider rating {rating} out of 10, not checked against TMDB':
+    'Calificación del proveedor {rating} de 10, sin verificar con TMDB',
   '{percent}% watched': '{percent}% visto',
   'Continue watching': 'Seguir viendo',
   Movie: 'Película',

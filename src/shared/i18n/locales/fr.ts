@@ -349,6 +349,13 @@ export const FR_MESSAGES: Record<string, string> = {
   Runtime: "Durée d'exécution",
   Rating: 'Note',
   'Rating {rating}': 'Notation {rating}',
+  Provider: 'Fournisseur',
+  'TMDB rating {rating} out of 10 from {count} vote':
+    'Note TMDB {rating} sur 10 d’après {count} vote',
+  'TMDB rating {rating} out of 10 from {count} votes':
+    'Note TMDB {rating} sur 10 d’après {count} votes',
+  'Provider rating {rating} out of 10, not checked against TMDB':
+    'Note du fournisseur {rating} sur 10, non vérifiée auprès de TMDB',
   '{percent}% watched': '{percent}% regardé',
   'Continue watching': 'Continuer à regarder',
   Movie: 'Film',

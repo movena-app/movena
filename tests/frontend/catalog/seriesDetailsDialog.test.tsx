@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -17,14 +18,30 @@ import { useAuthStore } from '@/modules/sources/store/useAuthStore';
 vi.mock('@/modules/catalog/data/useDetails', () => ({
   useSeriesInfo: vi.fn(),
 }));
-const tmdb = vi.hoisted(() => ({ searchTmdb: vi.fn(), getTmdbTv: vi.fn() }));
+const tmdb = vi.hoisted(() => ({ searchTmdbTitles: vi.fn(), getTmdbTv: vi.fn() }));
 vi.mock('@/modules/metadata/data/tmdbClient', () => tmdb);
 const upcoming = vi.hoisted(() => ({ useUpcomingReleases: vi.fn() }));
 vi.mock('@/modules/guide/data/useUpcomingReleases', () => upcoming);
 
 function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
+  );
 }
+
+const breakingBadOnTmdb = {
+  id: 99,
+  mediaType: 'tv',
+  title: 'Breaking Bad',
+  originalTitle: 'Breaking Bad',
+  releaseYear: 2008,
+  voteAverage: 9.1,
+  voteCount: 16_000,
+  genreIds: [18, 80],
+};
 
 const mockSeriesData = {
   info: {
@@ -155,12 +172,12 @@ describe('SeriesDetailsDialog Component', () => {
 
   it('enriches a series with localized TMDB artwork and synopsis when enabled', async () => {
     useSettingsStore.getState().updateSetting('tmdbApiKey', 'test-key');
-    tmdb.searchTmdb.mockResolvedValue({ results: [{ mediaType: 'tv', id: 99 }] });
+    tmdb.searchTmdbTitles.mockResolvedValue({ results: [breakingBadOnTmdb] });
     tmdb.getTmdbTv.mockResolvedValue({
+      ...breakingBadOnTmdb,
       overview: 'A localized TMDB synopsis.',
       posterUrl: 'https://image.test/tv-poster.jpg',
       backdropUrl: 'https://image.test/tv-backdrop.jpg',
-      voteAverage: 9.1,
       runtimeMinutes: 47,
       numberOfSeasons: 5,
       numberOfEpisodes: 62,
@@ -189,11 +206,43 @@ describe('SeriesDetailsDialog Component', () => {
       'https://image.test/tv-poster.jpg',
     );
     expect(screen.getByText('9.1')).toBeTruthy();
+    expect(screen.getByText('TMDB')).toBeTruthy();
+    expect(screen.queryByText('9.5')).toBeNull();
+    expect(tmdb.searchTmdbTitles).toHaveBeenCalledWith(
+      'test-key',
+      'tv',
+      'Breaking Bad',
+      2008,
+      undefined,
+      expect.any(Object),
+    );
     expect(screen.getByText('TMDB Director')).toBeTruthy();
     expect(screen.getByText('TMDB Cast')).toBeTruthy();
     expect(screen.getByText('47m')).toBeTruthy();
     expect(screen.getByText('5 seasons')).toBeTruthy();
     expect(screen.getByText('62 episodes')).toBeTruthy();
+  });
+
+  it("finds the series by the provider's TMDB id without searching", async () => {
+    useSettingsStore.setState({ tmdbApiKey: 'test-key', tmdbEnabled: true });
+    tmdb.getTmdbTv.mockResolvedValue({
+      ...breakingBadOnTmdb,
+      genres: [],
+      credits: { cast: [], crew: [] },
+    });
+    vi.spyOn(useDetailsModule, 'useSeriesInfo').mockReturnValue({
+      data: { ...mockSeriesData, info: { ...mockSeriesData.info, tmdb: '99' } } as any,
+      isLoading: false,
+      error: null,
+      isFetching: false,
+      refetch: vi.fn(),
+    } as any);
+
+    renderWithRouter(<SeriesDetailsDialog {...defaultProps} />);
+
+    await waitFor(() => expect(screen.getByText('9.1')).toBeTruthy());
+    expect(tmdb.getTmdbTv).toHaveBeenCalledWith('test-key', 99, undefined, expect.any(Object));
+    expect(tmdb.searchTmdbTitles).not.toHaveBeenCalled();
   });
 
   it('allows switching seasons through the shared dropdown', async () => {
@@ -507,9 +556,9 @@ https://media.test/northern/s02e01.mkv
     expect(useLibraryStore.getState().favorites.some((f) => f.id === 'series-123')).toBe(false);
   });
 
-  it('starts episode playback and closes modal on episode click', async () => {
+  it('plays an episode over the dialog and shows the dialog again when the player closes', async () => {
     const user = userEvent.setup();
-    const playStreamSpy = vi.fn();
+    const playStreamSpy = vi.fn((stream) => usePlayerStore.setState({ activeStream: stream }));
     usePlayerStore.setState({ playStream: playStreamSpy });
 
     vi.spyOn(useDetailsModule, 'useSeriesInfo').mockReturnValue({
@@ -526,7 +575,17 @@ https://media.test/northern/s02e01.mkv
     await user.click(startWatchingBtn);
 
     expect(playStreamSpy).toHaveBeenCalled();
-    expect(defaultProps.onClose).toHaveBeenCalled();
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    // While hidden it leaves Escape to the player.
+    await user.keyboard('{Escape}');
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+
+    act(() => usePlayerStore.setState({ activeStream: null }));
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Breaking Bad' })).toBeTruthy();
+    await user.keyboard('{Escape}');
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 
   it('renders error state and retries fetch when retry button is clicked', async () => {

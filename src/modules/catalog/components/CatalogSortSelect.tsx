@@ -8,6 +8,7 @@ interface CatalogSortSelectProps {
   onChange: (value: CatalogSortMode) => void;
   className?: string | undefined;
   isLiveTv?: boolean | undefined;
+  disabled?: boolean | undefined;
 }
 
 export function CatalogSortSelect({
@@ -15,6 +16,7 @@ export function CatalogSortSelect({
   onChange,
   className,
   isLiveTv = false,
+  disabled = false,
 }: CatalogSortSelectProps) {
   const { t } = useI18n();
 
@@ -44,6 +46,7 @@ export function CatalogSortSelect({
       options={options}
       onChange={onChange}
       className={className}
+      disabled={disabled}
       width={190}
       ariaLabel={t('Sort catalog items')}
     />

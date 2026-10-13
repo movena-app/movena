@@ -13,6 +13,7 @@ import {
 } from '@/modules/metadata/public/data/tmdbClient';
 import { queryKeys } from '@/modules/sources/public/model/queryKeys';
 import { getErrorMessage } from '@/shared/lib/error';
+import { mapWithConcurrency } from '@/shared/lib/concurrency';
 import { notify } from '@/shared/notifications/useNotificationStore';
 
 export interface UpcomingRelease {
@@ -99,23 +100,6 @@ function favoriteScope(items: readonly MediaItem[]): string {
     .map((item) => `${item.id}:${titleForTmdb(item)}`)
     .sort()
     .join('|');
-}
-
-async function mapWithConcurrency<T, R>(
-  items: readonly T[],
-  limit: number,
-  worker: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const result = new Array<R>(items.length);
-  let next = 0;
-  const run = async () => {
-    while (next < items.length) {
-      const index = next++;
-      result[index] = await worker(items[index]!);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, run));
-  return result;
 }
 
 /**

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -168,6 +168,16 @@ describe('Downloads page', () => {
     await user.click(screen.getByRole('heading', { name: 'Show' }));
 
     expect(await screen.findByText('E1 · Pilot')).toBeTruthy();
+    expect(screen.getByText('E2 · Episode Two')).toBeTruthy();
+
+    // Playing an episode runs over the list, which is back once the player closes.
+    await user.click(screen.getByText('E2 · Episode Two'));
+    expect(usePlayerStore.getState().activeStream).toMatchObject({ seriesId: 'show-1' });
+    expect(screen.queryByText('E1 · Pilot')).toBeNull();
+
+    act(() => usePlayerStore.getState().closePlayer());
+
+    expect(screen.getByText('E1 · Pilot')).toBeTruthy();
     expect(screen.getByText('E2 · Episode Two')).toBeTruthy();
   });
 

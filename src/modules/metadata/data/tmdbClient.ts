@@ -57,6 +57,38 @@ export async function searchTmdb(
   );
 }
 
+/**
+ * Title search within one media type. `year` narrows it to that release year
+ * (first air year for series); TMDB then leaves out every other title of the
+ * same name, which is what tells remakes and namesakes apart.
+ */
+export async function searchTmdbTitles(
+  apiKey: string,
+  mediaType: 'movie' | 'tv',
+  query: string,
+  year?: number | null,
+  signal?: AbortSignal,
+  options: TmdbRequestOptions = {},
+): Promise<NormalizedTmdbSearchResponse> {
+  const encoded = encodeURIComponent(query.trim());
+  if (!encoded) return normalizeTmdbSearch(null);
+  const yearFilter = year
+    ? `&${mediaType === 'movie' ? 'year' : 'first_air_date_year'}=${year}`
+    : '';
+  const response = normalizeTmdbSearch(
+    await tmdbRequest(
+      `/search/${mediaType}?query=${encoded}${yearFilter}`,
+      apiKey,
+      signal,
+      options,
+    ),
+  );
+  return {
+    ...response,
+    results: response.results.filter((result) => result.mediaType === mediaType),
+  };
+}
+
 export async function getTmdbMovie(
   apiKey: string,
   id: number,

@@ -22,6 +22,21 @@ export interface StreamVerificationState {
 
 const MAX_VERIFICATIONS = 500;
 const MAX_VERIFICATION_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+/** An unchanged stream is written again only this often, so it never ages out while in use. */
+const VERIFICATION_REFRESH_MS = 24 * 60 * 60 * 1000;
+
+/** Frame rate estimates drift by fractions of a frame; whole frames are what a badge shows. */
+function sameVerification(left: VerifiedStreamMetadata, right: VerifiedStreamMetadata): boolean {
+  return (
+    left.width === right.width &&
+    left.height === right.height &&
+    Math.round(left.fps ?? 0) === Math.round(right.fps ?? 0) &&
+    left.isHdr === right.isHdr &&
+    left.videoCodec === right.videoCodec &&
+    left.audioCodec === right.audioCodec &&
+    left.audioChannels === right.audioChannels
+  );
+}
 
 export function normalizeVerifiedStreams(
   value: unknown,
@@ -102,15 +117,40 @@ export const useStreamVerificationStore = create<StreamVerificationState>()(
           meta.height <= 0
         )
           return;
-        set((state) => ({
-          verifiedStreams: normalizeVerifiedStreams({
-            ...state.verifiedStreams,
-            [streamKey]: {
-              ...meta,
-              verifiedAt: Date.now(),
-            },
-          }),
-        }));
+        const now = Date.now();
+        const next = normalizeVerifiedStreams({ [streamKey]: { ...meta, verifiedAt: now } }, now)[
+          streamKey
+        ];
+        if (!next) return;
+        const current = get().verifiedStreams;
+        const existing = current[streamKey];
+        // Playback reports the same stream once a second. Rewriting the store
+        // each time persisted it and re-ran every catalogue filter mounted
+        // under the player, so a stream is only written again when what it
+        // delivers changed, or to keep a long-known entry from ageing out.
+        if (
+          existing &&
+          sameVerification(existing, next) &&
+          now - existing.verifiedAt < VERIFICATION_REFRESH_MS
+        )
+          return;
+        // Untouched entries keep their identity, so only cards showing this
+        // stream re-render.
+        const verifiedStreams: Record<string, VerifiedStreamMetadata> = {
+          ...current,
+          [streamKey]: next,
+        };
+        const keys = Object.keys(verifiedStreams);
+        if (keys.length > MAX_VERIFICATIONS) {
+          keys
+            .sort(
+              (left, right) =>
+                verifiedStreams[left]!.verifiedAt - verifiedStreams[right]!.verifiedAt,
+            )
+            .slice(0, keys.length - MAX_VERIFICATIONS)
+            .forEach((key) => delete verifiedStreams[key]);
+        }
+        set({ verifiedStreams });
       },
 
       getVerification: (streamKey) => {

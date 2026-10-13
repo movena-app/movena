@@ -22,17 +22,36 @@ describe('TVmaze normalization', () => {
         show: {
           id: 1,
           name: '  Example Show  ',
+          premiered: '2017-12-01',
           externals: { imdb: 'tt1234567', thetvdb: 9, tvrage: 22 },
         },
       },
       { score: 0.5, show: { id: 1, name: 'Duplicate' } },
       { score: 0, show: { id: 'bad', name: 'Invalid' } },
-      { score: 0, show: { id: 2, name: 'Second', externals: { imdb: 'not-an-id', thetvdb: '3' } } },
+      {
+        score: 0,
+        show: {
+          id: 2,
+          name: 'Second',
+          premiered: '2017',
+          externals: { imdb: 'not-an-id', thetvdb: '3' },
+        },
+      },
     ]);
 
     expect(shows).toEqual([
-      { id: 1, name: 'Example Show', externals: { imdb: 'tt1234567', thetvdb: 9, tvrage: 22 } },
-      { id: 2, name: 'Second', externals: { imdb: null, thetvdb: null, tvrage: null } },
+      {
+        id: 1,
+        name: 'Example Show',
+        premieredYear: 2017,
+        externals: { imdb: 'tt1234567', thetvdb: 9, tvrage: 22 },
+      },
+      {
+        id: 2,
+        name: 'Second',
+        premieredYear: null,
+        externals: { imdb: null, thetvdb: null, tvrage: null },
+      },
     ]);
   });
 

@@ -60,6 +60,9 @@ export function readM3uTableFilters(
   }
 }
 
+/** Same order as a bare `localeCompare`, without building a collator per comparison. */
+const textCollator = new Intl.Collator();
+
 export function collectM3uGroupStats(
   entries: readonly M3uEntry[],
 ): Array<{ name: string; count: number }> {
@@ -69,7 +72,7 @@ export function collectM3uGroupStats(
     counts.set(group, (counts.get(group) || 0) + 1);
   }
   return Array.from(counts, ([name, count]) => ({ name, count })).sort((left, right) =>
-    left.name.localeCompare(right.name),
+    textCollator.compare(left.name, right.name),
   );
 }
 
@@ -103,14 +106,15 @@ export function filterAndSortM3uEntries(
   }
   const compare =
     filters.sortBy === 'name-asc'
-      ? (left: M3uEntry, right: M3uEntry) => left.title.localeCompare(right.title)
+      ? (left: M3uEntry, right: M3uEntry) => textCollator.compare(left.title, right.title)
       : filters.sortBy === 'name-desc'
-        ? (left: M3uEntry, right: M3uEntry) => right.title.localeCompare(left.title)
+        ? (left: M3uEntry, right: M3uEntry) => textCollator.compare(right.title, left.title)
         : filters.sortBy === 'chno'
           ? (left: M3uEntry, right: M3uEntry) =>
               (Number(left.channelNumber) || Infinity) - (Number(right.channelNumber) || Infinity)
           : filters.sortBy === 'type'
-            ? (left: M3uEntry, right: M3uEntry) => (left.type || '').localeCompare(right.type || '')
+            ? (left: M3uEntry, right: M3uEntry) =>
+                textCollator.compare(left.type || '', right.type || '')
             : null;
   return compare ? result.sort(compare) : result;
 }

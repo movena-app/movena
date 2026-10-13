@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import { HeaderSearch } from '@/modules/search/public/components/HeaderSearch';
 import styles from '@/app/shell/AppLayout.module.css';
 import { useVisibleCatalog } from '../data/useCategories';
+import { useTmdbRatingChecks } from '../data/useTmdbRatingChecks';
+import { sortCatalogItems } from '../lib/smartCatalogFilter';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { getCombinedErrorMessage, getErrorPresentation } from '@/shared/lib/error';
 import { useEnabledSources } from '@/modules/sources/public/hooks/useEnabledSources';
@@ -73,13 +75,16 @@ export function HomePage() {
       .slice(0, 20);
   }, [series]);
 
+  const movieRatingChecks = useTmdbRatingChecks(movies, 'movie');
+  const seriesRatingChecks = useTmdbRatingChecks(series, 'tv');
+
   const popularMovies = useMemo(() => {
-    return [...movies].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 20);
-  }, [movies]);
+    return sortCatalogItems(movies, 'rating', movieRatingChecks).slice(0, 20);
+  }, [movies, movieRatingChecks]);
 
   const popularSeries = useMemo(() => {
-    return [...series].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 20);
-  }, [series]);
+    return sortCatalogItems(series, 'rating', seriesRatingChecks).slice(0, 20);
+  }, [series, seriesRatingChecks]);
 
   const liveChannels = useMemo(() => {
     return liveChannelsData.slice(0, 20);

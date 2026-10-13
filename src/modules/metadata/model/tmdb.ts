@@ -136,6 +136,8 @@ interface NormalizedTmdbSearchResult {
   releaseDate: string | null;
   releaseYear: number | null;
   voteAverage: number | null;
+  voteCount: number;
+  genreIds: number[];
   knownForDepartment: string | null;
   knownFor: NormalizedTmdbSearchResult[];
 }
@@ -209,6 +211,15 @@ function yearFromDate(value: string | null): number | null {
 
 function id(value: unknown): number | null {
   return integer(value, 1);
+}
+
+/**
+ * A TMDB id as providers hand it over: a number or a numeric string. Panels
+ * use "0" or an empty string for "unknown", which is not an id.
+ */
+export function normalizeTmdbId(value: unknown): number | null {
+  if (typeof value === 'string' && /^\d{1,9}$/.test(value.trim())) return id(Number(value.trim()));
+  return id(value);
 }
 
 function validImagePath(pathname: string): boolean {
@@ -575,6 +586,15 @@ function normalizeSearchResult(payload: unknown): NormalizedTmdbSearchResult | n
     releaseDate,
     releaseYear: yearFromDate(releaseDate),
     voteAverage: boundedNumber(source.vote_average, 0, 10),
+    voteCount: integer(source.vote_count, 0) ?? 0,
+    genreIds: [
+      ...new Set(
+        array(source.genre_ids).flatMap((entry) => {
+          const genreId = id(entry);
+          return genreId === null ? [] : [genreId];
+        }),
+      ),
+    ],
     knownForDepartment: text(source.known_for_department),
     knownFor,
   };

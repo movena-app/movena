@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const native = vi.hoisted(() => ({
+  catalogCacheDelete: vi.fn(),
   credentialDelete: vi.fn(),
   credentialLoad: vi.fn(),
   credentialStore: vi.fn(),
@@ -27,6 +28,7 @@ import {
   storeM3uConnection,
 } from '@/modules/sources/services/m3uRepository';
 import {
+  deleteXtreamCatalogCache,
   deleteXtreamCredentials,
   loadXtreamCredentials,
   storeXtreamCredentials,
@@ -100,12 +102,14 @@ describe('native credential and repository boundaries', () => {
     await storeXtreamCredentials('xtream-1', credentials);
     await expect(loadXtreamCredentials('xtream-1')).resolves.toMatchObject(credentials);
     await deleteXtreamCredentials('xtream-1');
+    await deleteXtreamCatalogCache('xtream-1');
     await storeProviderPassword('secret');
     await expect(loadProviderPassword()).resolves.toBe('secret');
     await deleteProviderPassword();
 
     expect(native.sourceSecretStore).toHaveBeenCalledWith('xtream-1', JSON.stringify(credentials));
     expect(native.sourceSecretDelete).toHaveBeenCalledWith('xtream-1');
+    expect(native.catalogCacheDelete).toHaveBeenCalledWith('xtream-1');
     expect(native.credentialStore).toHaveBeenCalledWith('secret');
     expect(native.credentialDelete).toHaveBeenCalledTimes(1);
   });

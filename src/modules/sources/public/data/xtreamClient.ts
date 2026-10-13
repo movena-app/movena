@@ -12,5 +12,7 @@ export { getVodInfo } from '../../data/xtreamClient';
 export { getVodStreams } from '../../data/xtreamClient';
 export type { XtreamEpisode } from '../../data/xtreamClient';
 export type { XtreamLiveStream } from '../../data/xtreamClient';
+export type { XtreamSeries } from '../../data/xtreamClient';
 export type { XtreamSeriesInfoResponse } from '../../data/xtreamClient';
 export type { XtreamVodInfo } from '../../data/xtreamClient';
+export type { XtreamVodStream } from '../../data/xtreamClient';

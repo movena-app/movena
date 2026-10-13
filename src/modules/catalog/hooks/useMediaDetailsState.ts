@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { MediaItem, MediaOpenContext } from '../model/media';
 import {
   useAuthStore,
@@ -25,6 +25,38 @@ export function useMediaDetailState(options: UseMediaDetailStateOptions = {}) {
 
   const credentials = useAuthStore(selectPrimaryXtreamCredentials);
   const playStream = usePlayerStore((state) => state.playStream);
+
+  // An open series dialog stays behind the player (see DetailsDialogShell).
+  // Autoplay and the in-player episode list can move several episodes on, so
+  // when the player closes, the dialog is pointed at the episode watched last.
+  useEffect(() => {
+    let lastEpisode: Pick<MediaItem, 'seriesId' | 'seasonNum' | 'episodeNum'> | null = null;
+    return usePlayerStore.subscribe((state, previous) => {
+      const stream = state.activeStream;
+      if (stream) {
+        lastEpisode =
+          stream.type === 'series' && stream.seriesId !== undefined
+            ? {
+                seriesId: String(stream.seriesId),
+                seasonNum: stream.seasonNum,
+                episodeNum: stream.episodeNum,
+              }
+            : null;
+        return;
+      }
+      if (!previous.activeStream || !lastEpisode) return;
+      const watched = lastEpisode;
+      lastEpisode = null;
+      setSelectedSeries((series) =>
+        series &&
+        series.id === watched.seriesId &&
+        (String(series.seasonNum) !== String(watched.seasonNum) ||
+          String(series.episodeNum) !== String(watched.episodeNum))
+          ? { ...series, seasonNum: watched.seasonNum, episodeNum: watched.episodeNum }
+          : series,
+      );
+    });
+  }, []);
 
   const handleCloseMovie = useCallback(() => {
     setSelectedMovie(null);

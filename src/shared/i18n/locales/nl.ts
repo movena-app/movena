@@ -347,6 +347,13 @@ export const NL_MESSAGES: Record<string, string> = {
   Runtime: 'Looptijd',
   Rating: 'Beoordeling',
   'Rating {rating}': 'Beoordeling {rating}',
+  Provider: 'Aanbieder',
+  'TMDB rating {rating} out of 10 from {count} vote':
+    'TMDB-beoordeling {rating} van 10 op basis van {count} stem',
+  'TMDB rating {rating} out of 10 from {count} votes':
+    'TMDB-beoordeling {rating} van 10 op basis van {count} stemmen',
+  'Provider rating {rating} out of 10, not checked against TMDB':
+    'Beoordeling van de aanbieder {rating} van 10, niet gecontroleerd bij TMDB',
   '{percent}% watched': '{percent}% bekeken',
   'Continue watching': 'Blijf kijken',
   Movie: 'Film',

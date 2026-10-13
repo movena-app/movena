@@ -37,6 +37,16 @@ export interface M3uDocument {
   fileName?: string | undefined;
 }
 
+/** The provider lists an Xtream catalogue is built from. */
+export type CatalogCacheKind = 'live' | 'vod' | 'series';
+
+export interface CatalogCacheEntry {
+  /** The provider's JSON list, exactly as it was received. */
+  content: string;
+  /** Milliseconds since the Unix epoch. */
+  savedAt: number;
+}
+
 export type M3uProbeStatus = 'online' | 'offline' | 'unauthorized' | 'timeout';
 
 export interface M3uProbeOptions {
@@ -207,6 +217,17 @@ export const tauriApi = {
 
   /** Remove a playlist's application-data cache. */
   m3uCacheDelete: (sourceId: string) => invoke<void>('m3u_cache_delete', { sourceId }),
+
+  /** Keep a provider's catalogue list on disk under the account scope it belongs to. */
+  catalogCacheStore: (sourceId: string, kind: CatalogCacheKind, scope: string, content: string) =>
+    invoke<void>('catalog_cache_store', { sourceId, kind, scope, content }),
+
+  /** A stored catalogue list, or null when there is none for this account or it is too old. */
+  catalogCacheLoad: (sourceId: string, kind: CatalogCacheKind, scope: string) =>
+    invoke<CatalogCacheEntry | null>('catalog_cache_load', { sourceId, kind, scope }),
+
+  /** Remove every stored catalogue list of one source. */
+  catalogCacheDelete: (sourceId: string) => invoke<void>('catalog_cache_delete', { sourceId }),
 
   /** Remove all Movena-managed caches and the supplied source credentials. */
   appDataClear: (sourceIds: string[]) => invoke<void>('app_data_clear', { sourceIds }),

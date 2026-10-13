@@ -106,6 +106,69 @@ describe('useMediaDetailState hook', () => {
     expect(result.current.selectedMovie).toEqual(movieItem);
   });
 
+  it('points the series dialog at the episode watched last once the player closes', () => {
+    const { result } = renderHook(() => useMediaDetailState());
+    const seriesItem: MediaItem = { id: 's1', title: 'Series', posterUrl: '', type: 'series' };
+    act(() => result.current.handleItemClick(seriesItem, { seasonNumber: 1, episodeNumber: 2 }));
+    const episode = (seasonNum: string, episodeNum: number, seriesId = 's1') => ({
+      id: `${seriesId}-${seasonNum}-${episodeNum}`,
+      title: 'Episode',
+      type: 'series' as const,
+      streamUrl: 'https://stream.test/episode.mkv',
+      seriesId,
+      seasonNum,
+      episodeNum,
+    });
+
+    // Started at S1E2, autoplay carried on into the next season.
+    act(() => usePlayerStore.setState({ activeStream: episode('1', 2) }));
+    act(() => usePlayerStore.setState({ activeStream: episode('2', 1) }));
+    expect(result.current.selectedSeries).toMatchObject({ seasonNum: 1, episodeNum: 2 });
+    act(() => usePlayerStore.setState({ activeStream: null }));
+
+    expect(result.current.selectedSeries).toMatchObject({
+      id: 's1',
+      title: 'Series',
+      seasonNum: '2',
+      episodeNum: 1,
+    });
+  });
+
+  it('leaves the dialog alone after playing another series or a film', () => {
+    const { result } = renderHook(() => useMediaDetailState());
+    const seriesItem: MediaItem = { id: 's1', title: 'Series', posterUrl: '', type: 'series' };
+    act(() => result.current.handleItemClick(seriesItem, { seasonNumber: 1, episodeNumber: 2 }));
+    const opened = result.current.selectedSeries;
+
+    act(() =>
+      usePlayerStore.setState({
+        activeStream: {
+          id: 'other',
+          title: 'Other',
+          type: 'series',
+          streamUrl: 'https://stream.test/other.mkv',
+          seriesId: 's2',
+          seasonNum: '4',
+          episodeNum: 9,
+        },
+      }),
+    );
+    act(() => usePlayerStore.setState({ activeStream: null }));
+    act(() =>
+      usePlayerStore.setState({
+        activeStream: {
+          id: 'm1',
+          title: 'Film',
+          type: 'vod',
+          streamUrl: 'https://stream.test/m.mp4',
+        },
+      }),
+    );
+    act(() => usePlayerStore.setState({ activeStream: null }));
+
+    expect(result.current.selectedSeries).toBe(opened);
+  });
+
   it('plays live streams directly through player store', () => {
     const { result } = renderHook(() => useMediaDetailState());
     const liveItem: MediaItem = {

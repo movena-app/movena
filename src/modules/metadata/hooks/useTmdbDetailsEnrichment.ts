@@ -1,60 +1,102 @@
-import { useEffect, useState } from 'react';
-import { getTmdbMovie, getTmdbTv, searchTmdb } from '../data/tmdbClient';
-import { uiLanguageDefinition } from '@/shared/i18n/config';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notify } from '@/shared/notifications/useNotificationStore';
-import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
 import { getErrorMessage } from '@/shared/lib/error';
+import { TMDB_RATING_OFF, type TmdbRatingLookup } from '@/shared/lib/rating';
+import { queryKeys } from '@/modules/sources/public/model/queryKeys';
+import { fetchTmdbDetails, fetchTmdbTitleMatch } from '../data/tmdbTitleLookup';
+import type { NormalizedTmdbMovie, NormalizedTmdbTv } from '../model/tmdb';
+import { tmdbTitleKey } from '../model/tmdbMatch';
+import { useTmdbLookupSettings } from './useTmdbLookupSettings';
 
-type MovieEnrichment = Awaited<ReturnType<typeof getTmdbMovie>>;
-type SeriesEnrichment = Awaited<ReturnType<typeof getTmdbTv>>;
+export interface TmdbDetailLookup {
+  /** Display title with provider prefixes, tags and the year already removed. */
+  title: string;
+  year?: number | null | undefined;
+  /** A TMDB id the provider attached to the title. It is checked before it is used. */
+  tmdbId?: number | null | undefined;
+  /**
+   * False while the provider's own details are still loading, so the lookup
+   * waits for the id and year they carry instead of searching twice.
+   */
+  ready?: boolean | undefined;
+}
 
-export function useTmdbDetailEnrichment(mediaType: 'movie', title: string): MovieEnrichment;
-export function useTmdbDetailEnrichment(mediaType: 'tv', title: string): SeriesEnrichment;
+export interface TmdbDetailEnrichment<T> {
+  /** TMDB's details once TMDB has found this exact title. */
+  details: T | null;
+  /** How the lookup stands, which decides whether a provider rating may stand in. */
+  rating: TmdbRatingLookup;
+}
+
+const DETAILS_STALE_TIME = 1000 * 60 * 60 * 12;
+
+export function useTmdbDetailEnrichment(
+  mediaType: 'movie',
+  lookup: TmdbDetailLookup,
+): TmdbDetailEnrichment<NormalizedTmdbMovie>;
+export function useTmdbDetailEnrichment(
+  mediaType: 'tv',
+  lookup: TmdbDetailLookup,
+): TmdbDetailEnrichment<NormalizedTmdbTv>;
 export function useTmdbDetailEnrichment(
   mediaType: 'movie' | 'tv',
-  title: string,
-): MovieEnrichment | SeriesEnrichment {
-  const apiKey = useSettingsStore((state) => state.tmdbApiKey);
-  const enabled = useSettingsStore((state) => state.tmdbEnabled);
-  const configuredLanguage = useSettingsStore((state) => state.tmdbLanguage);
-  const imageSize = useSettingsStore((state) => state.tmdbImageSize);
-  const includeAdult = useSettingsStore((state) => state.tmdbIncludeAdult);
-  const appLanguage = useSettingsStore((state) => state.language);
-  const [enriched, setEnriched] = useState<MovieEnrichment | SeriesEnrichment>(null);
+  lookup: TmdbDetailLookup,
+): TmdbDetailEnrichment<NormalizedTmdbMovie | NormalizedTmdbTv> {
+  const queryClient = useQueryClient();
+  const tmdb = useTmdbLookupSettings();
+  const title = lookup.title.trim();
+  const year = lookup.year ?? null;
+  const tmdbId = lookup.tmdbId ?? null;
+  const active = tmdb.enabled && title.length > 0;
+
+  const query = useQuery({
+    queryKey: queryKeys.tmdbTitleDetails(
+      mediaType,
+      tmdbTitleKey(title),
+      year,
+      tmdbId,
+      tmdb.options.language,
+      tmdb.options.includeAdult,
+      tmdb.options.imageSize,
+    ),
+    enabled: active && lookup.ready !== false,
+    staleTime: DETAILS_STALE_TIME,
+    retry: false,
+    queryFn: async () => {
+      const match = await fetchTmdbTitleMatch(
+        queryClient,
+        tmdb.apiKey,
+        { mediaType, title, year, tmdbId },
+        tmdb.options,
+      );
+      return match
+        ? fetchTmdbDetails(queryClient, tmdb.apiKey, mediaType, match.id, tmdb.options)
+        : null;
+    },
+  });
 
   useEffect(() => {
-    if (!enabled || !apiKey.trim() || !title.trim()) {
-      setEnriched(null);
-      return;
-    }
-    const language =
-      configuredLanguage === 'auto' ? uiLanguageDefinition(appLanguage).locale : configuredLanguage;
-    const options = { language, includeAdult, imageSize } as const;
-    const controller = new AbortController();
+    if (!query.error) return;
+    notify.warning(
+      'TMDB Enrichment Failed',
+      getErrorMessage(query.error, 'TMDB enrichment failed without an error message.'),
+      undefined,
+      undefined,
+      'connection',
+    );
+  }, [query.error]);
 
-    void (async () => {
-      const search = await searchTmdb(apiKey, title, controller.signal, options);
-      const match = search.results.find((result) => result.mediaType === mediaType);
-      const result = !match
-        ? null
-        : mediaType === 'movie'
-          ? await getTmdbMovie(apiKey, match.id, controller.signal, options)
-          : await getTmdbTv(apiKey, match.id, controller.signal, options);
-      if (!controller.signal.aborted) setEnriched(result);
-    })().catch((error: unknown) => {
-      if (controller.signal.aborted) return;
-      setEnriched(null);
-      notify.warning(
-        'TMDB Enrichment Failed',
-        getErrorMessage(error, 'TMDB enrichment failed without an error message.'),
-        undefined,
-        undefined,
-        'connection',
-      );
-    });
-
-    return () => controller.abort();
-  }, [apiKey, appLanguage, configuredLanguage, enabled, imageSize, includeAdult, mediaType, title]);
-
-  return enriched;
+  if (!active) return { details: null, rating: TMDB_RATING_OFF };
+  if (query.isError) return { details: null, rating: { status: 'failed' } };
+  if (query.data === undefined) return { details: null, rating: { status: 'pending' } };
+  if (query.data === null) return { details: null, rating: { status: 'unmatched' } };
+  return {
+    details: query.data,
+    rating: {
+      status: 'matched',
+      voteAverage: query.data.voteAverage,
+      voteCount: query.data.voteCount,
+    },
+  };
 }

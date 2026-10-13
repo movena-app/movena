@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getAuthQueryScope,
   getCombinedSourceQueryScope,
+  getItemSetQueryScope,
   getM3uQueryScope,
   getUrlQueryScope,
   getXtreamQueryScope,
@@ -68,6 +69,14 @@ describe('provider-scoped query keys', () => {
     expect(combined).not.toBe(getCombinedSourceQueryScope(['account-two']));
   });
 
+  it('fingerprints a set of catalogue items regardless of order', () => {
+    const scope = getItemSetQueryScope(['b', 'a', 'c']);
+    expect(scope).toMatch(/^items-3-[a-z0-9]+$/);
+    expect(scope).toBe(getItemSetQueryScope(['c', 'b', 'a']));
+    expect(scope).not.toBe(getItemSetQueryScope(['a', 'b']));
+    expect(getItemSetQueryScope([])).toMatch(/^items-0-/);
+  });
+
   it('builds deterministic resource keys', () => {
     expect(queryKeys.vodInfo(42, 'account-abc')).toEqual(['vod_info', 'account-abc', '42']);
     expect(queryKeys.catalog('live', 'account-abc')).toEqual(['catalog', 'live', 'account-abc']);
@@ -78,6 +87,18 @@ describe('provider-scoped query keys', () => {
     );
     expect(queryKeys.tvmazeEpisodes(42)).toEqual(['tvmaze_episodes_v3', 42]);
     expect(queryKeys.tmdbExternalIds(1399)).toEqual(['tmdb_external_ids', 1399]);
+    expect(queryKeys.tmdbTitleMatch('movie', 'cityofblood', 2023, null, 'de-DE', false)).toEqual([
+      'tmdb_title_match',
+      'movie',
+      'cityofblood',
+      2023,
+      null,
+      'de-DE',
+      false,
+    ]);
+    expect(queryKeys.tmdbTitleDetails('tv', 'show', null, 7, 'en-US', false, 'w500')).not.toEqual(
+      queryKeys.tmdbTitleDetails('tv', 'show', null, 7, 'en-US', false, 'w780'),
+    );
     expect(queryKeys.introDbSegments('tt0944947', 1, 1)).toEqual([
       'introdb_segments',
       'tt0944947',

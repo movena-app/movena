@@ -22,11 +22,36 @@ fn is_valid_imdb_id(value: &str) -> bool {
     }
 }
 
-/// Fetch intro/recap/outro timestamps for one episode. Returns `null` for
-/// invalid input, a non-2xx response (typically "no data for this episode"),
-/// or any transport failure — the frontend treats a cache miss and a fetch
-/// failure identically, so there is nothing a caller could do differently
-/// with a distinct error here.
+/// What an IntroDB answer means for the episode asked about.
+#[derive(Debug, PartialEq)]
+enum IntroDbOutcome {
+    /// The body holds the episode's segments.
+    Data,
+    /// IntroDB has nothing for this episode: a normal answer, safe to remember.
+    NoData,
+    /// IntroDB could not answer right now; asking again later may work.
+    Failed,
+}
+
+fn classify_status(status: reqwest::StatusCode) -> IntroDbOutcome {
+    if status.is_success() {
+        IntroDbOutcome::Data
+    } else if status == reqwest::StatusCode::TOO_MANY_REQUESTS
+        || status == reqwest::StatusCode::REQUEST_TIMEOUT
+    {
+        // Client errors by number, but they say "not now", not "nothing here".
+        IntroDbOutcome::Failed
+    } else if status.is_client_error() {
+        IntroDbOutcome::NoData
+    } else {
+        IntroDbOutcome::Failed
+    }
+}
+
+/// Fetch intro/recap/outro timestamps for one episode. Returns `null` when
+/// IntroDB has nothing for it (invalid input or a 4xx answer) and an error
+/// when IntroDB could not be reached or failed — the frontend caches "nothing"
+/// for a day, so a passing outage must not be mistaken for it.
 #[tauri::command(async)]
 pub async fn introdb_fetch_segments(
     imdb_id: String,
@@ -43,29 +68,59 @@ pub async fn introdb_fetch_segments(
         .map_err(|_| "Could not initialize the IntroDB request".to_string())?;
 
     let url = format!("{INTRODB_API}/segments?imdb_id={imdb_id}&season={season}&episode={episode}");
-    let response = match client
+    let response = client
         .get(&url)
         .header(reqwest::header::ACCEPT, "application/json")
         .send()
         .await
-    {
-        Ok(response) => response,
-        Err(_) => return Ok(serde_json::Value::Null),
-    };
+        .map_err(|_| "IntroDB could not be reached".to_string())?;
 
-    if !response.status().is_success() {
-        return Ok(serde_json::Value::Null);
+    match classify_status(response.status()) {
+        IntroDbOutcome::NoData => Ok(serde_json::Value::Null),
+        IntroDbOutcome::Failed => Err(format!(
+            "IntroDB failed to answer (HTTP {})",
+            response.status().as_u16()
+        )),
+        IntroDbOutcome::Data => response
+            .json::<serde_json::Value>()
+            .await
+            .map_err(|_| "IntroDB sent an unreadable answer".to_string()),
     }
-
-    Ok(response
-        .json::<serde_json::Value>()
-        .await
-        .unwrap_or(serde_json::Value::Null))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::is_valid_imdb_id;
+    use super::{classify_status, is_valid_imdb_id, IntroDbOutcome};
+    use reqwest::StatusCode;
+
+    #[test]
+    fn tells_missing_data_from_failures_by_status() {
+        assert_eq!(classify_status(StatusCode::OK), IntroDbOutcome::Data);
+        assert_eq!(
+            classify_status(StatusCode::NOT_FOUND),
+            IntroDbOutcome::NoData
+        );
+        assert_eq!(
+            classify_status(StatusCode::BAD_REQUEST),
+            IntroDbOutcome::NoData
+        );
+        assert_eq!(
+            classify_status(StatusCode::TOO_MANY_REQUESTS),
+            IntroDbOutcome::Failed
+        );
+        assert_eq!(
+            classify_status(StatusCode::REQUEST_TIMEOUT),
+            IntroDbOutcome::Failed
+        );
+        assert_eq!(
+            classify_status(StatusCode::INTERNAL_SERVER_ERROR),
+            IntroDbOutcome::Failed
+        );
+        assert_eq!(
+            classify_status(StatusCode::BAD_GATEWAY),
+            IntroDbOutcome::Failed
+        );
+    }
 
     #[test]
     fn accepts_seven_and_eight_digit_imdb_ids() {

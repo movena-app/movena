@@ -1,3 +1,5 @@
+import { parseMediaDisplayTitle } from '../lib/titleParser';
+
 interface DetailCredits {
   cast: Array<{ name: string }>;
   crew: Array<{ name: string; job: string | null; jobs: string[] }>;
@@ -38,5 +40,21 @@ export function buildDetailPresentation(input: DetailPresentationInput) {
     castList: tmdbCast.length > 0 ? tmdbCast : providerCast,
     director,
     genres,
+  };
+}
+
+/**
+ * What TMDB is asked about: the provider's title without its prefixes and
+ * tags, and the year the provider dates it to (or the one in the title).
+ */
+export function tmdbLookupFor(
+  rawTitle: string,
+  providerReleaseDate: string | undefined,
+): { title: string; year: number | null } {
+  const providerYear = providerReleaseDate?.match(/\b(?:18|19|20)\d{2}\b/)?.[0];
+  const parsed = parseMediaDisplayTitle(rawTitle, providerYear);
+  return {
+    title: parsed.cleanTitle,
+    year: parsed.releaseYear ? Number(parsed.releaseYear) : null,
   };
 }

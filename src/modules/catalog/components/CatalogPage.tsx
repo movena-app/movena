@@ -18,6 +18,7 @@ import { useEnabledSources } from '@/modules/sources/public/hooks/useEnabledSour
 import { useVerifiedResolutionMap } from '@/modules/sources/public/store/useStreamVerificationStore';
 import { useCatalogCategorySelection } from '../hooks/useCatalogCategorySelection';
 import { useCatalogByType } from '../data/useCatalog';
+import { useTmdbRatingChecks } from '../data/useTmdbRatingChecks';
 import { useCategories, useHiddenCategoryIds } from '../data/useCategories';
 import {
   filterItemsBySmartCategory,
@@ -58,9 +59,12 @@ export function CatalogPage({
   const setCatalogSort = useSettingsStore((state) => state.setCatalogSort);
   const badgeVisibility = useSettingsStore((state) => state.badgeVisibility);
   const verifiedResolutions = useVerifiedResolutionMap(badgeVisibility?.verified ?? true);
-  const currentSortMode = catalogSortModes?.[type] ?? 'default';
   const navigate = useNavigate();
   const [activeCategoryId, setActiveCategoryId] = useCatalogCategorySelection(type);
+  // Top Rated is a ranking: whatever order the catalogue is set to, the best
+  // rating comes first there.
+  const isTopRated = activeCategoryId === 'smart:top-rated';
+  const currentSortMode = isTopRated ? 'rating' : (catalogSortModes?.[type] ?? 'default');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
 
   // Reset genre when category changes
@@ -96,7 +100,14 @@ export function CatalogPage({
     return map;
   }, [categories]);
 
-  const categoryItems = useMemo(() => {
+  const isRatingRanked = type !== 'live' && currentSortMode === 'rating';
+
+  // The titles a rating ranking is built from, judged on provider data alone.
+  // TMDB checks the head of this list; it must not depend on their results,
+  // or every answer would reshape the list and start the checks over. The
+  // genre is applied inside the checks, which learn the genres as they go.
+  const ratingCandidates = useMemo(() => {
+    if (!isRatingRanked) return [];
     return filterItemsBySmartCategory(
       allItems,
       activeCategoryId,
@@ -105,12 +116,50 @@ export function CatalogPage({
       categories,
       verifiedResolutions,
     );
-  }, [allItems, activeCategoryId, hiddenCategoryIds, favorites, categories, verifiedResolutions]);
+  }, [
+    isRatingRanked,
+    allItems,
+    activeCategoryId,
+    hiddenCategoryIds,
+    favorites,
+    categories,
+    verifiedResolutions,
+  ]);
+  const ratingLookups = useTmdbRatingChecks(ratingCandidates, type === 'series' ? 'tv' : 'movie', {
+    enabled: isRatingRanked,
+    genre: selectedGenre,
+    categoryNameMap,
+  });
+
+  const categoryItems = useMemo(() => {
+    return filterItemsBySmartCategory(
+      allItems,
+      activeCategoryId,
+      hiddenCategoryIds,
+      favorites,
+      categories,
+      verifiedResolutions,
+      ratingLookups,
+    );
+  }, [
+    allItems,
+    activeCategoryId,
+    hiddenCategoryIds,
+    favorites,
+    categories,
+    verifiedResolutions,
+    ratingLookups,
+  ]);
 
   const items = useMemo(() => {
-    const genreFiltered = filterItemsByGenre(categoryItems, selectedGenre, categoryNameMap);
-    return sortCatalogItems(genreFiltered, currentSortMode);
-  }, [categoryItems, selectedGenre, categoryNameMap, currentSortMode]);
+    const genreFiltered = filterItemsByGenre(
+      categoryItems,
+      selectedGenre,
+      categoryNameMap,
+      ratingLookups,
+    );
+    return sortCatalogItems(genreFiltered, currentSortMode, ratingLookups);
+  }, [categoryItems, selectedGenre, categoryNameMap, currentSortMode, ratingLookups]);
 
   const pageError = getCombinedErrorMessage([error, categoriesError], '');
   const errorPresentation = getErrorPresentation(pageError, title);
@@ -164,6 +213,7 @@ export function CatalogPage({
                 value={currentSortMode}
                 onChange={(sort) => setCatalogSort(type, sort)}
                 isLiveTv={isLiveTv}
+                disabled={isTopRated}
               />
               <CatalogViewToggle />
             </>
@@ -203,6 +253,7 @@ export function CatalogPage({
                 selectedGenre={selectedGenre}
                 onSelectGenre={setSelectedGenre}
                 categoryNameMap={categoryNameMap}
+                ratingLookups={ratingLookups}
               />
             )}
             <EmptyState icon={EmptyIcon} title={emptyTitle} description={emptyDescription} />
@@ -215,6 +266,7 @@ export function CatalogPage({
                 selectedGenre={selectedGenre}
                 onSelectGenre={setSelectedGenre}
                 categoryNameMap={categoryNameMap}
+                ratingLookups={ratingLookups}
               />
             )}
             <VirtualizedGrid

@@ -9,7 +9,6 @@ import {
   Play,
   RotateCcw,
   Settings,
-  Star,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getXtreamCredentials, useAuthStore } from '@/modules/sources/public/store/useAuthStore';
@@ -30,7 +29,10 @@ import { downloadMediaItem } from '@/modules/downloads/public/services/mediaDown
 import { M3uMovieDetailsDialog } from './M3uMovieDetailsDialog';
 import { useI18n } from '@/shared/i18n/i18n';
 import { useTmdbDetailEnrichment } from '@/modules/metadata/public/hooks/useTmdbDetailsEnrichment';
-import { buildDetailPresentation } from './detailPresentation';
+import { normalizeTmdbId } from '@/modules/metadata/public/model/tmdb';
+import { parseProviderRating, resolveMediaRating } from '@/shared/lib/rating';
+import { MediaRatingFact } from '../components/MediaRatingFact';
+import { buildDetailPresentation, tmdbLookupFor } from './detailPresentation';
 
 interface MovieDetailsDialogProps {
   movieId: string;
@@ -75,7 +77,12 @@ function XtreamMovieDetailsDialog({
   const removeFavorite = useLibraryStore((state) => state.removeFavorite);
 
   const { data, isLoading, error, isFetching, refetch } = useVodInfo(providerMovieId, sourceId);
-  const enriched = useTmdbDetailEnrichment('movie', movieTitle);
+  const tmdb = useTmdbDetailEnrichment('movie', {
+    ...tmdbLookupFor(data?.info.name || movieTitle, data?.info.releaseDate),
+    tmdbId: normalizeTmdbId(data?.info.tmdb_id),
+    ready: !isLoading,
+  });
+  const enriched = tmdb.details;
   const toggleFavorite = () => {
     if (isFav) removeFavorite(movieId);
     else
@@ -135,7 +142,10 @@ function XtreamMovieDetailsDialog({
     data?.info.description ||
     data?.info.plot ||
     t('No description available.');
-  const rating = enriched?.voteAverage ?? data?.info.rating;
+  const rating = resolveMediaRating(
+    tmdb.rating,
+    parseProviderRating(data?.info.rating, data?.info.rating_5based),
+  );
   const duration = enriched?.runtimeMinutes
     ? t('{count} min', { count: number(enriched.runtimeMinutes) })
     : data?.info.duration;
@@ -176,7 +186,6 @@ function XtreamMovieDetailsDialog({
       tags: parsedTitle.tags,
       country: parsedTitle.country,
     });
-    onClose();
   };
 
   const handleDownload = () => {
@@ -347,10 +356,12 @@ function XtreamMovieDetailsDialog({
                     <Clock size={14} /> {duration}
                   </span>
                 )}
-                {rating !== null && rating !== undefined && rating !== '' && (
-                  <span className={styles.factItem}>
-                    <Star size={14} fill="currentColor" className={styles.starIcon} /> {rating}
-                  </span>
+                {rating && (
+                  <MediaRatingFact
+                    rating={rating}
+                    className={styles.factItem}
+                    iconClassName={styles.starIcon}
+                  />
                 )}
                 {genres && <span className={styles.factItem}>{genres}</span>}
                 {displayCountry && <span className={styles.factItem}>{displayCountry}</span>}

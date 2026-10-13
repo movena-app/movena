@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -14,11 +15,60 @@ import { useAuthStore } from '@/modules/sources/store/useAuthStore';
 vi.mock('@/modules/catalog/data/useDetails', () => ({
   useVodInfo: vi.fn(),
 }));
-const tmdb = vi.hoisted(() => ({ searchTmdb: vi.fn(), getTmdbMovie: vi.fn() }));
+const tmdb = vi.hoisted(() => ({ searchTmdbTitles: vi.fn(), getTmdbMovie: vi.fn() }));
 vi.mock('@/modules/metadata/data/tmdbClient', () => tmdb);
 
 function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+function mockLoadedVodInfo(
+  info: Partial<typeof mockMovieData.info> & Record<string, unknown> = {},
+) {
+  vi.spyOn(useDetailsModule, 'useVodInfo').mockReturnValue({
+    data: { ...mockMovieData, info: { ...mockMovieData.info, ...info } } as any,
+    isLoading: false,
+    error: null,
+    isFetching: false,
+    refetch: vi.fn(),
+  } as any);
+}
+
+/** The one TMDB search result for the provider's title. */
+function tmdbFinds(voteAverage: number, voteCount: number) {
+  tmdb.searchTmdbTitles.mockResolvedValue({
+    results: [
+      {
+        id: 42,
+        mediaType: 'movie',
+        title: 'The Dink',
+        originalTitle: 'The Dink',
+        releaseYear: 2026,
+        voteAverage,
+        voteCount,
+        genreIds: [35],
+      },
+    ],
+  });
+  tmdb.getTmdbMovie.mockResolvedValue({
+    id: 42,
+    mediaType: 'movie',
+    title: 'The Dink',
+    originalTitle: 'The Dink',
+    releaseYear: 2026,
+    voteAverage,
+    voteCount,
+    genres: [{ name: 'Drama' }],
+    credits: {
+      cast: [{ name: 'TMDB Actor' }],
+      crew: [{ name: 'TMDB Director', job: 'Director', jobs: [] }],
+    },
+  });
 }
 
 const mockMovieData = {
@@ -52,7 +102,7 @@ describe('<MovieDetailsDialog />', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useLibraryStore.setState({ favorites: [], history: [] });
-    usePlayerStore.setState({ playStream: vi.fn() });
+    usePlayerStore.setState({ playStream: vi.fn(), activeStream: null });
     useSettingsStore.getState().resetSettings();
     useAuthStore.setState({ profiles: [], runtimes: {} });
   });
@@ -93,34 +143,95 @@ describe('<MovieDetailsDialog />', () => {
 
   it('prefers TMDB rating and credits while preserving provider fields as fallbacks', async () => {
     useSettingsStore.setState({ tmdbApiKey: 'test-key', tmdbEnabled: true });
-    tmdb.searchTmdb.mockResolvedValue({ results: [{ mediaType: 'movie', id: 42 }] });
-    tmdb.getTmdbMovie.mockResolvedValue({
-      voteAverage: 8.4,
-      genres: [{ name: 'Drama' }],
-      credits: {
-        cast: [{ name: 'TMDB Actor' }],
-        crew: [{ name: 'TMDB Director', job: 'Director', jobs: [] }],
-      },
-    });
-    vi.spyOn(useDetailsModule, 'useVodInfo').mockReturnValue({
-      data: mockMovieData as any,
-      isLoading: false,
-      error: null,
-      isFetching: false,
-      refetch: vi.fn(),
-    } as any);
+    tmdbFinds(8.416, 1_234);
+    mockLoadedVodInfo();
 
     renderWithRouter(<MovieDetailsDialog {...defaultProps} />);
 
     await waitFor(() => expect(screen.getByText('8.4')).toBeTruthy());
+    expect(screen.getByText('TMDB')).toBeTruthy();
+    expect(screen.getByTitle('TMDB rating 8.4 out of 10 from 1,234 votes')).toBeTruthy();
     expect(screen.queryByText('6.4')).toBeNull();
     expect(screen.getByText('TMDB Director')).toBeTruthy();
     expect(screen.getByText('TMDB Actor')).toBeTruthy();
+    // TMDB is asked about the cleaned title and the provider's year, not "DE - The Dink".
+    expect(tmdb.searchTmdbTitles).toHaveBeenCalledWith(
+      'test-key',
+      'movie',
+      'The Dink',
+      2026,
+      undefined,
+      expect.objectContaining({ language: 'en-US' }),
+    );
   });
 
-  it('triggers playStream and closes modal when Play Movie is clicked', async () => {
+  it("uses the provider's TMDB id after checking it against the title", async () => {
+    useSettingsStore.setState({ tmdbApiKey: 'test-key', tmdbEnabled: true });
+    tmdbFinds(7.1, 640);
+    mockLoadedVodInfo({ tmdb_id: '42' });
+
+    renderWithRouter(<MovieDetailsDialog {...defaultProps} />);
+
+    await waitFor(() => expect(screen.getByText('7.1')).toBeTruthy());
+    expect(tmdb.getTmdbMovie).toHaveBeenCalledWith('test-key', 42, undefined, expect.any(Object));
+    expect(tmdb.searchTmdbTitles).not.toHaveBeenCalled();
+  });
+
+  it('shows no rating when TMDB knows the title but too few people have voted', async () => {
+    useSettingsStore.setState({ tmdbApiKey: 'test-key', tmdbEnabled: true });
+    tmdbFinds(10, 1);
+    mockLoadedVodInfo();
+
+    renderWithRouter(<MovieDetailsDialog {...defaultProps} />);
+
+    await waitFor(() => expect(screen.getByText('TMDB Director')).toBeTruthy());
+    expect(screen.queryByText('10.0')).toBeNull();
+    // The provider number is an old copy of the same thin data and does not stand in.
+    expect(screen.queryByText('6.4')).toBeNull();
+  });
+
+  it('falls back to the labelled provider rating when TMDB has no such title', async () => {
+    useSettingsStore.setState({ tmdbApiKey: 'test-key', tmdbEnabled: true });
+    tmdb.searchTmdbTitles.mockResolvedValue({
+      results: [
+        {
+          id: 9,
+          mediaType: 'movie',
+          title: 'Something Else',
+          originalTitle: null,
+          releaseYear: 2026,
+          voteAverage: 10,
+          voteCount: 2,
+          genreIds: [],
+        },
+      ],
+    });
+    mockLoadedVodInfo();
+
+    renderWithRouter(<MovieDetailsDialog {...defaultProps} />);
+
+    await waitFor(() => expect(screen.getByText('6.4')).toBeTruthy());
+    expect(screen.getByText('Provider')).toBeTruthy();
+    expect(
+      screen.getByTitle('Provider rating 6.4 out of 10, not checked against TMDB'),
+    ).toBeTruthy();
+    expect(tmdb.getTmdbMovie).not.toHaveBeenCalled();
+  });
+
+  it('never shows a placeholder 10 from the provider', () => {
+    mockLoadedVodInfo({ rating: '10', rating_5based: 5 });
+
+    renderWithRouter(<MovieDetailsDialog {...defaultProps} />);
+
+    expect(screen.getByRole('heading', { level: 1, name: 'The Dink' })).toBeTruthy();
+    expect(screen.queryByText('10')).toBeNull();
+    expect(screen.queryByText('10.0')).toBeNull();
+    expect(screen.queryByText('Provider')).toBeNull();
+  });
+
+  it('plays the movie over the dialog and shows the dialog again when the player closes', async () => {
     const user = userEvent.setup();
-    const playStreamSpy = vi.fn();
+    const playStreamSpy = vi.fn((stream) => usePlayerStore.setState({ activeStream: stream }));
     usePlayerStore.setState({ playStream: playStreamSpy });
 
     vi.spyOn(useDetailsModule, 'useVodInfo').mockReturnValue({
@@ -144,7 +255,14 @@ describe('<MovieDetailsDialog />', () => {
         streamUrl: 'https://example.com/movie.mp4',
       }),
     );
-    expect(defaultProps.onClose).toHaveBeenCalled();
+    // Playback runs over the dialog instead of closing it.
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    act(() => usePlayerStore.setState({ activeStream: null }));
+
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'The Dink' })).toBeTruthy();
   });
 
   it('toggles favorite state when Add to Favorites button is clicked', async () => {

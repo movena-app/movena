@@ -99,8 +99,9 @@ function normalizeSegmentsResponse(data: unknown): IntroDbSegments {
 /**
  * Fetch intro/recap/outro timestamps for a single episode.
  *
- * Returns all-null segments on 404, network errors, or invalid input — never throws for
- * expected "no data" responses so callers can treat it as a simple cache miss.
+ * All-null segments mean IntroDB has nothing for the episode (or the input
+ * cannot name one). When IntroDB could not be reached this rejects instead:
+ * callers cache "nothing" for a day, and a passing outage must not become that.
  */
 export async function fetchIntroDbSegments(
   imdbId: string,
@@ -113,9 +114,5 @@ export async function fetchIntroDbSegments(
   if (!Number.isInteger(season) || season < 1) return empty;
   if (!Number.isInteger(episode) || episode < 1) return empty;
 
-  try {
-    return normalizeSegmentsResponse(await tauriApi.introDbFetchSegments(imdbId, season, episode));
-  } catch {
-    return empty;
-  }
+  return normalizeSegmentsResponse(await tauriApi.introDbFetchSegments(imdbId, season, episode));
 }

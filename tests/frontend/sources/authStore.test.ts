@@ -10,6 +10,7 @@ const repository = vi.hoisted(() => ({
   storeXtreamCredentials: vi.fn(),
   loadXtreamCredentials: vi.fn(),
   deleteXtreamCredentials: vi.fn(),
+  deleteXtreamCatalogCache: vi.fn(),
 }));
 const xc = vi.hoisted(() => ({ authenticateXtream: vi.fn() }));
 
@@ -56,6 +57,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   repository.storeXtreamCredentials.mockResolvedValue(undefined);
   repository.deleteXtreamCredentials.mockResolvedValue(undefined);
+  repository.deleteXtreamCatalogCache.mockResolvedValue(undefined);
   vault.deleteProviderPassword.mockResolvedValue(undefined);
   xc.authenticateXtream.mockResolvedValue({ user_info: userInfo, server_info: serverInfo });
   useAuthStore.setState({
@@ -227,6 +229,8 @@ describe('multi-Xtream source state and credential boundary', () => {
     await useAuthStore.getState().removeSource(first.id);
 
     expect(repository.deleteXtreamCredentials).toHaveBeenCalledWith(first.id);
+    expect(repository.deleteXtreamCatalogCache).toHaveBeenCalledWith(first.id);
+    expect(repository.deleteXtreamCatalogCache).not.toHaveBeenCalledWith(second.id);
     expect(useAuthStore.getState().profiles.map((profile) => profile.id)).toEqual([second.id]);
     expect(useSourceStore.getState().enabledSourceIds).toEqual([second.id]);
   });

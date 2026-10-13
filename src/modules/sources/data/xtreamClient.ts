@@ -334,6 +334,9 @@ export interface XtreamVodInfo {
     director: string;
     cast: string;
     rating: string;
+    rating_5based?: number | string | undefined;
+    /** Set by most panels from their own TMDB import; "0" or empty when unknown. */
+    tmdb_id?: number | string | undefined;
     duration: string;
     youtube_trailer: string;
   };
@@ -435,6 +438,10 @@ interface XtreamSeriesMetadata {
   genre?: string | undefined;
   releaseDate?: string | undefined;
   rating?: string | undefined;
+  rating_5based?: number | string | undefined;
+  /** Panels name the series' TMDB id either way; "0" or empty when unknown. */
+  tmdb?: number | string | undefined;
+  tmdb_id?: number | string | undefined;
   backdrop_path?: string[] | undefined;
 }
 

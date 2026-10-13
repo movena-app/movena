@@ -54,6 +54,7 @@ import { StateIcon, type StateIconPair } from '@/shared/ui/StateIcon';
 import styles from './CategorySidebar.module.css';
 import { useI18n } from '@/shared/i18n/i18n';
 import { getErrorMessage } from '@/shared/lib/error';
+import { providerRatingValue, TOP_RATED_MIN_RATING } from '@/shared/lib/rating';
 
 interface CategorySidebarProps {
   type: 'vod' | 'series' | 'live';
@@ -182,7 +183,7 @@ export function CategorySidebar({
       visibleTotal += 1;
       if (favSet.has(item.id)) favCount += 1;
       if (item.added) recentCount += 1;
-      if (typeof item.rating === 'number' && item.rating >= 7.0) topRatedCount += 1;
+      if ((providerRatingValue(item.rating) ?? 0) >= TOP_RATED_MIN_RATING) topRatedCount += 1;
       if (isUltraHdQuality(item, verifiedResolutions.get(item.id))) {
         fourKCount += 1;
       }

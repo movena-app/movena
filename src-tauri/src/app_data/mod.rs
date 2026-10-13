@@ -7,6 +7,7 @@ fn remove_cached_app_data(app_data: &Path, app_cache: &Path) -> Result<(), Strin
     for path in [
         app_data.join("m3u-cache"),
         app_data.join("xmltv-cache"),
+        app_data.join("catalog-cache"),
         app_cache.join("twitch-resolver"),
     ] {
         match std::fs::remove_dir_all(path) {
@@ -51,7 +52,7 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
-    fn removes_playlist_guide_and_twitch_resolver_caches() {
+    fn removes_playlist_guide_catalog_and_twitch_resolver_caches() {
         let unique = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -65,6 +66,7 @@ mod tests {
         for path in [
             app_data.join("m3u-cache"),
             app_data.join("xmltv-cache"),
+            app_data.join("catalog-cache"),
             app_cache.join("twitch-resolver"),
         ] {
             std::fs::create_dir_all(&path).unwrap();
@@ -75,6 +77,7 @@ mod tests {
 
         assert!(!app_data.join("m3u-cache").exists());
         assert!(!app_data.join("xmltv-cache").exists());
+        assert!(!app_data.join("catalog-cache").exists());
         assert!(!app_cache.join("twitch-resolver").exists());
         let _ = std::fs::remove_dir_all(root);
     }

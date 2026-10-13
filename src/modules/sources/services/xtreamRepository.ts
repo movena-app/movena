@@ -42,3 +42,8 @@ export async function loadXtreamCredentials(sourceId: string): Promise<XtreamCre
 export async function deleteXtreamCredentials(sourceId: string): Promise<void> {
   await tauriApi.sourceSecretDelete(sourceId);
 }
+
+/** Remove the catalogue lists kept on disk for a source that is going away. */
+export async function deleteXtreamCatalogCache(sourceId: string): Promise<void> {
+  await tauriApi.catalogCacheDelete(sourceId);
+}

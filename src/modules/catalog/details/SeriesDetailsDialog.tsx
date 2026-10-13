@@ -10,7 +10,6 @@ import {
   MonitorPlay,
   Play,
   Settings,
-  Star,
 } from 'lucide-react';
 import {
   getXtreamCredentials,
@@ -52,7 +51,10 @@ import { useNavigate } from 'react-router-dom';
 import { SeriesUpcomingEpisodes } from '@/modules/guide/public/components/SeriesUpcomingEpisodes';
 import { episodeScheduleKey } from '@/modules/guide/public/lib/upcoming';
 import { useTmdbDetailEnrichment } from '@/modules/metadata/public/hooks/useTmdbDetailsEnrichment';
-import { buildDetailPresentation } from './detailPresentation';
+import { normalizeTmdbId } from '@/modules/metadata/public/model/tmdb';
+import { parseProviderRating, resolveMediaRating } from '@/shared/lib/rating';
+import { MediaRatingFact } from '../components/MediaRatingFact';
+import { buildDetailPresentation, tmdbLookupFor } from './detailPresentation';
 
 interface SeriesDetailsDialogProps {
   seriesId: string;
@@ -113,7 +115,12 @@ function XtreamSeriesDetailsDialog({
   const positionedEpisodeRef = useRef(false);
 
   const { data, isLoading, error, isFetching, refetch } = useSeriesInfo(providerSeriesId, sourceId);
-  const enriched = useTmdbDetailEnrichment('tv', seriesTitle);
+  const tmdb = useTmdbDetailEnrichment('tv', {
+    ...tmdbLookupFor(data?.info?.name || seriesTitle, data?.info?.releaseDate),
+    tmdbId: normalizeTmdbId(data?.info?.tmdb ?? data?.info?.tmdb_id),
+    ready: !isLoading,
+  });
+  const enriched = tmdb.details;
 
   const toggleFavorite = () => {
     if (isFav) removeFavorite(seriesId);
@@ -167,7 +174,10 @@ function XtreamSeriesDetailsDialog({
   const cleanSeriesTitle = parsedTitle.cleanTitle;
   const displayCountry = parsedTitle.country ? countryName(parsedTitle.country, language) : null;
   const plot = enriched?.overview || data?.info?.plot || t('No description available.');
-  const rating = enriched?.voteAverage ?? data?.info?.rating;
+  const rating = resolveMediaRating(
+    tmdb.rating,
+    parseProviderRating(data?.info?.rating, data?.info?.rating_5based),
+  );
   const hasMoreDetails = plot.length > 280 || castList.length > 3;
   const resumeHint = [historyItem?.episodeTitle, remainingLabel].filter(Boolean).join(' · ');
   // Real (landscape) backdrop art only — cover/seriesPoster are 2:3 posters,
@@ -262,7 +272,6 @@ function XtreamSeriesDetailsDialog({
     const downloaded = downloadedByLibraryId[episodeLibraryId];
     if (downloaded) {
       playStream(playableFromDownloadedItem(downloaded, startPosition));
-      onClose();
       return;
     }
 
@@ -299,7 +308,6 @@ function XtreamSeriesDetailsDialog({
       tags: mergeMediaTags(...parsedTitle.tags, ...parsedEpisode.tags),
       country: parsedTitle.country ?? parsedEpisode.country,
     });
-    onClose();
   };
 
   const handleDownloadSeason = () => {
@@ -484,10 +492,12 @@ function XtreamSeriesDetailsDialog({
                         : t('{count} min', { count: number(enriched.runtimeMinutes) })}
                     </span>
                   )}
-                  {rating !== null && rating !== undefined && rating !== '' && (
-                    <span className={styles.factItem}>
-                      <Star size={14} fill="currentColor" className={styles.starIcon} /> {rating}
-                    </span>
+                  {rating && (
+                    <MediaRatingFact
+                      rating={rating}
+                      className={styles.factItem}
+                      iconClassName={styles.starIcon}
+                    />
                   )}
                   {genres && <span className={styles.factItem}>{genres}</span>}
                   {displayedSeasonCount > 0 && (

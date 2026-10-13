@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   formatVerifiedResolution,
   normalizeVerifiedStreams,
@@ -31,6 +31,71 @@ describe('stream verification store', () => {
     expect(verified?.isHdr).toBe(true);
     expect(verified?.audioChannels).toBe(6);
     expect(verified?.verifiedAt).toBeGreaterThan(0);
+  });
+
+  describe('repeated reports during playback', () => {
+    afterEach(() => vi.useRealTimers());
+    const fullHd = { width: 1920, height: 1080, fps: 49.97, isHdr: false, audioCodec: 'aac' };
+
+    it('leaves the store untouched while the stream delivers the same picture', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T12:00:00Z'));
+      const store = useStreamVerificationStore.getState();
+      store.recordVerification('live-1', fullHd);
+      const before = useStreamVerificationStore.getState().verifiedStreams;
+      const writes = vi.spyOn(Storage.prototype, 'setItem');
+
+      vi.advanceTimersByTime(60_000);
+      for (let second = 0; second < 30; second += 1) {
+        store.recordVerification('live-1', { ...fullHd, fps: 50.02 });
+      }
+
+      expect(useStreamVerificationStore.getState().verifiedStreams).toBe(before);
+      expect(writes).not.toHaveBeenCalled();
+      writes.mockRestore();
+    });
+
+    it('writes again when the stream changes, keeping other entries as they were', () => {
+      const store = useStreamVerificationStore.getState();
+      store.recordVerification('live-1', fullHd);
+      store.recordVerification('live-2', fullHd);
+      const other = useStreamVerificationStore.getState().verifiedStreams['live-2'];
+
+      store.recordVerification('live-1', { ...fullHd, width: 3840, height: 2160 });
+
+      const after = useStreamVerificationStore.getState().verifiedStreams;
+      expect(after['live-1']).toMatchObject({ width: 3840, height: 2160 });
+      expect(after['live-2']).toBe(other);
+    });
+
+    it('refreshes an unchanged stream once a day so it does not age out', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-01T12:00:00Z'));
+      const store = useStreamVerificationStore.getState();
+      store.recordVerification('live-1', fullHd);
+      const firstSeen = useStreamVerificationStore.getState().verifiedStreams['live-1']!.verifiedAt;
+
+      vi.setSystemTime(new Date('2026-10-02T12:00:01Z'));
+      store.recordVerification('live-1', fullHd);
+
+      expect(
+        useStreamVerificationStore.getState().verifiedStreams['live-1']!.verifiedAt,
+      ).toBeGreaterThan(firstSeen);
+    });
+
+    it('keeps the newest 500 streams when a new one arrives', () => {
+      vi.useFakeTimers();
+      const store = useStreamVerificationStore.getState();
+      for (let index = 0; index < 501; index += 1) {
+        vi.setSystemTime(new Date(Date.UTC(2026, 9, 1, 0, 0, index)));
+        store.recordVerification(`live-${index}`, fullHd);
+      }
+
+      const kept = useStreamVerificationStore.getState().verifiedStreams;
+      expect(Object.keys(kept)).toHaveLength(500);
+      expect(kept['live-0']).toBeUndefined();
+      expect(kept['live-500']).toBeDefined();
+    });
   });
 
   it('formats verified resolution labels correctly', () => {
