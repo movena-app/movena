@@ -20,7 +20,7 @@ cargo:0BSD OR MIT OR Apache-2.0
 cargo:Apache-2.0
 ----------------
 - sync_wrapper@1.0.2
-- tao@0.35.3
+- tao@0.37.1
 
 cargo:Apache-2.0 / MIT
 ----------------------
@@ -54,12 +54,9 @@ cargo:Apache-2.0 OR MIT
 - bit-set@0.8.0
 - bit-vec@0.8.0
 - blocking@1.7.0
-- cargo_toml@0.22.3
+- cargo_toml@1.0.1
 - concurrent-queue@2.5.0
-- ctor-proc-macro@0.0.7
-- ctor@0.8.0
-- dtor-proc-macro@0.0.6
-- dtor@0.3.0
+- ctor@1.0.13
 - equivalent@1.0.2
 - event-listener-strategy@0.5.4
 - event-listener@5.4.2
@@ -70,7 +67,7 @@ cargo:Apache-2.0 OR MIT
 - indexmap@2.14.0
 - libappindicator-sys@0.9.0
 - libappindicator@0.9.0
-- muda@0.19.3
+- muda@0.20.0
 - multiversion_no_op@1.0.0
 - parking@2.2.1
 - pin-project-lite@0.2.17
@@ -79,24 +76,24 @@ cargo:Apache-2.0 OR MIT
 - portable-atomic@1.15.0
 - rustc-hash@2.1.3
 - simd_cesu8@1.2.0
-- tauri-build@2.6.3
-- tauri-codegen@2.6.3
-- tauri-macros@2.6.3
-- tauri-plugin-dialog@2.7.3
-- tauri-plugin-fs@2.5.2
-- tauri-plugin-log@2.9.2
-- tauri-plugin-opener@2.5.5
-- tauri-plugin-process@2.3.1
-- tauri-plugin-updater@2.11.0
-- tauri-plugin@2.6.3
-- tauri-runtime-wry@2.11.4
-- tauri-runtime@2.11.3
-- tauri-utils@2.9.3
-- tauri@2.11.6
+- tauri-build@2.7.3
+- tauri-codegen@2.7.3
+- tauri-macros@2.7.3
+- tauri-plugin-dialog@2.8.2
+- tauri-plugin-fs@2.7.0
+- tauri-plugin-log@2.10.1
+- tauri-plugin-opener@2.7.1
+- tauri-plugin-process@2.4.0
+- tauri-plugin-updater@2.13.3
+- tauri-plugin@2.7.2
+- tauri-runtime-wry@2.12.2
+- tauri-runtime@2.12.2
+- tauri-utils@2.10.2
+- tauri@2.12.4
 - utf8_iter@1.0.4
 - uuid@1.25.0
-- window-vibrancy@0.6.0
-- wry@0.55.1
+- window-vibrancy@0.8.1
+- wry@0.57.0
 - zeroize@1.9.0
 
 cargo:Apache-2.0 WITH LLVM-exception
@@ -120,12 +117,15 @@ cargo:Apache-2.0/MIT
 cargo:BSD-3-Clause
 ------------------
 - alloc-no-stdlib@2.0.4
+- alloc-no-stdlib@3.0.0
 - alloc-stdlib@0.2.4
+- alloc-stdlib@0.3.0
 - subtle@2.6.1
 
 cargo:BSD-3-Clause AND MIT
 --------------------------
 - brotli@8.0.4
+- brotli@9.0.0
 
 cargo:BSD-3-Clause OR MIT OR Apache-2.0
 ---------------------------------------
@@ -135,6 +135,7 @@ cargo:BSD-3-Clause OR MIT OR Apache-2.0
 cargo:BSD-3-Clause/MIT
 ----------------------
 - brotli-decompressor@5.0.3
+- brotli-decompressor@6.0.1
 
 cargo:CC0-1.0 OR MIT-0 OR Apache-2.0
 ------------------------------------
@@ -171,7 +172,7 @@ cargo:MIT
 - cairo-rs@0.18.5
 - cairo-sys-rs@0.18.2
 - cargo_metadata@0.19.2
-- cfb@0.7.3
+- cfb@0.14.0
 - cfg_aliases@0.2.2
 - combine@4.6.8
 - darling_core@0.23.0
@@ -181,7 +182,7 @@ cargo:MIT
 - derive_more@2.1.1
 - dlopen2_derive@0.4.3
 - dlopen2@0.8.2
-- dom_query@0.27.0
+- dom_query@0.28.0
 - embed-resource@3.0.11
 - endi@1.1.1
 - fern@0.7.1
@@ -208,19 +209,19 @@ cargo:MIT
 - hyper-util@0.1.20
 - hyper@1.11.0
 - ico@0.5.0
-- infer@0.19.0
+- infer@0.22.0
 - is-docker@0.2.0
 - is-wsl@0.4.0
 - javascriptcore-rs-sys@1.1.1
 - javascriptcore-rs@1.1.2
 - libredox@0.1.20
 - memoffset@0.9.1
-- minisign-verify@0.2.5
+- minisign-verify@0.3.0
 - mio@1.2.2
 - new_debug_unreachable@1.0.6
 - objc2-encode@4.1.0
 - objc2-foundation@0.3.2
-- objc2@0.6.4
+- objc2@0.6.5
 - open@5.4.2
 - pango-sys@0.18.0
 - pango@0.18.3
@@ -260,7 +261,7 @@ cargo:MIT
 - tracing@0.1.44
 - try-lock@0.2.5
 - uds_windows@1.2.1
-- urlpattern@0.3.0
+- urlpattern@0.6.0
 - version-compare@0.2.1
 - vswhom-sys@0.1.3
 - vswhom@0.1.0
@@ -268,10 +269,9 @@ cargo:MIT
 - webkit2gtk-sys@2.0.2
 - webkit2gtk@2.0.2
 - webview2-com-macros@0.8.1
-- webview2-com-sys@0.38.2
-- webview2-com@0.38.2
+- webview2-com-sys@0.39.1
+- webview2-com@0.39.1
 - winnow@0.5.40
-- winnow@0.7.15
 - winnow@1.0.4
 - winreg@0.55.0
 - x11-dl@2.21.0
@@ -337,7 +337,7 @@ cargo:MIT OR Apache-2.0
 - derive_arbitrary@1.4.2
 - digest@0.10.7
 - dirs-sys@0.5.0
-- dirs@6.0.0
+- dirs@7.0.0
 - displaydoc@0.2.7
 - dtoa@1.0.11
 - dyn-clone@1.0.20
@@ -372,7 +372,7 @@ cargo:MIT OR Apache-2.0
 - hex@0.4.3
 - hkdf@0.12.4
 - hmac@0.12.1
-- html5ever@0.38.0
+- html5ever@0.39.0
 - http@1.5.0
 - httparse@1.10.1
 - iana-time-zone-haiku@0.1.2
@@ -388,15 +388,16 @@ cargo:MIT OR Apache-2.0
 - jni@0.22.4
 - jobserver@0.1.35
 - js-sys@0.3.104
-- jsonptr@0.6.3
-- keyboard-types@0.7.0
+- jsonptr@0.7.1
+- keyboard-types@0.8.3
 - keyring-core@1.0.0
 - keyring@4.2.0
 - libc@0.2.190
 - lock_api@0.4.14
 - log@0.4.34
-- markup5ever@0.38.0
+- markup5ever@0.39.0
 - mime@0.3.17
+- ndk-context@0.1.1
 - ndk-sys@0.6.0+11769913
 - ndk@0.9.0
 - num_threads@0.1.7
@@ -452,7 +453,7 @@ cargo:MIT OR Apache-2.0
 - serde_core@1.0.229
 - serde_derive_internals@0.29.1
 - serde_derive@1.0.229
-- serde_json@1.0.151
+- serde_json@1.0.154
 - serde_repr@0.1.21
 - serde_spanned@0.6.9
 - serde_spanned@1.1.1
@@ -473,7 +474,7 @@ cargo:MIT OR Apache-2.0
 - stable_deref_trait@1.2.1
 - string_cache_codegen@0.6.1
 - string_cache@0.9.0
-- swift-rs@1.0.8
+- swift-rs@1.0.9
 - syn@1.0.109
 - syn@2.0.119
 - syn@3.0.4
@@ -493,7 +494,6 @@ cargo:MIT OR Apache-2.0
 - time@0.3.55
 - tokio-rustls@0.26.4
 - toml_datetime@0.6.3
-- toml_datetime@0.7.5+spec-1.1.0
 - toml_datetime@1.1.1+spec-1.1.0
 - toml_edit@0.19.15
 - toml_edit@0.20.2
@@ -501,9 +501,8 @@ cargo:MIT OR Apache-2.0
 - toml_parser@1.1.3+spec-1.1.0
 - toml_writer@1.1.2+spec-1.1.0
 - toml@0.8.2
-- toml@0.9.12+spec-1.1.0
 - toml@1.1.4+spec-1.1.0
-- tray-icon@0.24.2
+- tray-icon@0.25.1
 - typeid@1.0.3
 - typenum@1.20.1
 - unicode-segmentation@1.13.3
@@ -540,20 +539,16 @@ cargo:MIT OR Apache-2.0
 - windows_x86_64_msvc@0.42.2
 - windows_x86_64_msvc@0.52.6
 - windows_x86_64_msvc@0.53.1
-- windows-collections@0.2.0
-- windows-core@0.61.2
+- windows-collections@0.3.2
 - windows-core@0.62.2
-- windows-future@0.2.1
+- windows-future@0.3.2
 - windows-implement@0.60.2
 - windows-interface@0.59.3
-- windows-link@0.1.3
 - windows-link@0.2.1
 - windows-native-keyring-store@1.1.0
-- windows-numerics@0.2.0
+- windows-numerics@0.3.1
 - windows-registry@0.6.1
-- windows-result@0.3.4
 - windows-result@0.4.1
-- windows-strings@0.4.2
 - windows-strings@0.5.1
 - windows-sys@0.45.0
 - windows-sys@0.52.0
@@ -563,9 +558,9 @@ cargo:MIT OR Apache-2.0
 - windows-targets@0.42.2
 - windows-targets@0.52.6
 - windows-targets@0.53.5
-- windows-threading@0.1.0
+- windows-threading@0.2.1
 - windows-version@0.1.7
-- windows@0.61.3
+- windows@0.62.2
 - xattr@1.6.1
 - zbus-secret-service-keyring-store@1.0.1
 
@@ -578,6 +573,7 @@ cargo:MIT OR Apache-2.0 OR Zlib
 -------------------------------
 - lru-slab@0.1.2
 - raw-window-handle@0.6.2
+- static_vcruntime@3.0.0
 - tinyvec_macros@0.1.1
 
 cargo:MIT OR Zlib OR Apache-2.0
@@ -596,13 +592,8 @@ cargo:MIT/Apache-2.0
 - foreign-types@0.5.0
 - ident_case@1.0.1
 - jni@0.21.1
-- json-patch@3.0.1
+- json-patch@4.2.0
 - siphasher@1.0.3
-- unic-char-property@0.9.0
-- unic-char-range@0.9.0
-- unic-common@0.9.0
-- unic-ucd-ident@0.9.0
-- unic-ucd-version@0.9.0
 - version_check@0.9.5
 - winapi-i686-pc-windows-gnu@0.4.0
 - winapi-x86_64-pc-windows-gnu@0.4.0
@@ -610,11 +601,11 @@ cargo:MIT/Apache-2.0
 
 cargo:MPL-2.0
 -------------
-- cssparser-macros@0.6.1
-- cssparser@0.36.0
+- cssparser-macros@0.7.1
+- cssparser@0.37.0
 - dtoa-short@0.3.5
 - option-ext@0.2.0
-- selectors@0.36.1
+- selectors@0.38.0
 
 cargo:Unicode-3.0
 -----------------
@@ -716,7 +707,7 @@ npm:Apache-2.0
 - @humanfs/types@0.15.0
 - @humanwhocodes/module-importer@1.0.1
 - @humanwhocodes/retry@0.4.3
-- @playwright/test@1.63.0
+- @playwright/test@1.64.0
 - @puppeteer/browsers@2.13.2
 - aria-query@5.3.0
 - b4a@1.8.1
@@ -737,8 +728,8 @@ npm:Apache-2.0
 - human-signals@8.0.1
 - jake@10.9.4
 - locate-app@2.5.0
-- playwright-core@1.63.0
-- playwright@1.63.0
+- playwright-core@1.64.0
+- playwright@1.64.0
 - readdir-glob@1.1.3
 - readdir-glob@3.0.0
 - rxjs@7.8.2
@@ -751,9 +742,10 @@ npm:Apache-2.0
 
 npm:Apache-2.0 OR MIT
 ---------------------
-- @tauri-apps/api@2.11.1
-- @tauri-apps/cli-win32-x64-msvc@2.11.4
-- @tauri-apps/cli@2.11.4
+- @tauri-apps/api@2.12.1
+- @tauri-apps/api@2.12.3
+- @tauri-apps/cli-win32-x64-msvc@2.12.2
+- @tauri-apps/cli@2.12.2
 
 npm:BlueOak-1.0.0
 -----------------
@@ -792,7 +784,6 @@ npm:BSD-2-Clause
 npm:BSD-3-Clause
 ----------------
 - @zip.js/zip.js@2.8.60
-- deepmerge-ts@7.1.6
 - deepmerge-ts@8.0.2
 - diff@5.2.2
 - diff@8.0.4
@@ -800,8 +791,8 @@ npm:BSD-3-Clause
 - flat@5.0.2
 - ieee754@1.2.1
 - serialize-javascript@7.1.1
-- smol-toml@1.8.0
-- source-map-js@1.2.1
+- smol-toml@1.9.1
+- source-map-js@1.2.2
 - source-map@0.6.1
 
 npm:CC-BY-3.0
@@ -841,11 +832,11 @@ npm:ISC
 - inflight@1.0.6
 - inherits@2.0.4
 - isexe@2.0.0
-- knip@6.39.0
+- knip@6.41.0
 - lru-cache@10.4.3
 - lru-cache@5.1.1
 - lru-cache@7.18.3
-- lucide-react@1.51.0
+- lucide-react@1.55.0
 - minimatch@3.1.5
 - minimatch@5.1.9
 - minimatch@9.0.9
@@ -856,7 +847,7 @@ npm:ISC
 - semver@7.8.5
 - signal-exit@4.1.0
 - split2@4.2.0
-- unbash@4.0.12
+- unbash@5.0.0
 - walk-up-path@4.0.0
 - which@2.0.2
 - which@6.0.1
@@ -925,9 +916,9 @@ npm:MIT
 - @jridgewell/trace-mapping@0.3.31
 - @keyv/bigmap@1.3.1
 - @keyv/serialize@1.1.1
-- @oxc-parser/binding-win32-x64-msvc@0.150.0
-- @oxc-project/types@0.150.0
+- @oxc-parser/binding-win32-x64-msvc@0.153.0
 - @oxc-project/types@0.152.0
+- @oxc-project/types@0.153.0
 - @oxc-resolver/binding-win32-x64-msvc@11.24.2
 - @pkgjs/parseargs@0.11.0
 - @rolldown/binding-win32-x64-msvc@1.2.12
@@ -935,10 +926,10 @@ npm:MIT
 - @sec-ant/readable-stream@0.4.1
 - @sinclair/typebox@0.34.52
 - @sindresorhus/merge-streams@4.0.0
-- @tanstack/query-core@5.104.1
-- @tanstack/react-query@5.104.1
-- @tanstack/react-virtual@3.14.13
-- @tanstack/virtual-core@3.17.11
+- @tanstack/query-core@5.104.2
+- @tanstack/react-query@5.104.2
+- @tanstack/react-virtual@3.14.15
+- @tanstack/virtual-core@3.19.0
 - @testing-library/dom@10.4.1
 - @testing-library/react@16.3.3
 - @testing-library/user-event@14.6.7
@@ -954,7 +945,7 @@ npm:MIT
 - @types/json-schema@7.0.15
 - @types/mocha@10.0.10
 - @types/node@20.19.43
-- @types/node@26.6.4
+- @types/node@26.6.5
 - @types/normalize-package-data@2.4.4
 - @types/react-dom@19.3.0
 - @types/react@19.3.0
@@ -966,17 +957,17 @@ npm:MIT
 - @types/yargs-parser@21.0.3
 - @types/yargs@17.0.35
 - @types/yauzl@2.10.3
-- @typescript-eslint/eslint-plugin@8.71.0
-- @typescript-eslint/parser@8.71.0
-- @typescript-eslint/project-service@8.71.0
-- @typescript-eslint/scope-manager@8.71.0
-- @typescript-eslint/tsconfig-utils@8.71.0
-- @typescript-eslint/type-utils@8.71.0
-- @typescript-eslint/types@8.71.0
-- @typescript-eslint/typescript-estree@8.71.0
-- @typescript-eslint/utils@8.71.0
-- @typescript-eslint/visitor-keys@8.71.0
-- @vitejs/plugin-react@6.1.1
+- @typescript-eslint/eslint-plugin@8.71.1
+- @typescript-eslint/parser@8.71.1
+- @typescript-eslint/project-service@8.71.1
+- @typescript-eslint/scope-manager@8.71.1
+- @typescript-eslint/tsconfig-utils@8.71.1
+- @typescript-eslint/type-utils@8.71.1
+- @typescript-eslint/types@8.71.1
+- @typescript-eslint/typescript-estree@8.71.1
+- @typescript-eslint/utils@8.71.1
+- @typescript-eslint/visitor-keys@8.71.1
+- @vitejs/plugin-react@6.1.2
 - @vitest/coverage-v8@5.0.3
 - @vitest/istanbul-lib-coverage@1.0.2
 - @vitest/istanbul-lib-report@1.0.2
@@ -988,31 +979,29 @@ npm:MIT
 - @vitest/spy@5.0.3
 - @vitest/utils@4.1.11
 - @wdio/cli@9.32.0
-- @wdio/config@9.30.1
+- @wdio/config@9.31.9
 - @wdio/config@9.32.0
 - @wdio/dot-reporter@9.32.0
-- @wdio/globals@9.29.1
 - @wdio/globals@9.31.3
 - @wdio/local-runner@9.32.0
 - @wdio/logger@9.29.1
 - @wdio/mocha-framework@9.32.0
-- @wdio/native-core@1.2.0
-- @wdio/native-spy@1.3.0
-- @wdio/native-types@2.5.0
-- @wdio/native-utils@2.7.0
-- @wdio/protocols@9.30.1
+- @wdio/native-core@1.3.0
+- @wdio/native-spy@1.4.0
+- @wdio/native-types@2.6.0
+- @wdio/native-utils@2.8.0
 - @wdio/protocols@9.31.5
 - @wdio/repl@9.16.2
-- @wdio/reporter@9.30.1
+- @wdio/reporter@9.31.2
 - @wdio/reporter@9.32.0
 - @wdio/runner@9.32.0
-- @wdio/spec-reporter@9.30.1
+- @wdio/spec-reporter@9.31.2
 - @wdio/spec-reporter@9.32.0
-- @wdio/tauri-plugin@1.4.0
-- @wdio/tauri-service@1.4.0
-- @wdio/types@9.30.1
+- @wdio/tauri-plugin@1.5.0
+- @wdio/tauri-service@1.5.0
+- @wdio/types@9.31.2
 - @wdio/types@9.32.0
-- @wdio/utils@9.30.1
+- @wdio/utils@9.31.9
 - @wdio/utils@9.32.0
 - @wdio/xvfb@9.32.0
 - abort-controller@3.0.0
@@ -1111,7 +1100,6 @@ npm:MIT
 - events@3.3.0
 - execa@9.6.1
 - exit-hook@4.0.0
-- expect-webdriverio@5.7.0
 - expect-webdriverio@6.0.9
 - expect@30.4.1
 - fast-deep-equal@2.0.1
@@ -1129,8 +1117,8 @@ npm:MIT
 - find-up@5.0.0
 - find-up@6.3.0
 - flat-cache@6.1.23
-- formatly@0.7.0
-- framer-motion@13.4.6
+- formatly@0.11.4
+- framer-motion@14.1.0
 - geckodriver@6.1.1
 - gensync@1.0.0-beta.2
 - get-port@7.2.0
@@ -1140,7 +1128,7 @@ npm:MIT
 - get-uri@6.0.5
 - globals@17.13.0
 - grapheme-splitter@1.0.4
-- happy-dom@20.14.5
+- happy-dom@20.14.6
 - has-flag@4.0.0
 - hashery@1.5.1
 - he@1.2.0
@@ -1155,7 +1143,7 @@ npm:MIT
 - iconv-lite@0.6.3
 - iconv-lite@0.7.3
 - ignore@5.3.2
-- ignore@7.0.11
+- ignore@7.0.12
 - immediate@3.0.6
 - import-meta-resolve@4.2.0
 - imurmurhash@0.1.4
@@ -1212,10 +1200,10 @@ npm:MIT
 - mitt@3.0.1
 - mocha@10.8.2
 - modern-tar@0.7.7
-- motion-dom@13.4.5
-- motion-utils@13.3.0
+- motion-dom@14.1.0
+- motion-utils@14.1.0
 - ms@2.1.3
-- nanoid@3.3.18
+- nanoid@3.3.20
 - natural-compare@1.4.0
 - netmask@2.1.1
 - node-releases@2.0.53
@@ -1224,7 +1212,7 @@ npm:MIT
 - object-inspect@1.13.4
 - obug@2.2.1
 - optionator@0.9.4
-- oxc-parser@0.150.0
+- oxc-parser@0.153.0
 - oxc-resolver@11.24.2
 - p-limit@3.1.0
 - p-limit@4.0.0
@@ -1232,7 +1220,7 @@ npm:MIT
 - p-locate@6.0.0
 - pac-proxy-agent@7.2.0
 - pac-resolver@7.0.1
-- package-manager-detector@1.8.0
+- package-manager-detector@1.9.0
 - parse-json@7.1.1
 - parse-ms@4.0.0
 - parse5-htmlparser2-tree-adapter@7.1.0
@@ -1246,9 +1234,9 @@ npm:MIT
 - pend@1.2.0
 - picomatch@2.3.2
 - picomatch@4.0.7
-- postcss@8.5.28
+- postcss@8.5.29
 - prelude-ls@1.2.1
-- prettier@3.9.9
+- prettier@3.9.10
 - pretty-format@27.5.1
 - pretty-format@30.4.1
 - pretty-ms@9.3.0
@@ -1324,7 +1312,7 @@ npm:MIT
 - ts-api-utils@2.5.0
 - tsx@4.23.12
 - type-check@0.4.0
-- typescript-eslint@8.71.0
+- typescript-eslint@8.71.1
 - undici-types@6.21.0
 - undici-types@8.9.0
 - undici@6.28.0
@@ -1334,13 +1322,13 @@ npm:MIT
 - urlpattern-polyfill@10.1.0
 - userhome@1.0.1
 - util-deprecate@1.0.2
-- vite@8.3.2
+- vite@8.3.4
 - vitest@5.0.3
 - wait-port@1.1.0
 - wcwidth@1.0.1
-- webdriver@9.30.1
+- webdriver@9.31.9
 - webdriver@9.32.0
-- webdriverio@9.30.1
+- webdriverio@9.31.9
 - webdriverio@9.32.0
 - whatwg-encoding@3.1.1
 - whatwg-mimetype@3.0.0
@@ -1362,16 +1350,16 @@ npm:MIT
 - zip-stream@6.0.1
 - zip-stream@7.0.5
 - zod-validation-error@4.0.2
-- zod@4.4.3
+- zod@4.6.6
 - zustand@5.0.15
 
 npm:MIT OR Apache-2.0
 ---------------------
-- @tauri-apps/plugin-dialog@2.7.3
-- @tauri-apps/plugin-log@2.9.1
-- @tauri-apps/plugin-opener@2.5.5
-- @tauri-apps/plugin-process@2.3.1
-- @tauri-apps/plugin-updater@2.11.0
+- @tauri-apps/plugin-dialog@2.8.2
+- @tauri-apps/plugin-log@2.10.0
+- @tauri-apps/plugin-opener@2.7.1
+- @tauri-apps/plugin-process@2.4.0
+- @tauri-apps/plugin-updater@2.13.3
 
 npm:MPL-2.0
 -----------
@@ -1527,7 +1515,7 @@ THE SOFTWARE.
 
 SHA-256: 036546fdfb340233d3ec541d2a6defd6a7457b9e7db6a1618984c9e77af8a221
 Used by:
-- npm:smol-toml@1.8.0 (LICENSE)
+- npm:smol-toml@1.9.1 (LICENSE)
 
 Copyright (c) Squirrel Chat et al., All rights reserved.
 
@@ -1722,7 +1710,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 SHA-256: 088a9d7852d7c7a1594195936b33fc47e27edf40a4db67a73aefdb94dd3cc0bc
 Used by:
-- npm:@typescript-eslint/type-utils@8.71.0 (LICENSE)
+- npm:@typescript-eslint/type-utils@8.71.1 (LICENSE)
 
 MIT License
 
@@ -1959,7 +1947,6 @@ PERFORMANCE OF THIS SOFTWARE.
 
 SHA-256: 0ea1ec9476b5e7eb5ec18848dd27d0fa1b3922f5cc42989848b971d3cdb95862
 Used by:
-- npm:deepmerge-ts@7.1.6 (LICENSE)
 - npm:deepmerge-ts@8.0.2 (LICENSE)
 
 BSD 3-Clause License
@@ -4167,7 +4154,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 SHA-256: 26235c41e314fb0da35b33b2bb5bcbc4dd523839f8eeca52efcd43586f441fb5
 Used by:
-- cargo:wry@0.55.1 (LICENSE.spdx)
+- cargo:wry@0.57.0 (LICENSE.spdx)
 
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
@@ -4250,10 +4237,10 @@ SOFTWARE.
 
 SHA-256: 277d2a8e459713d6c596bab89ef857cb8b2433223fa9edb49ccc403a6ceb08ee
 Used by:
-- npm:@tanstack/query-core@5.104.1 (LICENSE)
-- npm:@tanstack/react-query@5.104.1 (LICENSE)
-- npm:@tanstack/react-virtual@3.14.13 (LICENSE)
-- npm:@tanstack/virtual-core@3.17.11 (LICENSE)
+- npm:@tanstack/query-core@5.104.2 (LICENSE)
+- npm:@tanstack/react-query@5.104.2 (LICENSE)
+- npm:@tanstack/react-virtual@3.14.15 (LICENSE)
+- npm:@tanstack/virtual-core@3.19.0 (LICENSE)
 
 MIT License
 
@@ -4529,7 +4516,7 @@ Apache License
 
 SHA-256: 28694f36acab4f505232fc18954400c323a43402098abd2ce0f8510d510ed04d
 Used by:
-- cargo:tao@0.35.3 (LICENSE.spdx)
+- cargo:tao@0.37.1 (LICENSE.spdx)
 
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
@@ -4863,6 +4850,7 @@ of these licenses, at your option.
 SHA-256: 2a57418d6b10947fe0dfbec3a600269e2745136c125cbf15b256e5ae18af23cb
 Used by:
 - cargo:brotli@8.0.4 (LICENSE.MIT)
+- cargo:brotli@9.0.0 (LICENSE.MIT)
 
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
 
@@ -5296,7 +5284,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 SHA-256: 2feb8ed0e558ac1c8e1b7dabd50860bdaa664fd380e6a95e4d0fc855d2a22378
 Used by:
-- npm:unbash@4.0.12 (LICENSE)
+- npm:unbash@5.0.0 (LICENSE)
 
 ISC License
 
@@ -5521,7 +5509,7 @@ SOFTWARE.
 
 SHA-256: 33dc6a453e22e1f848a633be48c178791c3b07c70910c646f460e0100882aebe
 Used by:
-- npm:nanoid@3.3.18 (LICENSE)
+- npm:nanoid@3.3.20 (LICENSE)
 
 The MIT License (MIT)
 
@@ -5838,7 +5826,6 @@ IN THE SOFTWARE.
 
 SHA-256: 39c7b2c21462e8935e794a5aa5292fba78457b550b19ca5ac42918d602468b7f
 Used by:
-- npm:expect-webdriverio@5.7.0 (LICENSE)
 - npm:expect-webdriverio@6.0.9 (LICENSE)
 
 MIT License
@@ -6021,7 +6008,7 @@ third-party/chromium/LICENSE.
 
 SHA-256: 3ce3e2561c6a4cd41b435e1358d71aab5dbfe6b91a7e9b8b57df9a605c0ab87a
 Used by:
-- cargo:cfb@0.7.3 (LICENSE)
+- cargo:cfb@0.14.0 (LICENSE)
 
 MIT License
 
@@ -9006,8 +8993,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 SHA-256: 4b89d4518bd135ab4ee154a7bce722246b57a98c3d7efc1a09409898160c2bd1
 Used by:
-- cargo:cssparser-macros@0.6.1 (LICENSE)
-- cargo:cssparser@0.36.0 (LICENSE)
+- cargo:cssparser-macros@0.7.1 (LICENSE)
+- cargo:cssparser@0.37.0 (LICENSE)
 - cargo:dtoa-short@0.3.5 (LICENSE)
 
 Mozilla Public License Version 2.0
@@ -9725,8 +9712,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 SHA-256: 51e9b6529a4575fa10f27e65e5809d377fedfcc696ef8c3a8cbf3a9bc6381cbf
 Used by:
-- npm:@typescript-eslint/project-service@8.71.0 (LICENSE)
-- npm:@typescript-eslint/tsconfig-utils@8.71.0 (LICENSE)
+- npm:@typescript-eslint/project-service@8.71.1 (LICENSE)
+- npm:@typescript-eslint/tsconfig-utils@8.71.1 (LICENSE)
 
 MIT License
 
@@ -9998,7 +9985,7 @@ DEALINGS IN THE SOFTWARE.
 
 SHA-256: 58f66933c7bba2f45abff7ace6d580120b32452685dc849b4ca56b53393fdbbd
 Used by:
-- cargo:minisign-verify@0.2.5 (LICENSE)
+- cargo:minisign-verify@0.3.0 (LICENSE)
 
 Copyright (c) 2019-2025 Frank Denis
 
@@ -10140,9 +10127,9 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 SHA-256: 5b0650b078309ba2772569bb419e40e6883874af64d21bd9c27b44cc1a8e46ff
 Used by:
-- npm:@oxc-project/types@0.150.0 (LICENSE)
 - npm:@oxc-project/types@0.152.0 (LICENSE)
-- npm:oxc-parser@0.150.0 (LICENSE)
+- npm:@oxc-project/types@0.153.0 (LICENSE)
+- npm:oxc-parser@0.153.0 (LICENSE)
 - npm:oxc-resolver@11.24.2 (LICENSE)
 
 MIT License
@@ -10254,9 +10241,9 @@ SOFTWARE.
 
 SHA-256: 5b475effab78d12623dfa54915387571ec075e7f7e026cc0a196cfce2d764049
 Used by:
-- npm:@playwright/test@1.63.0 (LICENSE)
-- npm:playwright-core@1.63.0 (LICENSE)
-- npm:playwright@1.63.0 (LICENSE)
+- npm:@playwright/test@1.64.0 (LICENSE)
+- npm:playwright-core@1.64.0 (LICENSE)
+- npm:playwright@1.64.0 (LICENSE)
 
 Apache License
                            Version 2.0, January 2004
@@ -12039,7 +12026,7 @@ SOFTWARE.
 
 SHA-256: 6c1e5d0ccf5e8951401cb964036ae664d52fc8d1148173b53bc54fc534f5d404
 Used by:
-- cargo:tray-icon@0.24.2 (LICENSE.spdx)
+- cargo:tray-icon@0.25.1 (LICENSE.spdx)
 
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
@@ -12066,8 +12053,11 @@ Creator: Person: Daniel Thompson-Yvetot
 SHA-256: 6c91ec82929f91ffa341a9928e5c98b44767c6a1bb8d7789edad88d3fa5681af
 Used by:
 - cargo:alloc-no-stdlib@2.0.4 (LICENSE)
+- cargo:alloc-no-stdlib@3.0.0 (LICENSE)
 - cargo:brotli-decompressor@5.0.3 (LICENSE)
+- cargo:brotli-decompressor@6.0.1 (LICENSE)
 - cargo:brotli@8.0.4 (LICENSE.BSD-3-Clause)
+- cargo:brotli@9.0.0 (LICENSE.BSD-3-Clause)
 
 Copyright (c) 2016 Dropbox, Inc.
 All rights reserved.
@@ -12215,7 +12205,7 @@ express Statement of Purpose.
 SHA-256: 6dc0e068dcf3a5bc8e054205b85b7720e1d49265bbc64bf515d2cf79197df69a
 Used by:
 - cargo:dpi@0.1.2 (LICENSE)
-- cargo:tao@0.35.3 (LICENSE)
+- cargo:tao@0.37.1 (LICENSE)
 - npm:detect-libc@2.1.2 (LICENSE)
 
 Apache License
@@ -12477,7 +12467,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: 6ead954f967233375b98f6d8363bdb27ddc7d945a83f88c20952e7ca0fa8675d
 Used by:
-- npm:source-map-js@1.2.1 (LICENSE)
+- npm:source-map-js@1.2.2 (LICENSE)
 - npm:source-map@0.6.1 (LICENSE)
 
 Copyright (c) 2009-2011, Mozilla Foundation and contributors
@@ -12823,7 +12813,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 SHA-256: 7804ded9273b80f1e440aea015205b483552f7eaca89ac87f130c55045d284a7
 Used by:
-- cargo:infer@0.19.0 (LICENSE)
+- cargo:infer@0.22.0 (LICENSE)
 
 MIT License
 
@@ -12948,9 +12938,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: 7b1444e03705067d36e59fc8cd3260daf245b8d06006cad06d462578fb92eab5
 Used by:
-- npm:@playwright/test@1.63.0 (NOTICE)
-- npm:playwright-core@1.63.0 (NOTICE)
-- npm:playwright@1.63.0 (NOTICE)
+- npm:@playwright/test@1.64.0 (NOTICE)
+- npm:playwright-core@1.64.0 (NOTICE)
+- npm:playwright@1.64.0 (NOTICE)
 
 Playwright
 Copyright (c) Microsoft Corporation
@@ -12963,30 +12953,28 @@ available under the Apache 2.0 license (https://github.com/puppeteer/puppeteer/b
 SHA-256: 7ba95775f32b9d4b41cec2eb0a4eefadde901f9f02ec172f8a20e69f238bda01
 Used by:
 - npm:@wdio/cli@9.32.0 (LICENSE)
-- npm:@wdio/config@9.30.1 (LICENSE)
+- npm:@wdio/config@9.31.9 (LICENSE)
 - npm:@wdio/config@9.32.0 (LICENSE)
 - npm:@wdio/dot-reporter@9.32.0 (LICENSE)
-- npm:@wdio/globals@9.29.1 (LICENSE)
 - npm:@wdio/globals@9.31.3 (LICENSE)
 - npm:@wdio/local-runner@9.32.0 (LICENSE)
 - npm:@wdio/logger@9.29.1 (LICENSE)
 - npm:@wdio/mocha-framework@9.32.0 (LICENSE)
-- npm:@wdio/protocols@9.30.1 (LICENSE)
 - npm:@wdio/protocols@9.31.5 (LICENSE)
 - npm:@wdio/repl@9.16.2 (LICENSE)
-- npm:@wdio/reporter@9.30.1 (LICENSE)
+- npm:@wdio/reporter@9.31.2 (LICENSE)
 - npm:@wdio/reporter@9.32.0 (LICENSE)
 - npm:@wdio/runner@9.32.0 (LICENSE)
-- npm:@wdio/spec-reporter@9.30.1 (LICENSE)
+- npm:@wdio/spec-reporter@9.31.2 (LICENSE)
 - npm:@wdio/spec-reporter@9.32.0 (LICENSE)
-- npm:@wdio/types@9.30.1 (LICENSE)
+- npm:@wdio/types@9.31.2 (LICENSE)
 - npm:@wdio/types@9.32.0 (LICENSE)
-- npm:@wdio/utils@9.30.1 (LICENSE)
+- npm:@wdio/utils@9.31.9 (LICENSE)
 - npm:@wdio/utils@9.32.0 (LICENSE)
 - npm:create-wdio@9.32.0 (LICENSE)
-- npm:webdriver@9.30.1 (LICENSE)
+- npm:webdriver@9.31.9 (LICENSE)
 - npm:webdriver@9.32.0 (LICENSE)
-- npm:webdriverio@9.30.1 (LICENSE)
+- npm:webdriverio@9.31.9 (LICENSE)
 - npm:webdriverio@9.32.0 (LICENSE)
 
 Copyright (c) OpenJS Foundation and other contributors
@@ -13009,6 +12997,34 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+
+SHA-256: 7c667b0cf9860e6a1e3f221a84c0162f35268665acf88dce521ed665ed1e7b93
+Used by:
+- npm:@tauri-apps/api@2.12.1 (LICENSE.spdx)
+- npm:@tauri-apps/api@2.12.3 (LICENSE.spdx)
+
+SPDXVersion: SPDX-2.1
+DataLicense: CC0-1.0
+PackageName: tauri
+DataFormat: SPDXRef-1
+PackageSupplier: Organization: The Tauri Programme in the Commons Conservancy
+PackageHomePage: https://tauri.app
+PackageLicenseDeclared: Apache-2.0
+PackageLicenseDeclared: MIT
+PackageCopyrightText: 2019-2025, The Tauri Programme in the Commons Conservancy
+PackageSummary: <text>Tauri is a rust project that enables developers to make secure
+and small desktop applications using a web frontend.
+                </text>
+PackageComment: <text>The package includes the following libraries; see
+Relationship information.
+                </text>
+Created: 2019-05-20T09:00:00Z
+PackageDownloadLocation: git://github.com/tauri-apps/tauri
+PackageDownloadLocation: git+https://github.com/tauri-apps/tauri.git
+PackageDownloadLocation: git+ssh://github.com/tauri-apps/tauri.git
+Creator: Person: Daniel Thompson-Yvetot
 
 ==============================================================================
 
@@ -14786,7 +14802,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: 8f48c4095e8a983dce50c97ded97bd1ea589b6154ee5fe5c8e330046636272bb
 Used by:
-- npm:happy-dom@20.14.5 (LICENSE)
+- npm:happy-dom@20.14.6 (LICENSE)
 
 MIT License
 
@@ -14814,7 +14830,7 @@ SOFTWARE.
 
 SHA-256: 8f8eade124ab46b25108608401fa322aca4f99ab521264a3cd2c9a586aa5ecce
 Used by:
-- cargo:dom_query@0.27.0 (LICENSE)
+- cargo:dom_query@0.28.0 (LICENSE)
 
 MIT License
 
@@ -16397,7 +16413,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: a2764f26c5041bac476cf304efb9f7f2c9474c66409d1c187625885988bbfee0
 Used by:
-- npm:postcss@8.5.28 (LICENSE)
+- npm:postcss@8.5.29 (LICENSE)
 
 The MIT License (MIT)
 
@@ -16823,7 +16839,7 @@ SOFTWARE.
 
 SHA-256: aac842346e3368e0459dd620003c2c90e5caf48c8aeac28da6504f66b26b13be
 Used by:
-- npm:framer-motion@13.4.6 (LICENSE.md)
+- npm:framer-motion@14.1.0 (LICENSE.md)
 
 The MIT License (MIT)
 
@@ -16851,12 +16867,12 @@ SOFTWARE.
 
 SHA-256: aadf377c0f1ce9342f3cbca085e3550c09e95ebb854e744e7775050dc3f86ccb
 Used by:
-- npm:@wdio/native-core@1.2.0 (LICENSE)
-- npm:@wdio/native-spy@1.3.0 (LICENSE)
-- npm:@wdio/native-types@2.5.0 (LICENSE)
-- npm:@wdio/native-utils@2.7.0 (LICENSE)
-- npm:@wdio/tauri-plugin@1.4.0 (LICENSE)
-- npm:@wdio/tauri-service@1.4.0 (LICENSE)
+- npm:@wdio/native-core@1.3.0 (LICENSE)
+- npm:@wdio/native-spy@1.4.0 (LICENSE)
+- npm:@wdio/native-types@2.6.0 (LICENSE)
+- npm:@wdio/native-utils@2.8.0 (LICENSE)
+- npm:@wdio/tauri-plugin@1.5.0 (LICENSE)
+- npm:@wdio/tauri-service@1.5.0 (LICENSE)
 
 MIT License
 
@@ -16909,7 +16925,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: ac1f2978a646f2d409b80c433e49c489c835988e2729a5afddcfe29d352196dc
 Used by:
-- npm:package-manager-detector@1.8.0 (LICENSE)
+- npm:package-manager-detector@1.9.0 (LICENSE)
 
 MIT License
 
@@ -17105,14 +17121,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: b263be8715c216f35fcb4e1cf2c748d9637e7e9ef7d2ee4bf6c49d2ae092afea
 Used by:
-- npm:@typescript-eslint/eslint-plugin@8.71.0 (LICENSE)
-- npm:@typescript-eslint/parser@8.71.0 (LICENSE)
-- npm:@typescript-eslint/scope-manager@8.71.0 (LICENSE)
-- npm:@typescript-eslint/types@8.71.0 (LICENSE)
-- npm:@typescript-eslint/typescript-estree@8.71.0 (LICENSE)
-- npm:@typescript-eslint/utils@8.71.0 (LICENSE)
-- npm:@typescript-eslint/visitor-keys@8.71.0 (LICENSE)
-- npm:typescript-eslint@8.71.0 (LICENSE)
+- npm:@typescript-eslint/eslint-plugin@8.71.1 (LICENSE)
+- npm:@typescript-eslint/parser@8.71.1 (LICENSE)
+- npm:@typescript-eslint/scope-manager@8.71.1 (LICENSE)
+- npm:@typescript-eslint/types@8.71.1 (LICENSE)
+- npm:@typescript-eslint/typescript-estree@8.71.1 (LICENSE)
+- npm:@typescript-eslint/utils@8.71.1 (LICENSE)
+- npm:@typescript-eslint/visitor-keys@8.71.1 (LICENSE)
+- npm:typescript-eslint@8.71.1 (LICENSE)
 
 MIT License
 
@@ -17550,7 +17566,7 @@ THE SOFTWARE.
 
 SHA-256: b9528340f983b3df75f838ff8c5e5d2458359750a04dd142bbb16ddf8c203f7c
 Used by:
-- npm:prettier@3.9.9 (LICENSE)
+- npm:prettier@3.9.10 (LICENSE)
 
 Copyright © James Long and contributors
 
@@ -17623,7 +17639,7 @@ SOFTWARE.
 
 SHA-256: b99f9d43803f2ac979c50949df630bd8eeaf2fcd1b9fdb9093710d70f5dfb63d
 Used by:
-- cargo:muda@0.19.3 (LICENSE.spdx)
+- cargo:muda@0.20.0 (LICENSE.spdx)
 
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
@@ -17753,8 +17769,8 @@ SOFTWARE.
 
 SHA-256: bb59eb35f694a158d8f9892e7ce188428bc5d1e719910c7a29444d7c0787e57d
 Used by:
-- npm:motion-dom@13.4.5 (LICENSE.md)
-- npm:motion-utils@13.3.0 (LICENSE.md)
+- npm:motion-dom@14.1.0 (LICENSE.md)
+- npm:motion-utils@14.1.0 (LICENSE.md)
 
 The MIT License (MIT)
 
@@ -17782,7 +17798,7 @@ SOFTWARE.
 
 SHA-256: bb8278137f730fd0445c79e2144df32b6a4a8226ec01194a50a7ded93a070a2d
 Used by:
-- cargo:window-vibrancy@0.6.0 (LICENSE.spdx)
+- cargo:window-vibrancy@0.8.1 (LICENSE.spdx)
 
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
@@ -18125,6 +18141,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 
+SHA-256: c0fb98161c4fbc6e50a7e6265e538009d09a5758c2bf17d518276c3af39fa9bb
+Used by:
+- cargo:static_vcruntime@3.0.0 (LICENSE)
+
+MIT OR Apache-2.0 OR Zlib
+
+==============================================================================
+
 SHA-256: c0fdcda1a4ffc5fd63c452e40ce25e54f2098669e3415033b228773eea24a871
 Used by:
 - cargo:tokio-macros@2.7.2 (LICENSE)
@@ -18184,7 +18208,7 @@ SOFTWARE.
 
 SHA-256: c19039068c5910314540e7ab843e244d59c41931360930f4b841653454ce297f
 Used by:
-- npm:formatly@0.7.0 (LICENSE.md)
+- npm:formatly@0.11.4 (LICENSE.md)
 - npm:ts-api-utils@2.5.0 (LICENSE.md)
 
 # MIT License
@@ -20578,7 +20602,7 @@ DEALINGS IN THE SOFTWARE.
 
 SHA-256: d87050364ee90a74ec093b9b0352ffcc2e4773a1ac935993bf6bb747f0c1ea0e
 Used by:
-- npm:knip@6.39.0 (LICENSE)
+- npm:knip@6.41.0 (LICENSE)
 
 ISC License (ISC)
 
@@ -22130,17 +22154,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 SHA-256: eb8a6c84630461b352badcab1dbe5d0168c56d377358b2b8c86b51003272d5ef
 Used by:
-- cargo:tauri-plugin-dialog@2.7.3 (LICENSE.spdx)
-- cargo:tauri-plugin-fs@2.5.2 (LICENSE.spdx)
-- cargo:tauri-plugin-log@2.9.2 (LICENSE.spdx)
-- cargo:tauri-plugin-opener@2.5.5 (LICENSE.spdx)
-- cargo:tauri-plugin-process@2.3.1 (LICENSE.spdx)
-- cargo:tauri-plugin-updater@2.11.0 (LICENSE.spdx)
-- npm:@tauri-apps/plugin-dialog@2.7.3 (LICENSE.spdx)
-- npm:@tauri-apps/plugin-log@2.9.1 (LICENSE.spdx)
-- npm:@tauri-apps/plugin-opener@2.5.5 (LICENSE.spdx)
-- npm:@tauri-apps/plugin-process@2.3.1 (LICENSE.spdx)
-- npm:@tauri-apps/plugin-updater@2.11.0 (LICENSE.spdx)
+- cargo:tauri-plugin-dialog@2.8.2 (LICENSE.spdx)
+- cargo:tauri-plugin-fs@2.7.0 (LICENSE.spdx)
+- cargo:tauri-plugin-log@2.10.1 (LICENSE.spdx)
+- cargo:tauri-plugin-opener@2.7.1 (LICENSE.spdx)
+- cargo:tauri-plugin-process@2.4.0 (LICENSE.spdx)
+- cargo:tauri-plugin-updater@2.13.3 (LICENSE.spdx)
+- npm:@tauri-apps/plugin-dialog@2.8.2 (LICENSE.spdx)
+- npm:@tauri-apps/plugin-log@2.10.0 (LICENSE.spdx)
+- npm:@tauri-apps/plugin-opener@2.7.1 (LICENSE.spdx)
+- npm:@tauri-apps/plugin-process@2.4.0 (LICENSE.spdx)
+- npm:@tauri-apps/plugin-updater@2.13.3 (LICENSE.spdx)
 
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
@@ -22522,7 +22546,7 @@ DEALINGS IN THE SOFTWARE.
 
 SHA-256: ee35498e6684b30c9efaae009415884772f4450b3f6a3ae49103cd550a2c8ceb
 Used by:
-- npm:lucide-react@1.51.0 (LICENSE)
+- npm:lucide-react@1.55.0 (LICENSE)
 
 ISC License
 
@@ -22907,7 +22931,7 @@ For more information, please refer to <https://unlicense.org>
 
 SHA-256: f2459c4b106b4bee2204dde164c673160c9292d4177a5f92e0b116213c72a3b7
 Used by:
-- cargo:urlpattern@0.3.0 (LICENSE)
+- cargo:urlpattern@0.6.0 (LICENSE)
 
 MIT License
 
@@ -23155,7 +23179,7 @@ THE SOFTWARE.
 
 SHA-256: f61cacc2acb8b71aa79a128b3e732bf25e02aab40747bbbd5bf00c97c9cda28d
 Used by:
-- npm:zod@4.4.3 (LICENSE)
+- npm:zod@4.6.6 (LICENSE)
 
 MIT License
 
@@ -23240,7 +23264,7 @@ SOFTWARE.
 
 SHA-256: f77a743a6b87e3bd1435953073f446de1b8d0da0ff24e17d1194e1b749333d27
 Used by:
-- npm:@vitejs/plugin-react@6.1.1 (LICENSE)
+- npm:@vitejs/plugin-react@6.1.2 (LICENSE)
 
 MIT License
 
@@ -23323,7 +23347,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMANGE.
 
 SHA-256: f9a0c68ac4a23abffd4a4663bbbfda9918c12177f81e40dd6fb30348920fab6c
 Used by:
-- npm:vite@8.3.2 (LICENSE.md)
+- npm:vite@8.3.4 (LICENSE.md)
 
 # Vite core license
 Vite is released under the MIT license:
@@ -25617,7 +25641,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 SHA-256: fa4363848a0f6846633204f15e6570ad77dd22202129567d4db120d53d681417
 Used by:
-- cargo:cargo_toml@0.22.3 (LICENSE)
+- cargo:cargo_toml@1.0.1 (LICENSE)
 
 © Kornel Lesiński
 
@@ -26666,7 +26690,7 @@ Used by:
 - npm:@types/json-schema@7.0.15 (LICENSE)
 - npm:@types/mocha@10.0.10 (LICENSE)
 - npm:@types/node@20.19.43 (LICENSE)
-- npm:@types/node@26.6.4 (LICENSE)
+- npm:@types/node@26.6.5 (LICENSE)
 - npm:@types/normalize-package-data@2.4.4 (LICENSE)
 - npm:@types/react-dom@19.3.0 (LICENSE)
 - npm:@types/react@19.3.0 (LICENSE)
