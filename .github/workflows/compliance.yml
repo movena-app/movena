@@ -5,10 +5,14 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    # Pull requests and pushes only fail on advisories they add, so main itself
+    # is checked daily to catch new ones before a release does.
+    - cron: '30 5 * * *'
   workflow_dispatch:
 
 concurrency:
-  group: verify-${{ github.workflow }}-${{ github.ref }}
+  group: verify-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -17,6 +21,7 @@ permissions:
 jobs:
   quality:
     name: Quality checks
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -40,6 +45,7 @@ jobs:
 
   ui-quality:
     name: UI component quality
+    if: github.event_name != 'schedule'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -63,6 +69,7 @@ jobs:
 
   packaged-desktop:
     name: Packaged desktop journey
+    if: github.event_name != 'schedule'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -118,6 +125,7 @@ jobs:
 
   source-and-dependencies:
     name: Windows native and source compliance
+    if: github.event_name != 'schedule'
     # The committed license report includes platform-specific optional packages.
     # Generate and verify it on the project's Windows development target.
     runs-on: windows-latest
@@ -157,8 +165,6 @@ jobs:
         run: |
           $env:PATH = "$(Resolve-Path 'src-tauri/lib/mpv-dev');$env:PATH"
           npm run test:rust
-      # Runtime dependencies ship to users; desktop-only test tooling does not.
-      - run: npm audit --omit=dev --audit-level=high
       - run: npm run check:licenses
       - run: npm run check:public-tree
       - name: Reject private media in Git history
@@ -171,6 +177,7 @@ jobs:
 
   macos-native:
     name: macOS native tests
+    if: github.event_name != 'schedule'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -183,12 +190,26 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run test:rust
 
-  rust-dependency-policy:
-    name: Rust dependency policy
+  dependency-policy:
+    name: Dependency policy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: actions/setup-node@v7
         with:
-          command: check
-          manifest-path: src-tauri/Cargo.toml
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny@0.20
+      - run: cargo deny --manifest-path src-tauri/Cargo.toml check bans licenses sources
+      - name: Check Rust and runtime npm advisories
+        # Advisory databases change without a commit. Pull requests and pushes
+        # to main fail only on advisories missing from their base; releases,
+        # manual runs and the schedule fail on any advisory.
+        env:
+          ADVISORY_BASE: >-
+            ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha
+            || github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.before
+            || '' }}
+        run: npm run check:advisories

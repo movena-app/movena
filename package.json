@@ -51,6 +51,7 @@
     "check": "npm run format:check && npm run check:architecture && npm run check:design && npm run check:dead-code && npm run check:twitch && npm run format:rust:check && npm run lint && npm run check:types && npm run check:types:frontend && npm run check:types:desktop && npm run test:all && npm run check:clippy",
     "tauri": "tauri",
     "preview": "vite preview",
+    "check:advisories": "node scripts/check-advisories.mjs",
     "licenses:generate": "node scripts/generate-third-party-licenses.mjs",
     "check:licenses": "node scripts/generate-third-party-licenses.mjs --check",
     "check:public-tree": "node scripts/check-public-tree.mjs"

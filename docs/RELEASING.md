@@ -31,7 +31,7 @@ the CLI version because its package-input contract is release-sensitive.
    `src-tauri/tauri.conf.json`.
 2. Run `npm ci`, the platform's native setup (`npm run setup:mpv` on Windows
    and `npm run setup:twitch` everywhere),
-   `npm audit --omit=dev --audit-level=high`,
+   `npm run check:advisories` (needs `cargo-deny`),
    `npm run check:licenses`, `npm run check:public-tree`, `npm run check`,
    `npm run build`, and `npm run test:ui:visual`. `setup:twitch` regenerates the
    license report before it is copied into the resolver bundle. The build
