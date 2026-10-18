@@ -29,6 +29,13 @@ ignore = [
   "RUSTSEC-2025-0081",
   "RUSTSEC-2025-0098",
   "RUSTSEC-2025-0100",
+  # zvariant, zbus_names and zvariant_derive were merged into zbus 6.0.0, but
+  # tauri-plugin-opener 2.7 (Linux), secret-service 5.2 and
+  # zbus-secret-service-keyring-store 1.0 still require zbus ^5. Revisit when
+  # they move to zbus 6.
+  "RUSTSEC-2026-0370",
+  "RUSTSEC-2026-0371",
+  "RUSTSEC-2026-0372",
 ]
 
 [licenses]
