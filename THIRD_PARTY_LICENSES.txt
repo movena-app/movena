@@ -280,7 +280,6 @@ cargo:MIT
 - zbus_names@4.3.4
 - zbus@5.19.0
 - zcheapstr@1.1.0
-- zip@4.6.1
 - zmij@1.0.23
 - zvariant_derive@5.15.0
 - zvariant_utils@4.2.0
@@ -294,7 +293,6 @@ cargo:MIT OR Apache-2.0
 - android_system_properties@0.1.6
 - anyhow@1.0.104
 - apple-native-keyring-store@1.0.2
-- arbitrary@1.4.2
 - async-broadcast@0.7.2
 - async-compression@0.4.43
 - async-recursion@1.1.1
@@ -334,7 +332,6 @@ cargo:MIT OR Apache-2.0
 - defmt-parser@1.0.0
 - defmt@1.1.1
 - deranged@0.5.8
-- derive_arbitrary@1.4.2
 - digest@0.10.7
 - dirs-sys@0.5.0
 - dirs@7.0.0
@@ -1555,37 +1552,6 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 **THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.**
-
-==============================================================================
-
-SHA-256: 04dc52136d82400b11df5f474949863a70a5d05d2278dec45b99c479494450a6
-Used by:
-- cargo:zip@4.6.1 (LICENSE)
-
-The MIT License (MIT)
-
-Copyright (c) 2014 Mathijs van de Nes
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-Some files in the "tests/data" subdirectory of this repository are under other
-licences; see files named LICENSE.*.txt for details.
 
 ==============================================================================
 
