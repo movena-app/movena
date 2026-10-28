@@ -82,11 +82,11 @@ function renderDrawer() {
 
 beforeEach(() => {
   // @tanstack/react-virtual measures the scroll container via
-  // offsetWidth/offsetHeight; happy-dom never lays anything out, so every
+  // clientWidth/clientHeight; happy-dom never lays anything out, so every
   // element reports zero size and the virtualizer renders no rows. Fake a
   // real viewport so the rows under test are considered visible.
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 600 });
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 380 });
+  Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 600 });
+  Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 380 });
 
   vi.mocked(useLiveStreams).mockReturnValue({ data: channels } as ReturnType<
     typeof useLiveStreams
