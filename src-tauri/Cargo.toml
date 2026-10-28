@@ -31,7 +31,11 @@ tauri = { version = "2.11.3", features = ["macos-private-api"] }
 tauri-plugin-log = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"
-tauri-plugin-updater = "2"
+# Without the default "zip" feature: updates ship as the bare NSIS installer
+# and AppImage (see scripts/generate-latest-json.mjs), so the updater's zip and
+# compressed-AppImage extraction is never used. macOS's .app.tar.gz does not
+# depend on it.
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "system-proxy"] }
 tauri-plugin-process = "2"
 libmpv-sys = "3.1.0"
 raw-window-handle = "0.6"

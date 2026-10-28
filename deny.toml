@@ -3,40 +3,11 @@ all-features = true
 
 [advisories]
 yanked = "deny"
-# Tauri's current Linux WebKit/GTK3 stack and its URL-pattern dependency still
-# pull these unmaintained crates. RustSec reports no safe replacement. Revisit
-# when Tauri upgrades those transitive dependencies; all other advisories fail.
+# Unmaintained transitive crates with no replacement we can switch to. Every
+# other advisory fails the check.
 ignore = [
+  # proc-macro-error, pulled by glib-macros 0.18 in Tauri's Linux GTK3 stack.
   "RUSTSEC-2024-0370",
-  # glib::VariantStrIter unsoundness (GHSA-wrw7-89jp-8q8g), fixed in glib
-  # 0.20.0. Tauri 2.11.5 itself pins `gtk = "^0.18"` (confirmed via
-  # `cargo update -p glib --precise 0.20.0`, which fails on that pin, not on
-  # anything in our own Cargo.toml) — same unmaintained-transitive situation
-  # as the cluster below, not something we can bump around.
-  "RUSTSEC-2024-0429",
-  "RUSTSEC-2024-0411",
-  "RUSTSEC-2024-0412",
-  "RUSTSEC-2024-0413",
-  "RUSTSEC-2024-0414",
-  "RUSTSEC-2024-0415",
-  "RUSTSEC-2024-0416",
-  "RUSTSEC-2024-0417",
-  "RUSTSEC-2024-0418",
-  "RUSTSEC-2024-0419",
-  "RUSTSEC-2024-0420",
-  "RUSTSEC-2025-0075",
-  "RUSTSEC-2025-0080",
-  "RUSTSEC-2025-0081",
-  "RUSTSEC-2025-0098",
-  "RUSTSEC-2025-0100",
-  # zip 4.x extraction flaws (SUID bits, symlinks escaping the destination),
-  # fixed in zip 9. Only tauri-plugin-updater pulls zip, only on Windows, and
-  # only for update archives whose signature it has already verified; the
-  # flaws need Unix permissions or symlinks. tauri-plugin-updater 2.14.0 still
-  # requires zip ^4. Drop these once it moves to zip 9.
-  "RUSTSEC-2026-0367",
-  "RUSTSEC-2026-0368",
-  "RUSTSEC-2026-0369",
   # zvariant, zvariant_derive and zbus_names are unmaintained since they were
   # merged into zbus 6. tauri-plugin-opener 2.7.2 and keyring's Linux Secret
   # Service store still require zbus 5. Drop these once both move to zbus 6.
