@@ -97,8 +97,10 @@ function renderEpg() {
 }
 
 beforeEach(() => {
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 600 });
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
+  // Same viewport fake as channelsDrawer.test.tsx: the virtualizer reads
+  // clientWidth/clientHeight, which happy-dom reports as zero.
+  Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 600 });
+  Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 800 });
   vi.mocked(useLiveStreams).mockReturnValue({ data: channels } as unknown as ReturnType<
     typeof useLiveStreams
   >);
