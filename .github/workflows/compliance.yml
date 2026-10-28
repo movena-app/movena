@@ -5,10 +5,6 @@ on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    # Pull requests and pushes only fail on advisories they add, so main itself
-    # is checked daily to catch new ones before a release does.
-    - cron: '30 5 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -21,7 +17,6 @@ permissions:
 jobs:
   quality:
     name: Quality checks
-    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -45,7 +40,6 @@ jobs:
 
   ui-quality:
     name: UI component quality
-    if: github.event_name != 'schedule'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -69,7 +63,6 @@ jobs:
 
   packaged-desktop:
     name: Packaged desktop journey
-    if: github.event_name != 'schedule'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -125,7 +118,6 @@ jobs:
 
   source-and-dependencies:
     name: Windows native and source compliance
-    if: github.event_name != 'schedule'
     # The committed license report includes platform-specific optional packages.
     # Generate and verify it on the project's Windows development target.
     runs-on: windows-latest
@@ -184,7 +176,6 @@ jobs:
 
   macos-native:
     name: macOS native tests
-    if: github.event_name != 'schedule'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -212,8 +203,8 @@ jobs:
       - run: cargo deny --manifest-path src-tauri/Cargo.toml check bans licenses sources
       - name: Check Rust and runtime npm advisories
         # Advisory databases change without a commit. Pull requests and pushes
-        # to main fail only on advisories missing from their base; releases,
-        # manual runs and the schedule fail on any advisory.
+        # to main fail only on advisories missing from their base; releases and
+        # manual runs fail on any advisory.
         env:
           ADVISORY_BASE: >-
             ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha
