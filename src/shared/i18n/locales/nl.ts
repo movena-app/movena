@@ -401,8 +401,6 @@ export const NL_MESSAGES: Record<string, string> = {
   Live: 'Live',
   LIVE: 'LIVE',
   'Playback Interrupted': 'Afspelen onderbroken',
-  'Twitch ad blocked': 'Twitch-advertentie geblokkeerd',
-  'Live video resumes automatically.': 'De livevideo wordt automatisch hervat.',
   Reconnect: 'Maak opnieuw verbinding',
   'Radio playback': 'Radioweergave',
   RADIO: 'RADIO',

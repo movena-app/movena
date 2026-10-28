@@ -27,14 +27,6 @@ receive the information normally included in an Internet request, such as your
 IP address, requested title or resource, and user agent, and process it under
 their own privacy terms.
 
-Opening a supported public Twitch live-channel page starts Movena's bundled
-Streamlink resolver. It connects directly to Twitch, exposes the resolved media
-only on a random loopback (`127.0.0.1`) port for libmpv, and stores resolver data
-in Movena's application cache. If Twitch requests a client-integrity token,
-Streamlink may run an installed Chromium-based browser in headless mode and
-cache that short-lived token. Movena does not ask for or store a Twitch account
-token.
-
 Movena accepts legacy HTTP source addresses when they are configured. HTTP is
 not encrypted and can expose credentials, requested media, and viewing
 activity to network observers. Prefer HTTPS wherever the source supports it.
@@ -43,8 +35,7 @@ activity to network observers. Prefer HTTPS wherever the source supports it.
 
 Settings > About > Delete All App Data removes Movena-owned preferences,
 sources and credentials, history, favorites, collections, searches, the active
-download queue, and application caches, including the Twitch resolver cache. It
-does not remove original playlist files selected by the user or completed
+download queue, and application caches. It does not remove original playlist files selected by the user or completed
 recordings/downloads stored outside Movena's application data. Those files must
 be deleted with the operating system.
 

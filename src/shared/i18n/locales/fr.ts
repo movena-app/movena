@@ -402,8 +402,6 @@ export const FR_MESSAGES: Record<string, string> = {
   Live: 'En direct',
   LIVE: 'EN DIRECT',
   'Playback Interrupted': 'Lecture interrompue',
-  'Twitch ad blocked': 'Publicité Twitch bloquée',
-  'Live video resumes automatically.': 'La vidéo en direct reprendra automatiquement.',
   Reconnect: 'Reconnecter',
   'Radio playback': 'Lecture radio',
   RADIO: 'RADIO',

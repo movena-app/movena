@@ -2,15 +2,12 @@
 
 Movena is licensed under GPL-3.0-or-later. It incorporates or interfaces with
 third-party components under compatible licenses. `package-lock.json`,
-`src-tauri/Cargo.lock`, `scripts/twitch-resolver/requirements.lock`, and the
-pinned native setup scripts identify the JavaScript, Rust, Python, and native
-versions used by a release.
+`src-tauri/Cargo.lock`, and the pinned native setup scripts identify the
+JavaScript, Rust, and native versions used by a release.
 
 Run `npm run licenses:generate` after changing dependencies. It creates
-`THIRD_PARTY_LICENSES.txt` from installed JavaScript and Python license files,
-Cargo metadata, and checked-in native component notices. `npm run setup:twitch`
-regenerates the report before copying it into the bundled resolver. Release
-source archives must include the generated file, this notice, all dependency
+`THIRD_PARTY_LICENSES.txt` from installed JavaScript license files, Cargo
+metadata, and checked-in native component notices. Release source archives must include the generated file, this notice, all dependency
 locks, `LICENSE`, and `public/fonts/OFL.txt`.
 
 Important components include:
@@ -26,10 +23,6 @@ Important components include:
   used by this project enables GPL and version-3 components, so a distribution
   containing that native runtime must comply with GPL-3.0-or-later and include
   complete corresponding native source.
-- Streamlink 8.5.0: BSD-2-Clause. The bundled resolver also contains Python
-  3.13, PyInstaller 6.16.0, and the exact Python packages in
-  `scripts/twitch-resolver/requirements.lock`; see the generated report for
-  their individual licenses and texts.
 - yt-dlp 2026.08.19: Unlicense. Its pinned Windows executable, source URL, and
   checksum are recorded in `scripts/ensure-windows-mpv.mjs`.
 - Righteous font: SIL Open Font License 1.1; see `public/fonts/OFL.txt`.

@@ -24,7 +24,7 @@ src-tauri/src/
   downloads/              download lifecycle and file deletion
   metadata/               native metadata integrations
   platform/               window commands and OS-specific window behavior
-  player/                 libmpv lifecycle, options, properties, diagnostics, Twitch
+  player/                 libmpv lifecycle, options, properties, diagnostics
   sources/                M3U/XMLTV fetching and caches
 tests/
   frontend/               Vitest suites grouped by domain
@@ -72,14 +72,14 @@ commands and events live in `src/platform/tauri.ts`; desktop/window operations
 live in `src/platform/desktop.ts`. Rust commands are registered centrally in
 `src-tauri/src/lib.rs`.
 
-Tauri command names, camelCase payload mappings, `mpv-event`, resolver events,
-and download events are compatibility contracts. Moving implementation files
+Tauri command names, camelCase payload mappings, `mpv-event`, and download
+events are compatibility contracts. Moving implementation files
 must not rename or reshape those boundaries.
 
 The native layout mirrors product responsibilities:
 
 - `player/`: manager lifecycle, command handlers, diagnostic sampling,
-  allowlisted options/properties, recording paths, and Twitch resolver ownership.
+  allowlisted options/properties, and recording paths.
 - `platform/`: fullscreen/cursor commands, Windows placement, and macOS
   fullscreen, input, and mpv-surface concerns.
 - `sources/`: size-limited M3U/XMLTV access, validation, conditional requests,
@@ -134,17 +134,6 @@ be authoritative state. Public commands remain:
 `mpv_set_audio_track`, `mpv_set_sub_track`, `mpv_set_recording`, and the
 allowlisted `mpv_set_property` boundary.
 
-Canonical Twitch live pages are resolved before `loadfile` by
-`src-tauri/src/player/twitch_resolver.rs`. The resolver binds only to a random
-`127.0.0.1` port, disables external configuration/plugin sideloading, and gives
-only its validated local URL to libmpv. VODs, clips, unrelated Twitch pages,
-and direct HLS URLs stay on the ordinary path.
-
-The active `NativePlayerManager` session owns both mpv and the resolver process
-group/listener. Replacement, stop, close, shutdown, and application-data
-deletion terminate those resources before resolver cache removal. Resolver
-URLs, tokens, paths, headers, and raw output never enter diagnostics.
-
 macOS keeps Movena's simple fullscreen behavior rather than a native fullscreen
 space. Its implementation is divided into `platform/macos/fullscreen.rs`,
 `input.rs`, and `surface.rs` while sharing one private module context so the
@@ -193,5 +182,4 @@ npm run test:desktop:all
 Push and pull-request CI use `.github/workflows/compliance.yml`; Linux, Windows,
 and macOS jobs compile the native domains. Automated tests cannot prove native
 compositing or process teardown. Before release, manually cover start/stop,
-seek, tracks, fullscreen, recording, replacement, resize, close, Twitch
-startup/wait/recovery, process-group teardown, and loopback-listener teardown.
+seek, tracks, fullscreen, recording, replacement, resize, and close.

@@ -416,8 +416,6 @@ export const DE_MESSAGES: Record<string, string> = {
 
   // Player
   'Playback Interrupted': 'Wiedergabe unterbrochen',
-  'Twitch ad blocked': 'Twitch-Werbung blockiert',
-  'Live video resumes automatically.': 'Das Livevideo wird automatisch fortgesetzt.',
   Reconnect: 'Neu verbinden',
   'Radio playback': 'Radiowiedergabe',
   RADIO: 'RADIO',

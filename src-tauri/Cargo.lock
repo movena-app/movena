@@ -2593,7 +2593,6 @@ dependencies = [
  "encoding_rs",
  "flate2",
  "keyring",
- "libc",
  "libmpv-sys",
  "log",
  "objc2",

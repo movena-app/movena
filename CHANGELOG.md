@@ -8,6 +8,10 @@ for tagged releases.
 
 ## [Unreleased]
 
+### Removed
+
+- removed the bundled Twitch resolver (Streamlink): Twitch channel pages now play through the bundled yt-dlp on Windows, with Twitch's own ads instead of the "ad blocked" pause, and no longer play on macOS and Linux; building Movena no longer needs Python
+
 ## [0.1.29] - 2026-10-13
 
 ### Fixed

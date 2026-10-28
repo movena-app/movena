@@ -24,15 +24,8 @@ export interface DesktopSaveDialogOptions {
   filters?: DesktopFileFilter[] | undefined;
 }
 
-export interface ResolverStatusEventData {
-  provider: 'twitch';
-  phase: 'starting' | 'ready' | 'ad-break' | 'failed';
-  expectedDurationSeconds?: number | undefined;
-  code?: string | undefined;
-}
-
 export interface MpvEvent {
-  type: 'property-change' | 'end-file' | 'log-message' | 'resolver-status';
+  type: 'property-change' | 'end-file' | 'log-message';
   name?: string | undefined;
   data?: unknown | undefined;
   sessionId?: string | undefined;

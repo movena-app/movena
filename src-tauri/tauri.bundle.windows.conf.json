@@ -3,8 +3,7 @@
   "bundle": {
     "resources": {
       "lib/mpv-dev/libmpv-2.dll": "libmpv-2.dll",
-      "lib/yt-dlp/yt-dlp.exe": "yt-dlp.exe",
-      "lib/twitch-resolver/": "twitch-resolver/"
+      "lib/yt-dlp/yt-dlp.exe": "yt-dlp.exe"
     }
   }
 }

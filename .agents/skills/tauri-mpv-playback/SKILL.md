@@ -17,23 +17,12 @@ Canonical documentation:
 - Relative recording paths resolve below Downloads.
 - Headers are converted only through the safe mpv option helper.
 - Do not use window shadows over the transparent player surface.
-- Supported Twitch live pages are resolved before `loadfile`; VODs, clips,
-  unrelated pages, and direct HLS URLs stay on the ordinary path.
-- The active player session owns the resolver process group and loopback
-  listener. Replacement, close, shutdown, and app-data deletion stop them
-  before the resolver cache is removed.
-- Keep Streamlink configuration/plugin sideloading disabled, bind only to a
-  random `127.0.0.1` port, and never expose raw resolver output, URLs, or tokens
-  in diagnostics.
 
 ## Native setup
 
 - `build.rs` discovers platform libmpv files.
 - On Windows, `npm run setup:mpv` provisions the pinned development archive.
 - On macOS, the build locates Homebrew’s libmpv installation.
-- `npm run setup:twitch` builds the hash-pinned Streamlink 8.5 onedir resolver
-  with Python 3.13.11 for the current architecture and regenerates its
-  third-party notices.
 
 ## Verification and testing
 
@@ -53,6 +42,3 @@ Manually test the following matrix when playback paths change:
 - replacement
 - resize
 - close
-- Twitch live-page startup and unavailable/offline failure
-- Twitch pre-roll/mid-roll wait and recovery
-- Twitch replacement/close with no resolver process or loopback listener left

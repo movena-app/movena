@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { desktopApi, type ResolverStatusEventData } from '@/platform/desktop';
+import { desktopApi } from '@/platform/desktop';
 import { tauriApi, type MpvPropertyUpdate } from '@/platform/tauri';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
@@ -49,46 +49,6 @@ function formatResolverPlaybackError(log: MpvLogData): string | null {
   return message.replace(/^ERROR:\s*/i, '');
 }
 
-function parseResolverStatus(data: unknown): ResolverStatusEventData | null {
-  if (!data || typeof data !== 'object') return null;
-  const value = data as Record<string, unknown>;
-  if (
-    value.provider !== 'twitch' ||
-    !['starting', 'ready', 'ad-break', 'failed'].includes(String(value.phase))
-  )
-    return null;
-  const expectedDurationSeconds =
-    typeof value.expectedDurationSeconds === 'number' &&
-    Number.isFinite(value.expectedDurationSeconds)
-      ? Math.max(1, Math.min(180, Math.round(value.expectedDurationSeconds)))
-      : undefined;
-  return {
-    provider: 'twitch',
-    phase: value.phase as ResolverStatusEventData['phase'],
-    ...(expectedDurationSeconds === undefined ? {} : { expectedDurationSeconds }),
-    ...(typeof value.code === 'string' ? { code: value.code } : {}),
-  };
-}
-
-function formatTwitchResolverError(code: string | undefined): string {
-  switch (code) {
-    case 'resolver-unavailable':
-      return 'The bundled Twitch resolver is unavailable.';
-    case 'resolver-startup-timeout':
-      return 'The Twitch resolver did not become ready in time.';
-    case 'channel-offline':
-      return 'This Twitch channel is not currently live.';
-    case 'no-streams':
-      return 'Twitch did not provide a playable live stream.';
-    case 'client-integrity-unavailable':
-      return 'Twitch requires a browser integrity check, but no compatible Chromium browser was available.';
-    case 'malformed-loopback-response':
-      return 'The Twitch resolver returned an invalid local playback address.';
-    default:
-      return 'The Twitch stream resolver stopped unexpectedly.';
-  }
-}
-
 interface MpvSessionState {
   errorMessage: string | null;
   retryPlayback: () => void;
@@ -112,9 +72,6 @@ const STALL_TIMEOUT_MS = 20_000;
  * dead falls through to the manual "Reconnect" screen instead of retrying
  * forever in silence. */
 const MAX_AUTO_STALL_RECOVERIES = 3;
-const MAX_TWITCH_AD_BREAK_MS = 210_000;
-const TWITCH_AD_BREAK_GRACE_MS = 30_000;
-const MAX_TWITCH_AD_BREAK_RECOVERIES = 1;
 
 /** Owns exactly one native mpv session while a stream is active. Stream
  * changes are serialized by `mpv_start`; only session exit calls `mpv_stop`. */
@@ -141,10 +98,6 @@ export function useMpvSession(): MpvSessionState {
   const fallbackAttemptsRef = useRef(0);
   const playbackErrorsRef = useRef<string[]>([]);
   const resolverErrorRef = useRef<string | null>(null);
-  const twitchBreakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const twitchBreakRecoveryCountRef = useRef(0);
-  const twitchBreakStartPositionRef = useRef(0);
-  const twitchBreakSawBufferingRef = useRef(false);
   const hasActiveStream = Boolean(activeStream);
 
   const recordPlaybackError = useCallback((message: string) => {
@@ -198,26 +151,6 @@ export function useMpvSession(): MpvSessionState {
           clearTimeout(startupTimerRef.current);
           startupTimerRef.current = null;
         }
-        const playerState = usePlayerStore.getState();
-        if (
-          payload.name === 'paused-for-cache' &&
-          payload.data === true &&
-          playerState.resolverStatus?.phase === 'ad-break'
-        ) {
-          twitchBreakSawBufferingRef.current = true;
-        }
-        if (
-          payload.name === 'time-pos' &&
-          typeof payload.data === 'number' &&
-          playerState.resolverStatus?.phase === 'ad-break' &&
-          twitchBreakSawBufferingRef.current &&
-          payload.data > twitchBreakStartPositionRef.current
-        ) {
-          playerState.setResolverStatus(null, payload.sessionId);
-          twitchBreakSawBufferingRef.current = false;
-        } else if (payload.name === 'time-pos' && playerState.resolverStatus?.phase === 'ready') {
-          playerState.setResolverStatus(null, payload.sessionId);
-        }
         if (payload.name === 'track-list' && Array.isArray(payload.data)) {
           usePlayerStore.getState().setTrackList(payload.data, payload.sessionId);
         } else {
@@ -233,26 +166,6 @@ export function useMpvSession(): MpvSessionState {
         } else if (payload.name === 'sub-visibility' && typeof payload.data === 'boolean') {
           settingsStore.updateSetting('subtitlesEnabled', payload.data);
         }
-      } else if (payload.type === 'resolver-status') {
-        const resolverStatus = parseResolverStatus(payload.data);
-        if (!resolverStatus) return;
-        if (resolverStatus.phase === 'ad-break') {
-          if (startupTimerRef.current !== null) {
-            clearTimeout(startupTimerRef.current);
-            startupTimerRef.current = null;
-          }
-          if (stallTimerRef.current !== null) {
-            clearTimeout(stallTimerRef.current);
-            stallTimerRef.current = null;
-          }
-          const playerState = usePlayerStore.getState();
-          twitchBreakStartPositionRef.current = playerState.currentTime;
-          twitchBreakSawBufferingRef.current = playerState.isBuffering;
-          resolverErrorRef.current = null;
-        } else if (resolverStatus.phase === 'failed') {
-          resolverErrorRef.current = formatTwitchResolverError(resolverStatus.code);
-        }
-        usePlayerStore.getState().setResolverStatus(resolverStatus, payload.sessionId);
       } else if (payload.type === 'end-file') {
         const endFile =
           payload.data && typeof payload.data === 'object' ? (payload.data as EndFileData) : null;
@@ -295,10 +208,6 @@ export function useMpvSession(): MpvSessionState {
       if (startupTimerRef.current !== null) {
         clearTimeout(startupTimerRef.current);
         startupTimerRef.current = null;
-      }
-      if (twitchBreakTimerRef.current !== null) {
-        clearTimeout(twitchBreakTimerRef.current);
-        twitchBreakTimerRef.current = null;
       }
       listenerReadyRef.current = null;
       void listener.then((stopListening) => stopListening());
@@ -441,10 +350,9 @@ export function useMpvSession(): MpvSessionState {
         if (!cancelled) {
           usePlayerStore.getState().markMpvStartCompleted();
           if (startupTimerRef.current !== null) clearTimeout(startupTimerRef.current);
-          const playerState = usePlayerStore.getState();
-          const readyAfterStart = playerState.isVideoReady || Boolean(activeStream.radio);
-          const waitingForTwitchAd = playerState.resolverStatus?.phase === 'ad-break';
-          if (!readyAfterStart && !waitingForTwitchAd) {
+          const readyAfterStart =
+            usePlayerStore.getState().isVideoReady || Boolean(activeStream.radio);
+          if (!readyAfterStart) {
             startupTimerRef.current = setTimeout(() => {
               const state = usePlayerStore.getState();
               if (
@@ -522,8 +430,6 @@ export function useMpvSession(): MpvSessionState {
 
   const retryPlayback = useCallback(() => {
     playbackErrorsRef.current = [];
-    twitchBreakRecoveryCountRef.current = 0;
-    twitchBreakSawBufferingRef.current = false;
     setErrorMessage(null);
     setIsRetrying(true);
     if (!tryFallback()) {
@@ -535,68 +441,9 @@ export function useMpvSession(): MpvSessionState {
   // A new stream gets a fresh budget of automatic stall recoveries.
   useEffect(() => {
     autoRecoveryCountRef.current = 0;
-    twitchBreakRecoveryCountRef.current = 0;
-    twitchBreakSawBufferingRef.current = false;
     fallbackAttemptsRef.current = 0;
     playbackErrorsRef.current = [];
   }, [activeStream?.id]);
-
-  // Twitch's ad media is intentionally removed by the native resolver, so
-  // the local HTTP response pauses until Twitch publishes the next real
-  // segment. Give that bounded gap its own recovery budget instead of letting
-  // the generic 20-second cache watchdog repeatedly restart it.
-  useEffect(() => {
-    const clearTwitchBreakTimer = () => {
-      if (twitchBreakTimerRef.current !== null) {
-        clearTimeout(twitchBreakTimerRef.current);
-        twitchBreakTimerRef.current = null;
-      }
-    };
-    if (!hasActiveStream) {
-      clearTwitchBreakTimer();
-      return;
-    }
-
-    const armForStatus = (status: ReturnType<typeof usePlayerStore.getState>['resolverStatus']) => {
-      clearTwitchBreakTimer();
-      if (status?.phase !== 'ad-break') return;
-      const timeoutMs =
-        status.expectedDurationSeconds === undefined
-          ? MAX_TWITCH_AD_BREAK_MS
-          : Math.min(
-              status.expectedDurationSeconds * 1000 + TWITCH_AD_BREAK_GRACE_MS,
-              MAX_TWITCH_AD_BREAK_MS,
-            );
-      twitchBreakTimerRef.current = setTimeout(() => {
-        twitchBreakTimerRef.current = null;
-        if (usePlayerStore.getState().resolverStatus?.phase !== 'ad-break') return;
-        if (twitchBreakRecoveryCountRef.current >= MAX_TWITCH_AD_BREAK_RECOVERIES) {
-          const message =
-            'Twitch did not resume the live stream after the filtered commercial break.';
-          resolverErrorRef.current = message;
-          setIsRetrying(false);
-          setErrorMessage(recordPlaybackError(message));
-          debugLog.warn('player', 'Twitch ad-break recovery budget spent');
-          return;
-        }
-        twitchBreakRecoveryCountRef.current += 1;
-        debugLog.warn('player', 'Twitch did not resume after a filtered ad break; restarting once');
-        usePlayerStore.getState().startPlaybackSession();
-        setIsRetrying(true);
-        setRestartNonce((value) => value + 1);
-      }, timeoutMs);
-    };
-
-    armForStatus(usePlayerStore.getState().resolverStatus);
-    const unsubscribe = usePlayerStore.subscribe((state, previousState) => {
-      if (state.resolverStatus === previousState.resolverStatus) return;
-      armForStatus(state.resolverStatus);
-    });
-    return () => {
-      clearTwitchBreakTimer();
-      unsubscribe();
-    };
-  }, [hasActiveStream, recordPlaybackError]);
 
   // Stall watchdog: recover on its own from a `paused-for-cache` that never
   // clears, since nothing else here would (see STALL_TIMEOUT_MS above).
@@ -614,16 +461,7 @@ export function useMpvSession(): MpvSessionState {
     }
 
     const unsubscribe = usePlayerStore.subscribe((state, previousState) => {
-      if (
-        state.isBuffering === previousState.isBuffering &&
-        state.resolverStatus === previousState.resolverStatus
-      )
-        return;
-
-      if (state.resolverStatus?.phase === 'ad-break') {
-        clearStallTimer();
-        return;
-      }
+      if (state.isBuffering === previousState.isBuffering) return;
 
       if (!state.isBuffering) {
         clearStallTimer();

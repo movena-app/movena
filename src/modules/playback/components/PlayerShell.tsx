@@ -48,7 +48,6 @@ export function PlayerShell() {
   const showControls = usePlayerStore((state) => state.showControls);
   const isBuffering = usePlayerStore((state) => state.isBuffering);
   const isVideoReady = usePlayerStore((state) => state.isVideoReady);
-  const resolverStatus = usePlayerStore((state) => state.resolverStatus);
   const isFullscreen = usePlayerStore((state) => state.isFullscreen);
   const containerRef = useRef<HTMLDivElement>(null);
   // Fullscreen fills the actual screen edges — square, nothing to round off.
@@ -76,8 +75,6 @@ export function PlayerShell() {
   const isLive = activeStream.type === 'live';
   const isRadio = Boolean(activeStream.radio);
   const outputReady = isVideoReady || isRadio;
-  const isTwitchAdBreak =
-    resolverStatus?.provider === 'twitch' && resolverStatus.phase === 'ad-break';
   const parsedLiveTitle = isLive ? parseLiveChannelTitle(activeStream.title, customRules) : null;
   const parsedMediaTitle = isLive ? null : parseMediaTitle(activeStream.title, customRules);
   const verifiedBadge =
@@ -140,23 +137,13 @@ export function PlayerShell() {
               className={`${styles.loadingOverlay} ${outputReady ? styles.loadingOverlayBuffering : ''}`}
               onClick={(event) => event.stopPropagation()}
             >
-              <div
-                className={styles.loadingContent}
-                role={isTwitchAdBreak ? 'status' : undefined}
-                aria-live={isTwitchAdBreak ? 'polite' : undefined}
-              >
+              <div className={styles.loadingContent}>
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ repeat: Infinity, duration: MOTION_DURATION.loop, ease: 'linear' }}
                   className={styles.loadingSpinner}
                   aria-hidden="true"
                 />
-                {isTwitchAdBreak && (
-                  <div className={styles.loadingMessage}>
-                    <strong>{t('Twitch ad blocked')}</strong>
-                    <span>{t('Live video resumes automatically.')}</span>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}

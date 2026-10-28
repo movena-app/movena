@@ -5,7 +5,6 @@
   },
   "bundle": {
     "resources": {
-      "lib/twitch-resolver/": "twitch-resolver/",
       "macos-runtime-notices/THIRD_PARTY_NOTICES.txt": "THIRD_PARTY_NOTICES_MACOS_RUNTIME.txt",
       "macos-frameworks/": "Frameworks/"
     }

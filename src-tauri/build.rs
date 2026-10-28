@@ -1,50 +1,3 @@
-fn files_equal(left: &std::path::Path, right: &std::path::Path) -> std::io::Result<bool> {
-    use std::io::Read;
-
-    if !right.is_file() || std::fs::metadata(left)?.len() != std::fs::metadata(right)?.len() {
-        return Ok(false);
-    }
-    let mut left = std::io::BufReader::new(std::fs::File::open(left)?);
-    let mut right = std::io::BufReader::new(std::fs::File::open(right)?);
-    let mut left_buffer = [0_u8; 64 * 1024];
-    let mut right_buffer = [0_u8; 64 * 1024];
-    loop {
-        let left_read = left.read(&mut left_buffer)?;
-        let right_read = right.read(&mut right_buffer)?;
-        if left_read != right_read || left_buffer[..left_read] != right_buffer[..right_read] {
-            return Ok(false);
-        }
-        if left_read == 0 {
-            return Ok(true);
-        }
-    }
-}
-
-fn copy_directory(source: &std::path::Path, destination: &std::path::Path) -> std::io::Result<()> {
-    std::fs::create_dir_all(destination)?;
-    for entry in std::fs::read_dir(source)? {
-        let entry = entry?;
-        let target = destination.join(entry.file_name());
-        if entry.file_type()?.is_dir() {
-            copy_directory(&entry.path(), &target)?;
-        } else if !files_equal(&entry.path(), &target)? {
-            std::fs::copy(entry.path(), target)?;
-        }
-    }
-    Ok(())
-}
-
-fn target_profile_directory(out_path: &std::path::Path) -> Option<std::path::PathBuf> {
-    let mut current = out_path;
-    while let Some(parent) = current.parent() {
-        if parent.file_name().and_then(|value| value.to_str()) == Some("build") {
-            return parent.parent().map(std::path::Path::to_path_buf);
-        }
-        current = parent;
-    }
-    None
-}
-
 fn main() {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let lib_path = std::path::Path::new(&manifest_dir).join("lib");
@@ -60,23 +13,6 @@ fn main() {
         );
     }
     println!("cargo:rustc-link-search=native={}", lib_path.display());
-    println!("cargo:rerun-if-changed=lib/twitch-resolver");
-
-    if let Ok(out_dir) = std::env::var("OUT_DIR") {
-        let source = lib_path.join("twitch-resolver");
-        if source.is_dir() {
-            if let Some(target_dir) = target_profile_directory(std::path::Path::new(&out_dir)) {
-                let destination = target_dir.join("twitch-resolver");
-                if let Err(error) = copy_directory(&source, &destination) {
-                    println!(
-                        "cargo:warning=Failed to copy Twitch resolver to {}: {}",
-                        destination.display(),
-                        error
-                    );
-                }
-            }
-        }
-    }
 
     #[cfg(target_os = "macos")]
     {
