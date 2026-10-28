@@ -76,6 +76,8 @@ export function getItemSetQueryScope(ids: readonly string[]): string {
 
 export const queryKeys = {
   catalog: (type: CatalogType, authScope: string) => ['catalog', type, authScope] as const,
+  /** Every account's catalogue of one type, for invalidation. */
+  catalogOfType: (type: CatalogType) => ['catalog', type] as const,
   categories: (type: CatalogType, authScope: string) => ['categories', type, authScope] as const,
   vodInfo: (id: string | number | undefined, authScope: string) =>
     ['vod_info', authScope, id?.toString()] as const,

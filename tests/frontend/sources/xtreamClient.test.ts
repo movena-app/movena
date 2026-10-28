@@ -32,7 +32,7 @@ afterEach(() => {
 describe('Xtream API client', () => {
   it('builds encoded native stream URLs for each media type', () => {
     expect(getStreamUrl(credentials, 'live', 42)).toBe(
-      'https://primary.test/live/alice%40example.com/p%2Fa%20ss/42.m3u8',
+      'https://primary.test/live/alice%40example.com/p%2Fa%20ss/42.ts',
     );
     expect(getStreamUrl(credentials, 'vod', 7, 'mkv')).toBe(
       'https://primary.test/movie/alice%40example.com/p%2Fa%20ss/7.mkv',
@@ -40,6 +40,18 @@ describe('Xtream API client', () => {
     expect(getStreamUrl(credentials, 'series', 8)).toBe(
       'https://primary.test/series/alice%40example.com/p%2Fa%20ss/8.mp4',
     );
+  });
+
+  it('requests live channels in the configured format', () => {
+    expect(getStreamUrl(credentials, 'live', 42, undefined, 'm3u8')).toBe(
+      'https://primary.test/live/alice%40example.com/p%2Fa%20ss/42.m3u8',
+    );
+    useSettingsStore.getState().updateSetting('liveStreamFormat', 'm3u8');
+    try {
+      expect(getStreamUrl(credentials, 'live', 42)).toMatch(/\/42\.m3u8$/);
+    } finally {
+      useSettingsStore.getState().updateSetting('liveStreamFormat', 'ts');
+    }
   });
 
   it('falls back to an alternative server and promotes it after success', async () => {

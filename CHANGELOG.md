@@ -8,6 +8,15 @@ for tagged releases.
 
 ## [Unreleased]
 
+### Added
+
+- added a "Live Stream Format" setting under Player & Video: Xtream live channels are requested as MPEG-TS by default, HLS stays available for providers that need it
+
+### Fixed
+
+- fixed live channels cutting out after about 15 seconds with HTTP 410 on servers that drop idle HLS clients: Xtream live channels are now requested as MPEG-TS instead of HLS
+- fixed a live channel freezing on its last frame when the provider ends the stream: Movena now reconnects, up to three times within a minute, before showing the error
+
 ### Removed
 
 - removed the bundled Twitch resolver (Streamlink): Twitch channel pages now play through the bundled yt-dlp on Windows, with Twitch's own ads instead of the "ad blocked" pause, and no longer play on macOS and Linux; building Movena no longer needs Python

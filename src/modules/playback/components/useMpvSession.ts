@@ -73,6 +73,16 @@ const STALL_TIMEOUT_MS = 20_000;
  * forever in silence. */
 const MAX_AUTO_STALL_RECOVERIES = 3;
 
+/** A live channel has no end. When mpv reports one anyway, the provider has
+ * usually stopped serving the playlist mpv keeps reloading: many IPTV
+ * providers redirect to a URL with a short-lived token, and once it expires
+ * the reload fails (HTTP 410) and mpv freezes on the last frame. Reopening
+ * the original URL gets a fresh token. The budget refills once playback has
+ * run for a while, so a provider that expires tokens every few minutes keeps
+ * playing, while one that fails right away falls through to the error. */
+const MAX_LIVE_RECONNECTS = 3;
+const LIVE_RECONNECT_BUDGET_RESET_MS = 60_000;
+
 /** Owns exactly one native mpv session while a stream is active. Stream
  * changes are serialized by `mpv_start`; only session exit calls `mpv_stop`. */
 export function useMpvSession(): MpvSessionState {
@@ -98,6 +108,8 @@ export function useMpvSession(): MpvSessionState {
   const fallbackAttemptsRef = useRef(0);
   const playbackErrorsRef = useRef<string[]>([]);
   const resolverErrorRef = useRef<string | null>(null);
+  const liveReconnectCountRef = useRef(0);
+  const lastLiveReconnectAtRef = useRef(0);
   const hasActiveStream = Boolean(activeStream);
 
   const recordPlaybackError = useCallback((message: string) => {
@@ -441,9 +453,47 @@ export function useMpvSession(): MpvSessionState {
   // A new stream gets a fresh budget of automatic stall recoveries.
   useEffect(() => {
     autoRecoveryCountRef.current = 0;
+    liveReconnectCountRef.current = 0;
+    lastLiveReconnectAtRef.current = 0;
     fallbackAttemptsRef.current = 0;
     playbackErrorsRef.current = [];
   }, [activeStream?.id]);
+
+  // Live reconnect: reopen a live channel whose stream mpv considers ended
+  // (see MAX_LIVE_RECONNECTS above).
+  useEffect(() => {
+    if (!hasActiveStream) return;
+    const reconnect = (endedSessionId: string | null) => {
+      if (usePlayerStore.getState().sessionId !== endedSessionId) return;
+      const now = Date.now();
+      if (now - lastLiveReconnectAtRef.current > LIVE_RECONNECT_BUDGET_RESET_MS) {
+        liveReconnectCountRef.current = 0;
+      }
+      if (liveReconnectCountRef.current >= MAX_LIVE_RECONNECTS) {
+        const message = `The live stream ended and did not resume after ${MAX_LIVE_RECONNECTS} reconnect attempts.`;
+        setIsRetrying(false);
+        setErrorMessage(recordPlaybackError(message));
+        debugLog.warn('player', 'Live reconnect budget spent; leaving it to manual retry');
+        return;
+      }
+      liveReconnectCountRef.current += 1;
+      lastLiveReconnectAtRef.current = now;
+      debugLog.warn('player', 'Live stream ended; reconnecting', {
+        attempt: liveReconnectCountRef.current,
+      });
+      usePlayerStore.getState().startPlaybackSession();
+      setIsRetrying(true);
+      setRestartNonce((value) => value + 1);
+    };
+    return usePlayerStore.subscribe((state, previousState) => {
+      if (!state.eofReached || previousState.eofReached) return;
+      if (state.activeStream?.type !== 'live') return;
+      // The store applies an mpv event in more than one update; restarting
+      // from inside the first one would be overwritten by the next.
+      const endedSessionId = state.sessionId;
+      queueMicrotask(() => reconnect(endedSessionId));
+    });
+  }, [hasActiveStream, recordPlaybackError]);
 
   // Stall watchdog: recover on its own from a `paused-for-cache` that never
   // clears, since nothing else here would (see STALL_TIMEOUT_MS above).

@@ -1,4 +1,8 @@
 import type { XtreamCredentials, XtreamServerInfo, XtreamUserInfo } from '../model/xtream';
+import {
+  useSettingsStore,
+  type LiveStreamFormat,
+} from '@/modules/settings/public/store/useSettingsStore';
 
 // Helper to normalize the URL (remove trailing slashes, add player_api.php)
 const getApiUrl = (baseUrl: string) => {
@@ -12,14 +16,19 @@ export const getStreamUrl = (
   type: 'live' | 'vod' | 'series',
   streamId: string | number,
   extension?: string,
+  liveFormat: LiveStreamFormat = useSettingsStore.getState().liveStreamFormat,
 ) => {
   const url = creds.url.endsWith('/') ? creds.url.slice(0, -1) : creds.url;
   const username = encodeURIComponent(creds.username);
   const password = encodeURIComponent(creds.password);
   const id = encodeURIComponent(String(streamId));
   if (type === 'live') {
-    // Providers generally expose live streams as HLS; native mpv handles them directly.
-    return `${url}/live/${username}/${password}/${id}.m3u8`;
+    // MPEG-TS (the default) is the Xtream default output, one continuous
+    // HTTP response. HLS (.m3u8) stays available for providers that need it,
+    // but some servers drop HLS clients as idle within seconds because mpv
+    // reads far ahead and then polls the playlist less often than their idle
+    // limit.
+    return `${url}/live/${username}/${password}/${id}.${liveFormat}`;
   } else {
     // For VOD/Series, it's URL/type/user/pass/id.ext
     // XTream codes expects 'movie' for VOD streams, not 'vod'
@@ -29,7 +38,6 @@ export const getStreamUrl = (
   }
 };
 
-import { useSettingsStore } from '@/modules/settings/public/store/useSettingsStore';
 import { useDebugStore, debugLog } from '@/modules/diagnostics/public/store/useDebugStore';
 import { promoteXtreamServer } from '../services/xtreamServerEvents';
 import { notify } from '@/shared/notifications/useNotificationStore';

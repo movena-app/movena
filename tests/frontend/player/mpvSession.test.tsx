@@ -259,4 +259,65 @@ describe('native MPV session lifecycle', () => {
     );
     unmount();
   });
+
+  it('reconnects a live channel that mpv reports as ended', async () => {
+    const live = {
+      id: 'live-1',
+      title: 'News',
+      type: 'live' as const,
+      streamUrl: 'https://provider.test/live/news.m3u8',
+    };
+    act(() => usePlayerStore.getState().playStream(live));
+    const { result, unmount } = renderHook(() => useMpvSession());
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(1));
+
+    const endStream = () =>
+      act(() =>
+        eventHandler?.({
+          type: 'property-change',
+          name: 'eof-reached',
+          data: true,
+          sessionId: usePlayerStore.getState().sessionId!,
+        }),
+      );
+
+    endStream();
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(2));
+    expect(native.mpvStart.mock.calls[1]![0]).toMatchObject({
+      url: 'https://provider.test/live/news.m3u8',
+      startPosition: 0,
+    });
+    expect(result.current.errorMessage).toBeNull();
+
+    endStream();
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(3));
+    endStream();
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(4));
+    endStream();
+    await waitFor(() =>
+      expect(result.current.errorMessage).toBe(
+        'The live stream ended and did not resume after 3 reconnect attempts.',
+      ),
+    );
+    expect(native.mpvStart).toHaveBeenCalledTimes(4);
+    unmount();
+  });
+
+  it('leaves an ended movie alone', async () => {
+    act(() => usePlayerStore.getState().playStream(stream));
+    const { unmount } = renderHook(() => useMpvSession());
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(1));
+
+    act(() =>
+      eventHandler?.({
+        type: 'property-change',
+        name: 'eof-reached',
+        data: true,
+        sessionId: usePlayerStore.getState().sessionId!,
+      }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(native.mpvStart).toHaveBeenCalledTimes(1);
+    unmount();
+  });
 });

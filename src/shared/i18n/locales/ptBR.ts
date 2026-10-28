@@ -1035,6 +1035,9 @@ export const PT_BR_MESSAGES: Record<string, string> = {
   'Seconds mpv may buffer ahead during playback.':
     'Segundos mpv podem ser armazenados em buffer durante a reprodução.',
   'Seek Step': 'Procurar Passo',
+  'Live Stream Format': 'Formato da transmissão ao vivo',
+  'Format requested from Xtream sources for live channels. Use HLS only if your provider requires it.':
+    'Formato solicitado às fontes Xtream para canais ao vivo. Use HLS apenas se o seu provedor exigir.',
   'Time skipped by the keyboard arrow keys and seek controls.':
     'Tempo saltado pelas teclas de seta do teclado e controles de busca.',
   'Subtitles & Audio': 'Legendas e áudio',

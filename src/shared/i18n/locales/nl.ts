@@ -1033,6 +1033,9 @@ export const NL_MESSAGES: Record<string, string> = {
   'Seconds mpv may buffer ahead during playback.':
     'Seconden mpv kunnen tijdens het afspelen vooruit bufferen.',
   'Seek Step': 'Zoek stap',
+  'Live Stream Format': 'Livestreamformaat',
+  'Format requested from Xtream sources for live channels. Use HLS only if your provider requires it.':
+    'Formaat dat bij Xtream-bronnen wordt opgevraagd voor livezenders. Gebruik HLS alleen als je provider dat vereist.',
   'Time skipped by the keyboard arrow keys and seek controls.':
     'Tijd overgeslagen door de pijltjestoetsen op het toetsenbord en zoekbedieningen.',
   'Subtitles & Audio': 'Ondertiteling en audio',
