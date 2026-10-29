@@ -8,6 +8,8 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.30] - 2026-10-29
+
 ### Added
 
 - added a "Live Stream Format" setting under Player & Video: Xtream live channels are requested as MPEG-TS by default, HLS stays available for providers that need it
