@@ -129,13 +129,6 @@ export interface PlayerDiagnostics {
   samples: PlayerDiagnosticSample[];
 }
 
-interface PlayerResolverStatus {
-  provider: 'twitch';
-  phase: 'starting' | 'ready' | 'ad-break' | 'failed';
-  expectedDurationSeconds?: number | undefined;
-  code?: string | undefined;
-}
-
 const MAX_DIAGNOSTIC_SAMPLES = 60;
 
 function emptyDiagnostics(sessionStartedAt: number | null = null): PlayerDiagnostics {
@@ -245,7 +238,6 @@ interface PlayerState {
   isVideoReady: boolean;
   eofReached: boolean;
   isRecording: boolean;
-  resolverStatus: PlayerResolverStatus | null;
 
   // Track info from MPV
   videoTracks: MpvTrack[];
@@ -283,7 +275,6 @@ interface PlayerState {
   setTrackList: (tracks: unknown[], sessionId?: string) => void;
   startPlaybackSession: () => void;
   markMpvStartCompleted: () => void;
-  setResolverStatus: (status: PlayerResolverStatus | null, sessionId?: string) => void;
 
   // Actions — UI state
   setShowControls: (show: boolean) => void;
@@ -318,7 +309,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isVideoReady: false,
   eofReached: false,
   isRecording: false,
-  resolverStatus: null,
 
   videoTracks: [],
   audioTracks: [],
@@ -358,7 +348,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       isVideoReady: false,
       eofReached: false,
       isRecording: false,
-      resolverStatus: null,
       videoTracks: [],
       audioTracks: [],
       subtitleTracks: [],
@@ -392,7 +381,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       isVideoReady: false,
       eofReached: false,
       isRecording: false,
-      resolverStatus: null,
       videoTracks: [],
       audioTracks: [],
       subtitleTracks: [],
@@ -412,7 +400,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       isVideoReady: false,
       eofReached: false,
       isRecording: false,
-      resolverStatus: null,
       videoTracks: [],
       audioTracks: [],
       subtitleTracks: [],
@@ -437,11 +424,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }),
 
   // ── MPV event sync ──────────────────────────────────────────
-
-  setResolverStatus: (resolverStatus, eventSessionId) => {
-    if (eventSessionId && eventSessionId !== get().sessionId) return;
-    set({ resolverStatus });
-  },
 
   updateFromMpvEvent: (name, data, eventSessionId) => {
     if (eventSessionId && eventSessionId !== get().sessionId) return;

@@ -75,9 +75,6 @@ enabled channels, catalogues, categories, and guides in one workspace.
 **Native playback**
 
 - Play video in-window through native libmpv rather than browser video decoding.
-- Open public Twitch live-channel page URLs through the bundled Streamlink 8.5
-  resolver. Twitch VODs and clips are not handled by this integration; during
-  embedded ad intervals playback waits for the channel stream to resume.
 - Configure GPU hardware decoding, demuxer buffer sizes (50–500 MiB), and automatic playback recovery.
 - Apply HDR-to-SDR tone-mapping algorithms (BT.2446a, Filmic, Reinhard, Mobius), real-time color controls, custom aspect ratios, and Side-by-Side 3D-to-2D conversion.
 - Customize subtitle styling (font size, color, background, outline, screen offset) and adjust audio/subtitle synchronization delays.
@@ -173,13 +170,12 @@ real viewing data in an issue.
 
 ## Technology
 
-| Layer                       | Technology                                      |
-| --------------------------- | ----------------------------------------------- |
-| Desktop shell               | [Tauri 2](https://tauri.app/)                   |
-| Interface                   | React, TypeScript, Zustand, and TanStack Query  |
-| Native core                 | Rust                                            |
-| Playback                    | [libmpv](https://mpv.io/)                       |
-| Twitch live-page resolution | [Streamlink 8.5](https://streamlink.github.io/) |
+| Layer         | Technology                                     |
+| ------------- | ---------------------------------------------- |
+| Desktop shell | [Tauri 2](https://tauri.app/)                  |
+| Interface     | React, TypeScript, Zustand, and TanStack Query |
+| Native core   | Rust                                           |
+| Playback      | [libmpv](https://mpv.io/)                      |
 
 React owns presentation and client state; Rust owns native playback,
 credential storage, filesystem access, downloads, and native cache/network
@@ -188,7 +184,7 @@ boundary and repository map.
 
 ## Build from source
 
-You will need Node.js 20.19+, npm, Rust, Python 3.13.11, the
+You will need Node.js 20.19+, npm, Rust, the
 [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/), and libmpv
 development/runtime files.
 
@@ -196,12 +192,7 @@ development/runtime files.
 git clone https://github.com/movena-app/movena.git
 cd movena
 npm install
-npm run setup:twitch
 ```
-
-`setup:twitch` creates an architecture-specific bundled resolver from the
-hash-pinned Python dependency lock. `npm run dev` also runs this setup before
-starting Tauri.
 
 On macOS:
 

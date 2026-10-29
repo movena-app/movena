@@ -219,6 +219,9 @@ export const SETTINGS_NAV_GROUPS = [
           'intro',
           'failover',
           'timeout',
+          'stream format',
+          'mpeg-ts',
+          'hls',
         ],
       },
       {

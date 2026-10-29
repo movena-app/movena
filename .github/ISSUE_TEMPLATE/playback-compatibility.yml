@@ -23,7 +23,7 @@ body:
     id: media
     attributes:
       label: Media kind
-      options: [Live TV, Movie, Series episode, Radio, Twitch live channel]
+      options: [Live TV, Movie, Series episode, Radio]
     validations: { required: true }
   - type: textarea
     id: behavior

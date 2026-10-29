@@ -2587,13 +2587,12 @@ dependencies = [
 
 [[package]]
 name = "movena"
-version = "0.1.29"
+version = "0.1.30"
 dependencies = [
  "chrono",
  "encoding_rs",
  "flate2",
  "keyring",
- "libc",
  "libmpv-sys",
  "log",
  "objc2",

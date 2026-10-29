@@ -1,8 +1,7 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 #[cfg(any(target_os = "windows", test))]
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[cfg(target_os = "windows")]
 use tauri::{AppHandle, Manager};
@@ -55,6 +54,7 @@ pub(crate) fn build_http_options(
     Ok(result)
 }
 
+#[cfg(any(target_os = "windows", test))]
 pub(crate) fn first_existing_file(
     candidates: impl IntoIterator<Item = PathBuf>,
 ) -> Option<PathBuf> {

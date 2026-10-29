@@ -11,12 +11,11 @@ The sign-off certifies the Developer Certificate of Origin 1.1:
 
 ## Set up a development checkout
 
-Movena needs Node.js 20.19 or newer, npm, Rust, Python 3.13.11, the
+Movena needs Node.js 20.19 or newer, npm, Rust, the
 [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/), and libmpv.
 
 ```bash
 npm install
-npm run setup:twitch
 ```
 
 On Windows also run `npm run setup:mpv`. On macOS use `brew install mpv`; on

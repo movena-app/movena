@@ -129,9 +129,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.13.11'
       - uses: dtolnay/rust-toolchain@stable
       - run: npm ci --ignore-scripts
       - name: Restore pinned Windows playback runtime
@@ -151,15 +148,16 @@ jobs:
             src-tauri/lib/libmpv-2.lib
           key: windows-playback-runtime-${{ hashFiles('scripts/ensure-windows-mpv.mjs') }}
       - run: npm run setup:mpv
-      - run: npm run setup:twitch
+      - run: npm run licenses:generate
       - name: Run native tests on Windows
         shell: pwsh
         run: |
           $env:PATH = "$(Resolve-Path 'src-tauri/lib/mpv-dev');$env:PATH"
           npm run test:rust
       - run: npm run check:licenses
-      # setup:twitch regenerated the report from this Windows install. Dependency
-      # updates leave the committed copy stale; this is the one to commit.
+      # licenses:generate regenerated the report from this Windows install.
+      # Dependency updates leave the committed copy stale; this is the one to
+      # commit.
       - name: Upload generated license report
         uses: actions/upload-artifact@v7
         with:

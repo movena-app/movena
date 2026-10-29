@@ -402,8 +402,6 @@ export const FR_MESSAGES: Record<string, string> = {
   Live: 'En direct',
   LIVE: 'EN DIRECT',
   'Playback Interrupted': 'Lecture interrompue',
-  'Twitch ad blocked': 'Publicité Twitch bloquée',
-  'Live video resumes automatically.': 'La vidéo en direct reprendra automatiquement.',
   Reconnect: 'Reconnecter',
   'Radio playback': 'Lecture radio',
   RADIO: 'RADIO',
@@ -1044,6 +1042,9 @@ export const FR_MESSAGES: Record<string, string> = {
   'Seconds mpv may buffer ahead during playback.':
     'Les secondes mpv peuvent être mises en mémoire tampon pendant la lecture.',
   'Seek Step': "Rechercher l'étape",
+  'Live Stream Format': 'Format du flux en direct',
+  'Format requested from Xtream sources for live channels. Use HLS only if your provider requires it.':
+    "Format demandé aux sources Xtream pour les chaînes en direct. N'utilisez HLS que si votre fournisseur l'exige.",
   'Time skipped by the keyboard arrow keys and seek controls.':
     'Temps sauté par les touches fléchées du clavier et les commandes de recherche.',
   'Subtitles & Audio': 'Sous-titres et audio',

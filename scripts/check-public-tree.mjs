@@ -58,10 +58,6 @@ const skippedLocalDirectories = new Set([
   'target',
   'test-results',
 ]);
-const skippedGeneratedPrefixes = [
-  'src-tauri/.twitch-resolver-build/',
-  'src-tauri/lib/twitch-resolver/',
-];
 const sensitiveLocalName =
   /^(?:\.env(?:\..+)?|\.npmrc|\.pypirc|\.netrc|_netrc|id_rsa.*|id_ed25519.*|tauri-signing-key.*|credentials\.json|secrets\.(?:json|ya?ml|toml))$/i;
 const sensitiveLocalExtension = new Set(['.key', '.p12', '.pem', '.pfx']);
@@ -96,7 +92,6 @@ function inspectLocalArtifacts(directory) {
     if (entry.isDirectory() && skippedLocalDirectories.has(entry.name)) continue;
     const absolute = resolve(directory, entry.name);
     const normalized = relative(projectRoot, absolute).replace(/\\/g, '/');
-    if (skippedGeneratedPrefixes.some((prefix) => `${normalized}/`.startsWith(prefix))) continue;
     if (entry.isDirectory()) {
       inspectLocalArtifacts(absolute);
       continue;

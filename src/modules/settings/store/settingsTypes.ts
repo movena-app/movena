@@ -9,6 +9,7 @@ export type { ThemePreference } from '@/shared/design/appearance';
 export type CatalogType = 'live' | 'vod' | 'series';
 export type HwdecMode = 'auto' | 'auto-safe' | 'no';
 export type HdrMode = 'auto' | 'off';
+export type LiveStreamFormat = 'ts' | 'm3u8';
 export type ToneMappingMode = 'auto' | 'hable' | 'reinhard' | 'mobius' | 'bt.2446a';
 export type MotionPreference = 'system' | 'reduced' | 'full';
 type TmdbLanguage = 'auto' | UiLocale;
@@ -68,6 +69,7 @@ export interface SettingsState {
   startupTimeoutMs: number;
   streamFailoverEnabled: boolean;
   maxStreamFailovers: number;
+  liveStreamFormat: LiveStreamFormat; // container requested for Xtream live channels
   language: UiLanguage;
   tmdbApiKey: string;
   tmdbEnabled: boolean;
@@ -235,6 +237,7 @@ export const SETTINGS_SNAPSHOT_KEYS = [
   'startupTimeoutMs',
   'streamFailoverEnabled',
   'maxStreamFailovers',
+  'liveStreamFormat',
   'language',
   'hdrMode',
   'toneMappingMode',

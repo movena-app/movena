@@ -96,13 +96,6 @@ describe('desktop API gateway', () => {
     mpvListener({
       payload: { type: 'property-change', name: 'volume', data: 42, sessionId: 'session' },
     });
-    mpvListener({
-      payload: {
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'ad-break', expectedDurationSeconds: 30 },
-        sessionId: 'session',
-      },
-    });
     await desktopApi.onDownloadEvent(downloadHandler);
     const downloadListener = mocks.listen.mock.calls[1]![1] as (event: {
       payload: unknown;
@@ -115,12 +108,6 @@ describe('desktop API gateway', () => {
     pointerListener();
 
     expect(mpvHandler).toHaveBeenCalledWith(expect.objectContaining({ sessionId: 'session' }));
-    expect(mpvHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'ad-break', expectedDurationSeconds: 30 },
-      }),
-    );
     expect(downloadHandler).toHaveBeenCalledWith(expect.objectContaining({ id: 'download' }));
     expect(pointerHandler).toHaveBeenCalledOnce();
   });

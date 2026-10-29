@@ -29,13 +29,11 @@ the CLI version because its package-input contract is release-sensitive.
 1. Work from a clean tree and a reviewed `vX.Y.Z` tag whose version matches
    `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, and
    `src-tauri/tauri.conf.json`.
-2. Run `npm ci`, the platform's native setup (`npm run setup:mpv` on Windows
-   and `npm run setup:twitch` everywhere),
-   `npm run check:advisories` (needs `cargo-deny`),
+2. Run `npm ci`, `npm run setup:mpv` on Windows,
+   `npm run check:advisories` (needs `cargo-deny`), `npm run licenses:generate`,
    `npm run check:licenses`, `npm run check:public-tree`, `npm run check`,
-   `npm run build`, and `npm run test:ui:visual`. `setup:twitch` regenerates the
-   license report before it is copied into the resolver bundle. The build
-   cleans `dist/` first and rejects unexpected output extensions afterward.
+   `npm run build`, and `npm run test:ui:visual`. The build cleans `dist/`
+   first and rejects unexpected output extensions afterward.
 3. Run secret scanning and verify that no playlists, provider records,
    credentials, private URLs, diagnostics, recordings, downloads, or
    third-party media exist anywhere in the public history.
@@ -46,20 +44,9 @@ the CLI version because its package-input contract is release-sensitive.
    - enter and exit fullscreen, resize the window, and verify video/control geometry;
    - switch audio/subtitle tracks, seek, change volume, and exercise recording/download feedback;
    - close and replace playback, confirming the mpv surface, audio, cursor state, and listeners are released;
-   - start `gleggmire` during Twitch pre-roll and mid-roll breaks, confirm no
-     commercial video reaches mpv, real video resumes after the Movena status,
-     and closing/switching leaves no resolver process or loopback listener;
    - verify window actions, dialogs, menus, drawers, and player controls by keyboard;
    - sample the supported screen reader on each platform for window actions, errors, progress, and player controls.
 6. Create and push the Git tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-
-Each platform build must report the resolver's added artifact size and verify
-that the bundled executable reports exactly Streamlink 8.5.0, accepts a Twitch
-channel URL, includes `THIRD_PARTY_NOTICES.txt`, and runs without system Python
-or FFmpeg. The PyInstaller onedir runtime is architecture-specific and must be
-built on every release runner rather than copied between platforms. The release
-workflow pins Python 3.13.11 so the embedded interpreter does not change between
-runners.
 
 ## Published binary status
 
@@ -90,7 +77,6 @@ summary synchronized with them:
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | Windows mpv/libmpv | [`mpv-dev-x86_64-20261013-git-9d144e57b6.7z`](https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20261013/mpv-dev-x86_64-20261013-git-9d144e57b6.7z) | `10860837bc04491862c1e66a95dc1af1d7886d69757ce447a09e1e49ae993b52` | GPL/version-3-enabled build; include the applicable mpv/FFmpeg corresponding source and build information. |
 | Windows yt-dlp     | [`yt-dlp.exe` 2026.08.19](https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe)                                                                 | `66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a` | Unlicense; source is the matching [`yt-dlp` tag](https://github.com/yt-dlp/yt-dlp/tree/2026.08.19).        |
-| Twitch resolver    | Streamlink 8.5.0, PyInstaller 6.16.0, Python 3.13.11                                                                                                                | `scripts/twitch-resolver/requirements.lock` with required hashes   | Built independently on each target; no FFmpeg is included in this bundle.                                  |
 
 Before publishing, verify every fetched or compiled native component has an
 exact version, source URL, checksum or hashed lock, license, patches/build

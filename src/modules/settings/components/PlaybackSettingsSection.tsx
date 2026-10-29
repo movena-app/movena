@@ -1,9 +1,12 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useSettingsStore,
   type HdrMode,
   type HwdecMode,
+  type LiveStreamFormat,
   type ToneMappingMode,
 } from '../store/useSettingsStore';
+import { queryKeys } from '@/modules/sources/public/model/queryKeys';
 import type { AspectMode } from '@/modules/catalog/public/lib/aspect';
 import { SegmentedControl } from '@/shared/ui/SegmentedControl';
 import {
@@ -17,6 +20,7 @@ import { useI18n } from '@/shared/i18n/i18n';
 export function PlaybackSettingsSection() {
   const { number } = useI18n();
   const settings = useSettingsStore();
+  const queryClient = useQueryClient();
   const toneMappingDisabled = settings.hdrMode !== 'off';
 
   return (
@@ -111,6 +115,24 @@ export function PlaybackSettingsSection() {
         title="Streaming & Seeking"
         description="Balance responsiveness, memory use, and seek behavior."
       >
+        <SettingsRow
+          title="Live Stream Format"
+          description="Format requested from Xtream sources for live channels. Use HLS only if your provider requires it."
+        >
+          <SegmentedControl<LiveStreamFormat>
+            value={settings.liveStreamFormat}
+            onChange={(value) => {
+              settings.updateSetting('liveStreamFormat', value);
+              // Channel URLs are built when the catalogue loads.
+              void queryClient.invalidateQueries({ queryKey: queryKeys.catalogOfType('live') });
+            }}
+            options={[
+              { value: 'ts', label: 'MPEG-TS' },
+              { value: 'm3u8', label: 'HLS' },
+            ]}
+          />
+        </SettingsRow>
+
         <SettingsRow
           title="Maximum Stream Buffer"
           description="Maximum memory available to mpv for stream buffering."

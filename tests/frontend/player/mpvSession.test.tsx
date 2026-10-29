@@ -260,137 +260,64 @@ describe('native MPV session lifecycle', () => {
     unmount();
   });
 
-  it('surfaces an offline Twitch channel instead of a resolver timeout', async () => {
-    act(() =>
-      usePlayerStore.getState().playStream({
-        ...stream,
-        type: 'live',
-        streamUrl: 'https://www.twitch.tv/gleggmire',
-        startPosition: 0,
-        fallbacks: [],
-      }),
-    );
+  it('reconnects a live channel that mpv reports as ended', async () => {
+    const live = {
+      id: 'live-1',
+      title: 'News',
+      type: 'live' as const,
+      streamUrl: 'https://provider.test/live/news.m3u8',
+    };
+    act(() => usePlayerStore.getState().playStream(live));
     const { result, unmount } = renderHook(() => useMpvSession());
     await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(1));
-    const sessionId = usePlayerStore.getState().sessionId!;
 
-    act(() =>
-      eventHandler?.({
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'failed', code: 'channel-offline' },
-        sessionId,
-      }),
-    );
-    act(() =>
-      eventHandler?.({
-        type: 'end-file',
-        data: { reason: 'error', errorCode: -5, errorMessage: 'resolver exited' },
-        sessionId,
-      }),
-    );
+    const endStream = () =>
+      act(() =>
+        eventHandler?.({
+          type: 'property-change',
+          name: 'eof-reached',
+          data: true,
+          sessionId: usePlayerStore.getState().sessionId!,
+        }),
+      );
 
-    expect(result.current.errorMessage).toBe('This Twitch channel is not currently live.');
+    endStream();
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(2));
+    expect(native.mpvStart.mock.calls[1]![0]).toMatchObject({
+      url: 'https://provider.test/live/news.m3u8',
+      startPosition: 0,
+    });
+    expect(result.current.errorMessage).toBeNull();
+
+    endStream();
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(3));
+    endStream();
+    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(4));
+    endStream();
+    await waitFor(() =>
+      expect(result.current.errorMessage).toBe(
+        'The live stream ended and did not resume after 3 reconnect attempts.',
+      ),
+    );
+    expect(native.mpvStart).toHaveBeenCalledTimes(4);
     unmount();
   });
 
-  it('isolates Twitch resolver events by session and suspends the ordinary stall watchdog', async () => {
-    act(() =>
-      usePlayerStore.getState().playStream({
-        ...stream,
-        type: 'live',
-        streamUrl: 'https://www.twitch.tv/gleggmire',
-        startPosition: 0,
-        fallbacks: [],
-      }),
-    );
+  it('leaves an ended movie alone', async () => {
+    act(() => usePlayerStore.getState().playStream(stream));
     const { unmount } = renderHook(() => useMpvSession());
     await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(1));
-    const sessionId = usePlayerStore.getState().sessionId!;
 
-    act(() =>
-      eventHandler?.({
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'ad-break', expectedDurationSeconds: 30 },
-        sessionId: 'stale-session',
-      }),
-    );
-    expect(usePlayerStore.getState().resolverStatus).toBeNull();
-
-    vi.useFakeTimers();
-    act(() =>
-      eventHandler?.({
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'ad-break', expectedDurationSeconds: 30 },
-        sessionId,
-      }),
-    );
     act(() =>
       eventHandler?.({
         type: 'property-change',
-        name: 'paused-for-cache',
+        name: 'eof-reached',
         data: true,
-        sessionId,
+        sessionId: usePlayerStore.getState().sessionId!,
       }),
     );
-    act(() => vi.advanceTimersByTime(20_000));
+    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(native.mpvStart).toHaveBeenCalledTimes(1);
-    expect(usePlayerStore.getState().resolverStatus?.phase).toBe('ad-break');
-
-    act(() =>
-      eventHandler?.({
-        type: 'property-change',
-        name: 'time-pos',
-        data: 1,
-        sessionId,
-      }),
-    );
-    expect(usePlayerStore.getState().resolverStatus).toBeNull();
     unmount();
-    vi.useRealTimers();
-  });
-
-  it('restarts one stuck Twitch break and then surfaces an explicit error', async () => {
-    act(() =>
-      usePlayerStore.getState().playStream({
-        ...stream,
-        type: 'live',
-        streamUrl: 'https://www.twitch.tv/gleggmire',
-        startPosition: 0,
-        fallbacks: [],
-      }),
-    );
-    const { result, unmount } = renderHook(() => useMpvSession());
-    await waitFor(() => expect(native.mpvStart).toHaveBeenCalledTimes(1));
-    vi.useFakeTimers();
-    let sessionId = usePlayerStore.getState().sessionId!;
-
-    act(() =>
-      eventHandler?.({
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'ad-break', expectedDurationSeconds: 1 },
-        sessionId,
-      }),
-    );
-    await act(async () => {
-      vi.advanceTimersByTime(31_000);
-      await Promise.resolve();
-    });
-    expect(native.mpvStart).toHaveBeenCalledTimes(2);
-
-    sessionId = usePlayerStore.getState().sessionId!;
-    act(() =>
-      eventHandler?.({
-        type: 'resolver-status',
-        data: { provider: 'twitch', phase: 'ad-break', expectedDurationSeconds: 1 },
-        sessionId,
-      }),
-    );
-    act(() => vi.advanceTimersByTime(31_000));
-    expect(result.current.errorMessage).toBe(
-      'Twitch did not resume the live stream after the filtered commercial break.',
-    );
-    expect(native.mpvStart).toHaveBeenCalledTimes(2);
-    unmount();
-    vi.useRealTimers();
   });
 });

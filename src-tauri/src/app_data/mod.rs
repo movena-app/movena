@@ -8,6 +8,7 @@ fn remove_cached_app_data(app_data: &Path, app_cache: &Path) -> Result<(), Strin
         app_data.join("m3u-cache"),
         app_data.join("xmltv-cache"),
         app_data.join("catalog-cache"),
+        // Left behind by versions that bundled the Twitch resolver.
         app_cache.join("twitch-resolver"),
     ] {
         match std::fs::remove_dir_all(path) {

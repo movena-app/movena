@@ -94,6 +94,7 @@ export function sanitizeSettingsConfig(value: unknown): SettingsSnapshot {
     startupTimeoutMs: numberOr(source.startupTimeoutMs, migrated.startupTimeoutMs, 5000, 120000),
     streamFailoverEnabled: booleanOr(source.streamFailoverEnabled, migrated.streamFailoverEnabled),
     maxStreamFailovers: numberOr(source.maxStreamFailovers, migrated.maxStreamFailovers, 0, 5),
+    liveStreamFormat: oneOf(source.liveStreamFormat, ['ts', 'm3u8'] as const, 'ts'),
     language: oneOf(source.language, UI_LANGUAGES, 'en'),
     tmdbEnabled: booleanOr(source.tmdbEnabled, migrated.tmdbEnabled),
     tmdbLanguage: oneOf(source.tmdbLanguage, ['auto', ...UI_LOCALES] as const, 'auto'),

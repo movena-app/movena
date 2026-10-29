@@ -416,8 +416,6 @@ export const DE_MESSAGES: Record<string, string> = {
 
   // Player
   'Playback Interrupted': 'Wiedergabe unterbrochen',
-  'Twitch ad blocked': 'Twitch-Werbung blockiert',
-  'Live video resumes automatically.': 'Das Livevideo wird automatisch fortgesetzt.',
   Reconnect: 'Neu verbinden',
   'Radio playback': 'Radiowiedergabe',
   RADIO: 'RADIO',
@@ -1074,6 +1072,9 @@ export const DE_MESSAGES: Record<string, string> = {
   'Seconds mpv may buffer ahead during playback.':
     'Sekunden, die mpv während der Wiedergabe voraus puffern darf.',
   'Seek Step': 'Spulschritt',
+  'Live Stream Format': 'Livestream-Format',
+  'Format requested from Xtream sources for live channels. Use HLS only if your provider requires it.':
+    'Format, das Movena bei Xtream-Quellen für Livesender anfordert. Nur auf HLS stellen, wenn dein Anbieter das verlangt.',
   'Time skipped by the keyboard arrow keys and seek controls.':
     'Zeitspanne der Pfeiltasten und Spulsteuerung.',
   'Subtitles & Audio': 'Untertitel & Audio',

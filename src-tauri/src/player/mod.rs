@@ -18,13 +18,13 @@ use tauri::{AppHandle, Emitter, Manager, State};
 #[cfg(test)]
 use self::diagnostics::{build_diagnostic_sample, DIAGNOSTIC_PROPERTIES};
 use self::diagnostics::{collect_diagnostic_sample, node_to_json, sanitize_mpv_log_text};
+use self::options::build_http_options;
 #[cfg(target_os = "windows")]
 use self::options::bundled_ytdlp_path;
 #[cfg(test)]
 use self::options::first_existing_file;
 #[cfg(any(target_os = "windows", test))]
 use self::options::ytdlp_script_option;
-use self::options::{build_http_options, MpvHttpOptions};
 use self::property::{validate_mpv_property, MpvPropertyUpdate};
 
 #[cfg(target_os = "macos")]
@@ -36,7 +36,6 @@ use crate::platform::windows as windows_fullscreen;
 pub struct NativePlayerManager {
     handle: Mutex<Option<usize>>,
     session_id: Mutex<Option<String>>,
-    twitch_resolver: Mutex<Option<twitch_resolver::TwitchResolverProcess>>,
     alive: Arc<AtomicBool>,
     thread_handle: Mutex<Option<thread::JoinHandle<()>>>,
     /// Held for the whole of start/stop. Those commands run on Tauri's thread
@@ -177,19 +176,6 @@ fn stop_internal(app: &AppHandle, state: &NativePlayerManager) {
         }
     }
     drop(handle_opt);
-
-    // Disconnecting mpv closes Streamlink's only loopback HTTP client. Give
-    // the non-continuous resolver a moment to exit on its own, then its guard
-    // terminates the contained process group so no helper survives a stream
-    // replacement or application shutdown.
-    if let Some(mut resolver) = state
-        .twitch_resolver
-        .lock()
-        .unwrap_or_else(|error| error.into_inner())
-        .take()
-    {
-        resolver.stop();
-    }
 }
 
 impl NativePlayerManager {
@@ -334,25 +320,11 @@ pub fn mpv_start(
     } = options;
     let session_id =
         session_id.filter(|value| !value.is_empty() && value.len() <= 128 && value.is_ascii());
-    let is_twitch_live = twitch_resolver::is_twitch_live_url(&url);
-    let http_options = if is_twitch_live {
-        MpvHttpOptions::default()
-    } else {
-        build_http_options(http_headers)?
-    };
+    let http_options = build_http_options(http_headers)?;
     let _lifecycle = state.lifecycle.lock().map_err(|e| e.to_string())?;
 
     // Stop any existing instance first
     stop_internal(&app, &state);
-
-    let mut twitch_resolver = None;
-    let playback_url = if is_twitch_live {
-        let (playback_url, resolver) = twitch_resolver::start(&app, &url, session_id.clone())?;
-        twitch_resolver = Some(resolver);
-        playback_url
-    } else {
-        url
-    };
 
     unsafe {
         let mpv = mpv_create();
@@ -543,17 +515,12 @@ pub fn mpv_start(
         // yt-dlp. Point it at Movena's bundled resolver instead of depending
         // on a machine-wide installation or the user's PATH.
         #[cfg(target_os = "windows")]
-        if !is_twitch_live {
-            if let Some(ytdlp_path) = bundled_ytdlp_path(&app) {
-                let script_option = ytdlp_script_option(&ytdlp_path)?;
-                set_mpv_option(mpv, "script-opts", &script_option)?;
-            }
+        if let Some(ytdlp_path) = bundled_ytdlp_path(&app) {
+            let script_option = ytdlp_script_option(&ytdlp_path)?;
+            set_mpv_option(mpv, "script-opts", &script_option)?;
         }
-        // Every URL that reaches loadfile here is already a direct, playable
-        // stream — Xtream/M3U entries as-is, Twitch already resolved above.
-        // None of it ever needs yt-dlp's site extraction. Without a bundled
-        // resolver to point it at (Windows-only, see above), leaving ytdl_hook
-        // enabled means it runs against whatever "yt-dlp"/"youtube-dl" happens
+        // Without a bundled resolver to point it at (Windows-only, see above),
+        // leaving ytdl_hook enabled means it runs against whatever "yt-dlp"/"youtube-dl" happens
         // to be on the user's PATH — on a machine that has one installed for
         // unrelated reasons, the hook can decide a plain VOD URL needs
         // resolving and block the whole demuxer thread on that subprocess's
@@ -600,7 +567,7 @@ pub fn mpv_start(
             guard.holds_surface(app.clone());
         }
 
-        mpv_cmd(mpv, &["loadfile", &playback_url])?;
+        mpv_cmd(mpv, &["loadfile", &url])?;
 
         let observe_props = [
             ("time-pos", mpv_format_MPV_FORMAT_DOUBLE),
@@ -639,10 +606,6 @@ pub fn mpv_start(
         let mpv = guard.defuse();
         *state.handle.lock().unwrap_or_else(|e| e.into_inner()) = Some(mpv as usize);
         *state.session_id.lock().unwrap_or_else(|e| e.into_inner()) = session_id.clone();
-        *state
-            .twitch_resolver
-            .lock()
-            .unwrap_or_else(|error| error.into_inner()) = twitch_resolver.take();
         state.alive.store(true, Ordering::SeqCst);
         let alive_flag = state.alive.clone();
         let mpv_ptr = mpv as usize;
@@ -1286,4 +1249,3 @@ pub fn mpv_set_property(
 mod diagnostics;
 mod options;
 mod property;
-mod twitch_resolver;
