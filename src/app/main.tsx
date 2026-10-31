@@ -5,10 +5,14 @@ import App from './App';
 import { ensureUiMessages } from '@/shared/i18n/i18n';
 import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
 import { initializeTmdbApiKey } from '@/modules/metadata/services/tmdbCredentialVault';
-import { applyAppearanceTheme } from '@/shared/design/appearance';
+import { activeSeason, applyAppearanceTheme } from '@/shared/design/appearance';
 
 const initialSettings = useSettingsStore.getState();
-applyAppearanceTheme(initialSettings.themePreference, initialSettings.accentColor);
+applyAppearanceTheme(
+  initialSettings.themePreference,
+  initialSettings.accentColor,
+  activeSeason(new Date()),
+);
 const root = createRoot(document.getElementById('root')!);
 
 async function renderApp() {

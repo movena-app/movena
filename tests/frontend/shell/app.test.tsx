@@ -122,6 +122,28 @@ describe('application shell', () => {
     });
   });
 
+  it('switches the seasonal look on at local midnight and keeps it off the light theme', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+    try {
+      vi.setSystemTime(new Date(2026, 10, 30, 23, 59, 50));
+      render(<App />);
+      await screen.findByText('Mock home');
+      expect(document.documentElement.dataset.season).toBeUndefined();
+
+      act(() => vi.advanceTimersByTime(10_000));
+      await waitFor(() => expect(document.documentElement.dataset.season).toBe('christmas'));
+      expect(document.documentElement.style.getPropertyValue('--accent-color')).toBe('#d93a49');
+
+      act(() => useSettingsStore.getState().updateSetting('themePreference', 'light'));
+      await waitFor(() => expect(document.documentElement.dataset.season).toBeUndefined());
+      expect(document.documentElement.style.getPropertyValue('--accent-color')).toBe(
+        useSettingsStore.getState().accentColor,
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('restores the main workspace and routes global keyboard shortcuts', async () => {
     render(<App />);
 

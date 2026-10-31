@@ -65,6 +65,8 @@ describe('Sidebar library counts', () => {
     );
 
     expect(screen.getByRole('link', { name: /Continue Watching/ }).textContent).toContain('1');
+    // Seasonal decorations only rest on the full-width footer.
+    expect(document.querySelector('[data-seasonal-decor="sidebar-footer"]')).toBeTruthy();
   });
 
   it('keeps collapsed navigation links accessible after their labels leave the rail', () => {
@@ -144,6 +146,7 @@ describe('Sidebar library counts', () => {
     );
 
     expect(document.querySelector('aside')?.className).toContain('collapsed');
+    expect(document.querySelector('[data-seasonal-decor]')).toBeNull();
     expect(screen.getByRole('link', { name: 'Home' }).getAttribute('title')).toBe('Home');
     expect(
       (
