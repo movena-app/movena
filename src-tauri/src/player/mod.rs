@@ -619,9 +619,7 @@ pub fn mpv_start(
         // actually establishes a video output, in case the disturbance
         // happens later than this.
         #[cfg(target_os = "windows")]
-        if let Err(error) = windows_fullscreen::reassert_fullscreen(&app) {
-            log::warn!("Failed to reassert fullscreen after mpv_start: {error}");
-        }
+        windows_fullscreen::reassert_fullscreen(&app);
 
         let th = thread::spawn(move || {
             let mpv_handle = mpv_ptr as *mut mpv_handle;
@@ -723,13 +721,7 @@ pub fn mpv_start(
                                     // mpv_start above, for whichever point
                                     // mpv's embed step actually disturbs the
                                     // window at.
-                                    if let Err(error) =
-                                        windows_fullscreen::reassert_fullscreen(&app)
-                                    {
-                                        log::warn!(
-                                            "Failed to reassert fullscreen after vo-configured: {error}"
-                                        );
-                                    }
+                                    windows_fullscreen::reassert_fullscreen(&app);
                                 }
                                 let _ = app.emit(
                                     "mpv-event",

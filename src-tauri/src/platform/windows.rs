@@ -12,9 +12,9 @@
 
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use std::sync::Mutex;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize, Rect, Webview, WebviewWindow};
 use windows_sys::core::{BOOL, GUID};
-use windows_sys::Win32::Foundation::{GetLastError, SetLastError, HWND};
+use windows_sys::Win32::Foundation::{GetLastError, SetLastError, HWND, RECT};
 use windows_sys::Win32::Graphics::Gdi::{
     GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST,
 };
@@ -23,11 +23,11 @@ use windows_sys::Win32::System::Com::{
     COINIT_APARTMENTTHREADED,
 };
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    GetWindowLongW, GetWindowPlacement, SetWindowLongW, SetWindowPlacement, SetWindowPos,
-    GWL_EXSTYLE, GWL_STYLE, HWND_TOP, SWP_FRAMECHANGED, SWP_NOCOPYBITS, SWP_NOMOVE, SWP_NOSIZE,
-    SWP_NOZORDER, SW_SHOWMAXIMIZED, SW_SHOWNORMAL, WINDOWPLACEMENT, WS_BORDER, WS_CAPTION,
-    WS_EX_CLIENTEDGE, WS_EX_STATICEDGE, WS_EX_WINDOWEDGE, WS_MAXIMIZE, WS_POPUP, WS_THICKFRAME,
-    WS_VISIBLE,
+    GetClientRect, GetWindowLongW, GetWindowPlacement, SetWindowLongW, SetWindowPlacement,
+    SetWindowPos, GWL_EXSTYLE, GWL_STYLE, HWND_TOP, SWP_FRAMECHANGED, SWP_NOCOPYBITS, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_NOZORDER, SW_SHOWMAXIMIZED, SW_SHOWNORMAL, WINDOWPLACEMENT, WS_BORDER,
+    WS_CAPTION, WS_EX_CLIENTEDGE, WS_EX_STATICEDGE, WS_EX_WINDOWEDGE, WS_MAXIMIZE, WS_POPUP,
+    WS_THICKFRAME, WS_VISIBLE,
 };
 
 // CLSID_TaskbarList = 56FDF344-FD6D-11d0-958A-006097C9A090
@@ -170,19 +170,73 @@ unsafe fn set_window_style(hwnd: HWND, index: i32, value: u32, action: &str) -> 
     }
 }
 
-/// Put the main window into or out of fullscreen mode on Windows.
-pub fn set_fullscreen(app: &AppHandle, on: bool) -> Result<bool, String> {
+fn main_window(app: &AppHandle) -> Result<(WebviewWindow, HWND), String> {
     let window = app
         .get_webview_window("main")
         .ok_or_else(|| "Failed to get main window".to_string())?;
-
     let handle = window.window_handle().map_err(|error| error.to_string())?;
-
     let hwnd = match handle.as_raw() {
         RawWindowHandle::Win32(win32_handle) => win32_handle.hwnd.get() as HWND,
         _ => return Err("Invalid window handle".to_string()),
     };
+    Ok((window, hwnd))
+}
 
+/// Sizes the webview to the window's current client area.
+///
+/// wry only follows the window through `WM_SIZE`. A style change that lands
+/// while the window still covers the monitor (see `set_fullscreen`) can leave
+/// the webview at that size after the window has shrunk back, so the page
+/// lays out for a viewport larger than the window and everything right of and
+/// below the visible area (close button, seek bar, centred dialogs) is cut
+/// off. Setting the bounds explicitly after every transition rules that out.
+fn sync_webview_bounds(window: &WebviewWindow, hwnd: HWND) {
+    let mut client: RECT = unsafe { std::mem::zeroed() };
+    if unsafe { GetClientRect(hwnd, &mut client) } == 0 {
+        return;
+    }
+    let (width, height) = (client.right - client.left, client.bottom - client.top);
+    if width <= 0 || height <= 0 {
+        return;
+    }
+    let webview: &Webview = window.as_ref();
+    if let Err(error) = webview.set_bounds(Rect {
+        position: PhysicalPosition::new(0, 0).into(),
+        size: PhysicalSize::new(width as u32, height as u32).into(),
+    }) {
+        log::warn!("Failed to resize the webview to the window: {error}");
+    }
+}
+
+/// Put the main window into or out of fullscreen mode on Windows.
+///
+/// Runs on the main thread and waits for it. `set_shadow` goes through tao,
+/// which applies it on the main thread and rewrites the window style from its
+/// own state when it does. Called from a command thread, that rewrite landed
+/// at an arbitrary point between our own Win32 calls, for example while the
+/// window still covered the monitor on the way out, and wry then sized the
+/// webview to the monitor and never back. On the main thread every step runs
+/// in order and our placement is always the last word.
+pub fn set_fullscreen(app: &AppHandle, on: bool) -> Result<bool, String> {
+    let (sender, receiver) = std::sync::mpsc::channel();
+    let handle = app.clone();
+    app.run_on_main_thread(move || {
+        let _ = sender.send(set_fullscreen_on_main_thread(&handle, on));
+    })
+    .map_err(|error| error.to_string())?;
+    receiver
+        .recv()
+        .map_err(|_| "The window closed before fullscreen could change".to_string())?
+}
+
+fn set_fullscreen_on_main_thread(app: &AppHandle, on: bool) -> Result<bool, String> {
+    let (window, hwnd) = main_window(app)?;
+    let result = apply_fullscreen(&window, hwnd, on);
+    sync_webview_bounds(&window, hwnd);
+    result
+}
+
+fn apply_fullscreen(window: &WebviewWindow, hwnd: HWND, on: bool) -> Result<bool, String> {
     let mut state = WINDOW_STATE
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
@@ -383,42 +437,31 @@ pub fn set_fullscreen(app: &AppHandle, on: bool) -> Result<bool, String> {
 /// pre-fullscreen placement — a no-op unless fullscreen is currently active.
 ///
 /// `mpv_start` (see `player/mod.rs`) fully tears down and recreates its
-/// embedded window on every episode switch, not just the first stream in a
-/// session. If that happens while the app is fullscreen, the window has been
-/// observed to come back at a different size/style than the fullscreen
-/// placement we already applied — visually indistinguishable from exiting
-/// fullscreen, but our own `is_fullscreen` flag (only ever changed by an
-/// explicit `set_fullscreen` call) never agreed, leaving the custom window
-/// chrome that depends on it hidden over a window it can no longer control.
-/// Rather than chase the exact mechanism inside libmpv's embed step, the
-/// player calls this right after every `mpv_start` to unconditionally put
-/// the already-known-correct fullscreen geometry back.
+/// embedded window on every episode switch. The player calls this right after
+/// every `mpv_start` and again on `vo-configured` to put the known fullscreen
+/// geometry back in case that disturbed it.
 ///
-/// This runs from two different threads that can race each other: `mpv_start`
-/// calls it synchronously on the command's own thread, and the mpv event
-/// thread calls it again once `vo-configured` fires for the new stream —
-/// which can land right as the *close* path calls `set_fullscreen(false)` on
-/// yet another thread to leave fullscreen for real. Both functions touch the
-/// same raw HWND with unsynchronized `SetWindowLongW`/`SetWindowPos` calls, so
-/// the `WINDOW_STATE` mutex has to stay held for the *entire* operation here,
-/// exactly like `set_fullscreen` already does — not just for the initial
-/// flag check — otherwise the two can interleave their Win32 calls and leave
-/// the window with mismatched style/geometry (e.g. sized to the fullscreen
-/// monitor rect but styled with a caption/border, which reads as the whole
-/// UI being blown up/"zoomed"), and `set_fullscreen(false)` can come back
-/// with stale inputs and return an `Err` that leaves the frontend's
-/// `isFullscreen` flag — and the custom window chrome gated on it — stuck on
-/// forever.
-pub fn reassert_fullscreen(app: &AppHandle) -> Result<(), String> {
-    let window = app
-        .get_webview_window("main")
-        .ok_or_else(|| "Failed to get main window".to_string())?;
-    let handle = window.window_handle().map_err(|error| error.to_string())?;
-    let hwnd = match handle.as_raw() {
-        RawWindowHandle::Win32(win32_handle) => win32_handle.hwnd.get() as HWND,
-        _ => return Err("Invalid window handle".to_string()),
-    };
+/// Queued on the main thread, like `set_fullscreen`, so the two run strictly
+/// one after the other instead of interleaving their Win32 calls. It does not
+/// wait: the mpv event thread calls it, and `mpv_stop` joins that thread.
+pub fn reassert_fullscreen(app: &AppHandle) {
+    let handle = app.clone();
+    let queued = app.run_on_main_thread(move || {
+        let result = main_window(&handle).and_then(|(window, hwnd)| {
+            let result = reassert_on_main_thread(&window, hwnd);
+            sync_webview_bounds(&window, hwnd);
+            result
+        });
+        if let Err(error) = result {
+            log::warn!("Failed to reassert fullscreen: {error}");
+        }
+    });
+    if let Err(error) = queued {
+        log::warn!("Failed to queue the fullscreen reassert: {error}");
+    }
+}
 
+fn reassert_on_main_thread(window: &WebviewWindow, hwnd: HWND) -> Result<(), String> {
     let state = WINDOW_STATE
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
@@ -430,9 +473,8 @@ pub fn reassert_fullscreen(app: &AppHandle) -> Result<(), String> {
         // the fullscreen style from — nothing safe to reapply.
         return Ok(());
     };
-    // Deliberately NOT dropping `state` here: it must stay locked across the
-    // Win32 calls below so this can never interleave with a concurrent
-    // `set_fullscreen` call from another thread. See the doc comment above.
+    // Held across the Win32 calls below so the saved styles cannot change
+    // underneath them.
 
     unsafe {
         let monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
