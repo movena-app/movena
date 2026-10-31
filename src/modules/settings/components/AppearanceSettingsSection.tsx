@@ -12,7 +12,12 @@ import { useSettingsStore, type ThemePreference } from '../store/useSettingsStor
 import { DEFAULT_ACCENT_COLOR } from '@/shared/design/color';
 import { AccentColorPicker } from '@/shared/ui/AccentColorPicker';
 import { SegmentedControl } from '@/shared/ui/SegmentedControl';
-import { SettingsGroup, SettingsPageContent, SettingsRow } from './SettingsControls';
+import {
+  SettingsGroup,
+  SettingsPageContent,
+  SettingsRow,
+  SettingsToggle,
+} from './SettingsControls';
 export function AppearanceSettingsSection() {
   const settings = useSettingsStore();
   const accentColor = settings.accentColor || DEFAULT_ACCENT_COLOR;
@@ -35,6 +40,17 @@ export function AppearanceSettingsSection() {
               { value: 'dark', label: 'Dark', icon: RiMoonLine, activeIcon: RiMoonFill },
               { value: 'light', label: 'Light', icon: RiSunLine, activeIcon: RiSunFill },
             ]}
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          title="Seasonal Themes"
+          description="Give the dark theme a festive look from December 1 to January 6."
+        >
+          <SettingsToggle
+            label="Use seasonal themes"
+            checked={settings.seasonalThemes}
+            onChange={(checked) => settings.updateSetting('seasonalThemes', checked)}
           />
         </SettingsRow>
 

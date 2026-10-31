@@ -205,7 +205,10 @@ export function Sidebar() {
         <div className={styles.spacer} />
 
         {/* BOTTOM SETTINGS & COLLAPSE */}
-        <div className={styles.bottomBar}>
+        <div
+          className={styles.bottomBar}
+          data-seasonal-decor={isCollapsed ? undefined : 'sidebar-footer'}
+        >
           <NavLink
             to="/settings"
             title={isCollapsed ? t('Settings') : undefined}

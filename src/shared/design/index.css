@@ -324,6 +324,41 @@ html[data-theme='light']:not(.is-playing) {
   --scrollbar-thumb-active: rgba(52, 72, 96, 0.42);
 }
 
+/* Christmas is a seasonal layer over the dark theme: pine surfaces and
+   snow-white text, with the crimson accent applied by applyAppearanceTheme.
+   data-season is only set on the dark theme, and playback drops this layer. */
+html[data-season='christmas']:not(.is-playing) {
+  --bg-base: #0a1210;
+  --bg-sidebar: #0c1613;
+  --bg-surface: #13201c;
+  --bg-surface-hover: #1b2b26;
+  --surface-subtle: rgba(230, 245, 238, 0.035);
+  --surface-control: #101a17;
+  --surface-control-hover: #18261f;
+  --surface-control-active: #213530;
+  --surface-elevated: #16241f;
+  --surface-glass: rgba(19, 32, 28, 0.96);
+  --surface-overlay: rgba(3, 8, 6, 0.84);
+  --surface-debug: #0f1916;
+  --surface-input: #0e1714;
+  --surface-shimmer: rgba(230, 245, 238, 0.06);
+
+  --text-primary: #f4f7f5;
+  --text-secondary: #b4c6bd;
+  --text-muted: #8fa69b;
+  --focus-color: #f2c45a;
+  --focus-color-rgb: 242, 196, 90;
+  --color-favorite: #ff5d6c;
+
+  --border-subtle: rgba(200, 230, 215, 0.12);
+  --border-grid: rgba(200, 230, 215, 0.08);
+  --border-strong: rgba(200, 230, 215, 0.24);
+  --border-emphasis: rgba(200, 230, 215, 0.38);
+  --scrollbar-thumb: rgba(200, 230, 215, 0.14);
+  --scrollbar-thumb-hover: rgba(200, 230, 215, 0.26);
+  --scrollbar-thumb-active: rgba(200, 230, 215, 0.38);
+}
+
 /* One semantic mapping for every category, catalogue, detail, and player tag.
    Media cards opt into the invariant accent when the tag sits over artwork. */
 [data-tag-type='gold'] {
@@ -735,6 +770,14 @@ html[data-motion='reduced'] *::after {
     --surface-control-active: #d5e0eb;
     --focus-ring: 0 0 0 4px rgba(var(--focus-color-rgb), 0.58);
   }
+
+  html[data-season='christmas']:not(.is-playing) {
+    --text-secondary: rgba(255, 255, 255, 0.88);
+    --text-muted: rgba(255, 255, 255, 0.72);
+    --border-subtle: rgba(255, 255, 255, 0.24);
+    --border-strong: rgba(255, 255, 255, 0.42);
+    --border-emphasis: rgba(255, 255, 255, 0.56);
+  }
 }
 
 @media (max-width: 640px), (max-height: 420px) {
@@ -772,4 +815,37 @@ body.is-playing [class*='mainContent'],
 body.is-playing [class*='pageContainer'],
 body.is-playing [class*='mainDragArea'] {
   display: none !important;
+}
+
+/* Christmas decorations: a string of lights along the top of the content area
+   and a snowy tree resting on the sidebar footer. Both ignore the pointer. */
+html[data-season='christmas']:not(.is-playing) [data-seasonal-decor='content-top']::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 24px;
+  background: repeat-x top left / 112px 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 112 24' fill='none'%3E %3Cpath d='M0 2Q56 17 112 2' stroke='%234a5c54' stroke-width='1.1'/%3E%3Ccircle cx='14' cy='11.2' r='5.5' fill='%23e5484d' fill-opacity='.18'/%3E%3Crect x='12.4' y='5.2' width='3.2' height='2.6' rx='.6' fill='%237d8a84'/%3E%3Cellipse cx='14' cy='11.2' rx='2.7' ry='3.8' fill='%23e5484d'/%3E%3Cellipse cx='13.1' cy='10.0' rx='.7' ry='1.2' fill='%23fff' fill-opacity='.55'/%3E%3Ccircle cx='42' cy='16.2' r='5.5' fill='%23f5c451' fill-opacity='.18'/%3E%3Crect x='40.4' y='10.2' width='3.2' height='2.6' rx='.6' fill='%237d8a84'/%3E%3Cellipse cx='42' cy='16.2' rx='2.7' ry='3.8' fill='%23f5c451'/%3E%3Cellipse cx='41.1' cy='15.0' rx='.7' ry='1.2' fill='%23fff' fill-opacity='.55'/%3E%3Ccircle cx='70' cy='16.2' r='5.5' fill='%234cc38a' fill-opacity='.18'/%3E%3Crect x='68.4' y='10.2' width='3.2' height='2.6' rx='.6' fill='%237d8a84'/%3E%3Cellipse cx='70' cy='16.2' rx='2.7' ry='3.8' fill='%234cc38a'/%3E%3Cellipse cx='69.1' cy='15.0' rx='.7' ry='1.2' fill='%23fff' fill-opacity='.55'/%3E%3Ccircle cx='98' cy='11.2' r='5.5' fill='%236cb6ff' fill-opacity='.18'/%3E%3Crect x='96.4' y='5.2' width='3.2' height='2.6' rx='.6' fill='%237d8a84'/%3E%3Cellipse cx='98' cy='11.2' rx='2.7' ry='3.8' fill='%236cb6ff'/%3E%3Cellipse cx='97.1' cy='10.0' rx='.7' ry='1.2' fill='%23fff' fill-opacity='.55'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+html[data-season='christmas']:not(.is-playing) [data-seasonal-decor='sidebar-footer']::before {
+  content: '';
+  position: absolute;
+  right: var(--space-3);
+  bottom: 100%;
+  left: var(--space-3);
+  height: 84px;
+  background: no-repeat bottom center / contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 84'%3E %3Ccircle cx='22' cy='14' r='1.4' fill='%23eef5f8' fill-opacity='0.5'/%3E%3Ccircle cx='46' cy='30' r='1' fill='%23eef5f8' fill-opacity='0.4'/%3E%3Ccircle cx='160' cy='12' r='1.6' fill='%23eef5f8' fill-opacity='0.5'/%3E%3Ccircle cx='184' cy='34' r='1.1' fill='%23eef5f8' fill-opacity='0.4'/%3E%3Ccircle cx='140' cy='30' r='0.9' fill='%23eef5f8' fill-opacity='0.35'/%3E%3Ccircle cx='64' cy='8' r='0.9' fill='%23eef5f8' fill-opacity='0.35'/%3E %3Cpath d='M8 84C30 70 60 68 100 70S170 72 192 84Z' fill='%23dfe9ee' fill-opacity='.9'/%3E %3Cg transform='translate(88 44) scale(1)'%3E %3Crect x='-3' y='20' width='6' height='7' fill='%236b4a32'/%3E %3Cpath d='M0 -6L18 22H-18Z' fill='%232c7a52'/%3E %3Cpath d='M0 -18L14 6H-14Z' fill='%2335915f'/%3E %3Cpath d='M0 -28L10 -8H-10Z' fill='%233fa56d'/%3E %3Cpath d='M-12 14Q0 19 13 11M-9 1Q1 6 10 -1' stroke='%23f5c451' stroke-width='1' fill='none' stroke-opacity='.8'/%3E %3Ccircle cx='-7' cy='17' r='1.8' fill='%23e5484d'/%3E%3Ccircle cx='8' cy='13' r='1.8' fill='%236cb6ff'/%3E %3Ccircle cx='-4' cy='3' r='1.6' fill='%23f5c451'/%3E%3Ccircle cx='6' cy='-2' r='1.6' fill='%23e5484d'/%3E %3Ccircle cx='-2' cy='-13' r='1.4' fill='%236cb6ff'/%3E %3Cpath d='M0 -36l2.2 4.6 5 .6-3.7 3.4 1 5-4.5-2.5-4.5 2.5 1-5-3.7-3.4 5-.6z' fill='%23f5c451'/%3E %3C/g%3E %3Crect x='110' y='60' width='16' height='13' rx='1.5' fill='%23d93a49'/%3E %3Crect x='116.4' y='60' width='3.2' height='13' fill='%23f5c451'/%3E %3Crect x='110' y='64.94' width='16' height='2.6' fill='%23f5c451'/%3E %3Cpath d='M118.0 60c-5-6-9-1-4 1zM118.0 60c5-6 9-1 4 1z' fill='%23f5c451'/%3E %3Crect x='128' y='65' width='11' height='9' rx='1.5' fill='%232c7a52'/%3E %3Crect x='131.9' y='65' width='3.2' height='9' fill='%23eef5f8'/%3E %3Crect x='128' y='68.42' width='11' height='2.6' fill='%23eef5f8'/%3E %3Cpath d='M133.5 65c-5-6-9-1-4 1zM133.5 65c5-6 9-1 4 1z' fill='%23eef5f8'/%3E %3Crect x='62' y='63' width='13' height='11' rx='1.5' fill='%236cb6ff'/%3E %3Crect x='66.9' y='63' width='3.2' height='11' fill='%23eef5f8'/%3E %3Crect x='62' y='67.18' width='13' height='2.6' fill='%23eef5f8'/%3E %3Cpath d='M68.5 63c-5-6-9-1-4 1zM68.5 63c5-6 9-1 4 1z' fill='%23eef5f8'/%3E %3C/svg%3E");
+  pointer-events: none;
+}
+
+@media (max-height: 700px) {
+  [data-seasonal-decor='sidebar-footer']::before {
+    display: none;
+  }
 }

@@ -159,6 +159,7 @@ export function sanitizeSettingsConfig(value: unknown): SettingsSnapshot {
     alwaysOnTop: booleanOr(source.alwaysOnTop, false),
     accentColor: migrated.accentColor,
     themePreference: oneOf(source.themePreference, ['dark', 'light'] as const, 'dark'),
+    seasonalThemes: booleanOr(source.seasonalThemes, true),
     motionPreference: oneOf(
       source.motionPreference,
       ['system', 'reduced', 'full'] as const,

@@ -22,4 +22,16 @@ describe('AppearanceSettingsSection', () => {
     expect(useSettingsStore.getState().themePreference).toBe('light');
     expect(screen.getByRole('radio', { name: 'Light' }).getAttribute('aria-checked')).toBe('true');
   });
+
+  it('lets the user opt out of seasonal themes', () => {
+    render(<AppearanceSettingsSection />);
+
+    const toggle = screen.getByRole('checkbox', { name: 'Use seasonal themes' });
+    expect((toggle as HTMLInputElement).checked).toBe(true);
+
+    fireEvent.click(toggle);
+
+    expect(useSettingsStore.getState().seasonalThemes).toBe(false);
+    expect((toggle as HTMLInputElement).checked).toBe(false);
+  });
 });

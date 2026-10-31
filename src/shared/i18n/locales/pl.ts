@@ -830,6 +830,10 @@ export const PL_MESSAGES: Record<string, string> = {
   'Interface theme': 'Motyw interfejsu',
   Dark: 'Ciemny',
   Light: 'Jasny',
+  'Seasonal Themes': 'Motywy sezonowe',
+  'Give the dark theme a festive look from December 1 to January 6.':
+    'Nadaje ciemnemu motywowi świąteczny wygląd od 1 grudnia do 6 stycznia.',
+  'Use seasonal themes': 'Używaj motywów sezonowych',
   'Default Catalogue View': 'Domyślny widok katalogu',
   'Layout used when opening movies, series, and live channels.':
     'Układ używany podczas otwierania filmów, seriali i kanałów na żywo.',

@@ -130,7 +130,7 @@ function AppShell() {
     <AppSurface motionPreference={motionPreference} onContextMenu={handleAppBackdropContextMenu}>
       <div className={`${styles.appUi} ${activeStream ? styles.appUiHidden : ''}`}>
         <Sidebar />
-        <main className={styles.mainContent}>
+        <main className={styles.mainContent} data-seasonal-decor="content-top">
           <div className={styles.pageContainer}>
             <AppRoutes />
           </div>

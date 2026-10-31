@@ -865,6 +865,10 @@ export const DE_MESSAGES: Record<string, string> = {
   'Interface theme': 'Oberflächendesign',
   Dark: 'Dunkel',
   Light: 'Hell',
+  'Seasonal Themes': 'Saisonale Themes',
+  'Give the dark theme a festive look from December 1 to January 6.':
+    'Gibt dem dunklen Design vom 1. Dezember bis 6. Januar einen festlichen Look.',
+  'Use seasonal themes': 'Saisonale Themes verwenden',
   'Default Catalogue View': 'Standard-Katalogansicht',
   'Layout used when opening movies, series, and live channels.':
     'Layout beim Öffnen von Filmen, Serien und Live-Kanälen.',

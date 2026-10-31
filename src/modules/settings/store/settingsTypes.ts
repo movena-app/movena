@@ -129,6 +129,7 @@ export interface SettingsState {
   alwaysOnTop: boolean;
   accentColor: string;
   themePreference: ThemePreference;
+  seasonalThemes: boolean; // dated holiday looks over the dark theme
   motionPreference: MotionPreference;
   onboardingDismissed: boolean;
   fourKDisclaimerDismissed: boolean;
@@ -277,6 +278,7 @@ export const SETTINGS_SNAPSHOT_KEYS = [
   'alwaysOnTop',
   'accentColor',
   'themePreference',
+  'seasonalThemes',
   'motionPreference',
   'showCollapsedSidebarBadges',
   'recordingPath',

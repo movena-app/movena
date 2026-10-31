@@ -235,6 +235,7 @@ const DEFAULT_SETTINGS = {
   alwaysOnTop: false,
   accentColor: DEFAULT_ACCENT_COLOR,
   themePreference: 'dark' as ThemePreference,
+  seasonalThemes: true,
   motionPreference: 'system' as const,
   onboardingDismissed: false,
   fourKDisclaimerDismissed: false,
@@ -355,6 +356,7 @@ export function migrateSettingsState(persistedState: unknown): SettingsState {
         ? state.motionPreference
         : 'system',
     themePreference: state.themePreference === 'light' ? 'light' : 'dark',
+    seasonalThemes: typeof state.seasonalThemes === 'boolean' ? state.seasonalThemes : true,
     rememberedVolume:
       typeof state.rememberedVolume === 'number' && Number.isFinite(state.rememberedVolume)
         ? Math.max(0, Math.min(100, state.rememberedVolume))

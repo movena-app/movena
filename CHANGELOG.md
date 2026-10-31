@@ -8,6 +8,10 @@ for tagged releases.
 
 ## [Unreleased]
 
+### Added
+
+- added a seasonal Christmas look to the dark theme: from December 1 to January 6 Movena switches to pine colors with a crimson accent, a string of lights, and a snowy tree in the sidebar on its own; "Seasonal Themes" under Appearance turns it off
+
 ## [0.1.30] - 2026-10-29
 
 ### Added
