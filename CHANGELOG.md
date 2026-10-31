@@ -8,9 +8,16 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.31] - 2026-10-31
+
 ### Added
 
-- added a seasonal Christmas look to the dark theme: from December 1 to January 6 Movena switches to pine colors with a crimson accent, a string of lights, and a snowy tree in the sidebar on its own; "Seasonal Themes" under Appearance turns it off
+- added a Christmas look to the dark theme, from December 1 to January 6: pine colors with a crimson accent, a string of lights along the top, and a snowy tree in the sidebar
+- added an Easter look to the dark theme, from Palm Sunday to Easter Monday: lilac-tinted colors with a violet accent, a cord of painted eggs along the top, and eggs with tulips in the sidebar
+
+### Fixed
+
+- fixed the interface on Windows staying sized for the full screen after leaving fullscreen, for example after switching to the next episode: dialogs sat off-center and the close button and seek bar were cut off
 
 ## [0.1.30] - 2026-10-29
 
