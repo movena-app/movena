@@ -82,17 +82,11 @@ describe('persisted-state migrations', () => {
     const migrated = migrateSettingsState({ motionPreference: 'invalid' });
     expect(migrated.motionPreference).toBe('system');
     expect(migrated.themePreference).toBe('dark');
-    expect(migrated.seasonalThemes).toBe(true);
     expect(migrated.rememberedVolume).toBe(100);
     expect(migrated.lastAudibleVolume).toBe(100);
     expect(migrated.rememberedPlaybackSpeed).toBe(1);
     expect(migrated.subtitlesEnabled).toBe(true);
     expect(migrated.language).toBe('en');
-  });
-
-  it('preserves an explicit seasonal-theme opt-out and repairs malformed values', () => {
-    expect(migrateSettingsState({ seasonalThemes: false }).seasonalThemes).toBe(false);
-    expect(migrateSettingsState({ seasonalThemes: 'no' }).seasonalThemes).toBe(true);
   });
 
   it('preserves only supported explicit themes', () => {

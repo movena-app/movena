@@ -109,12 +109,6 @@ describe('portable settings configuration', () => {
     expect(settings.sidebarWidth).toBe(260);
   });
 
-  it('carries the seasonal-theme opt-out and defaults malformed values to on', () => {
-    expect(sanitizeSettingsConfig({ seasonalThemes: false }).seasonalThemes).toBe(false);
-    expect(sanitizeSettingsConfig({ seasonalThemes: 'yes' }).seasonalThemes).toBe(true);
-    expect(sanitizeSettingsConfig({}).seasonalThemes).toBe(true);
-  });
-
   it('preserves every supported interface and metadata locale', () => {
     expect(sanitizeSettingsConfig({ language: 'pt-BR', tmdbLanguage: 'pl-PL' })).toMatchObject({
       language: 'pt-BR',

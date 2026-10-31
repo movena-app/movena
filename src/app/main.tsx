@@ -11,7 +11,7 @@ const initialSettings = useSettingsStore.getState();
 applyAppearanceTheme(
   initialSettings.themePreference,
   initialSettings.accentColor,
-  initialSettings.seasonalThemes ? activeSeason(new Date()) : null,
+  activeSeason(new Date()),
 );
 const root = createRoot(document.getElementById('root')!);
 

@@ -122,7 +122,7 @@ describe('application shell', () => {
     });
   });
 
-  it('switches the seasonal look on at local midnight and honors the opt-out', async () => {
+  it('switches the seasonal look on at local midnight and keeps it off the light theme', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['Date', 'setTimeout', 'clearTimeout'] });
     try {
       vi.setSystemTime(new Date(2026, 10, 30, 23, 59, 50));
@@ -134,7 +134,7 @@ describe('application shell', () => {
       await waitFor(() => expect(document.documentElement.dataset.season).toBe('christmas'));
       expect(document.documentElement.style.getPropertyValue('--accent-color')).toBe('#d93a49');
 
-      act(() => useSettingsStore.getState().updateSetting('seasonalThemes', false));
+      act(() => useSettingsStore.getState().updateSetting('themePreference', 'light'));
       await waitFor(() => expect(document.documentElement.dataset.season).toBeUndefined());
       expect(document.documentElement.style.getPropertyValue('--accent-color')).toBe(
         useSettingsStore.getState().accentColor,

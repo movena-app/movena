@@ -12,7 +12,7 @@ import { notify } from '@/shared/notifications/useNotificationStore';
 import { useSettingsStore } from '@/modules/settings/store/useSettingsStore';
 
 /** Current season, re-evaluated at each local midnight while the app stays open. */
-function useActiveSeason(enabled: boolean): Season | null {
+function useActiveSeason(): Season | null {
   const [season, setSeason] = useState(() => activeSeason(new Date()));
 
   useEffect(() => {
@@ -27,7 +27,7 @@ function useActiveSeason(enabled: boolean): Season | null {
     return () => clearTimeout(timer);
   }, []);
 
-  return enabled ? season : null;
+  return season;
 }
 
 export function useAppearanceSynchronization() {
@@ -36,8 +36,7 @@ export function useAppearanceSynchronization() {
   const themePreference = useSettingsStore((state) => state.themePreference);
   const motionPreference = useSettingsStore((state) => state.motionPreference);
   const language = useSettingsStore((state) => state.language);
-  const seasonalThemes = useSettingsStore((state) => state.seasonalThemes);
-  const season = useActiveSeason(seasonalThemes);
+  const season = useActiveSeason();
 
   useEffect(() => {
     document.documentElement.dataset.motion = motionPreference;

@@ -837,10 +837,6 @@ export const NL_MESSAGES: Record<string, string> = {
   'Interface theme': 'Interfacethema',
   Dark: 'Donker',
   Light: 'Licht',
-  'Seasonal Themes': "Seizoensthema's",
-  'Give the dark theme a festive look from December 1 to January 6.':
-    'Geeft het donkere thema van 1 december tot 6 januari een feestelijke uitstraling.',
-  'Use seasonal themes': "Seizoensthema's gebruiken",
   'Default Catalogue View': 'Standaardcatalogusweergave',
   'Layout used when opening movies, series, and live channels.':
     'Lay-out gebruikt bij het openen van films, series en livekanalen.',
