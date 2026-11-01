@@ -8,6 +8,12 @@ for tagged releases.
 
 ## [Unreleased]
 
+## [0.1.32] - 2026-11-02
+
+### Fixed
+
+- fixed Movies never loading on slow Xtream providers with "Provider request timed out after 5s": the full channel, movie and series lists now get up to 30 seconds per server to start answering, other provider requests keep their short limits — thanks [@HossEz](https://github.com/HossEz) ([#50](https://github.com/movena-app/movena/pull/50))
+
 ## [0.1.31] - 2026-10-31
 
 ### Added
