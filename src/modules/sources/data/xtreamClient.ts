@@ -46,6 +46,32 @@ import { getErrorMessage } from '@/shared/lib/error';
 /** Provider requests fail quickly enough to keep modal and page states responsive. */
 export const PROVIDER_PRIMARY_TIMEOUT_MS = 5_000;
 export const PROVIDER_FAILOVER_BUDGET_MS = 8_000;
+/**
+ * Whole-catalogue lists (every channel, movie or series in one response) can
+ * take large panels well over 5s to build before the first byte arrives, so
+ * they get their own, longer bounds. Matches the 30s used for M3U and XMLTV
+ * downloads.
+ */
+export const PROVIDER_CATALOG_TIMEOUT_MS = 30_000;
+export const PROVIDER_CATALOG_FAILOVER_BUDGET_MS = 45_000;
+
+interface ProviderTimeouts {
+  primaryMs: number;
+  backupMs: number;
+  budgetMs: number;
+}
+
+const DEFAULT_TIMEOUTS: ProviderTimeouts = {
+  primaryMs: PROVIDER_PRIMARY_TIMEOUT_MS,
+  backupMs: 3_000,
+  budgetMs: PROVIDER_FAILOVER_BUDGET_MS,
+};
+
+const CATALOG_TIMEOUTS: ProviderTimeouts = {
+  primaryMs: PROVIDER_CATALOG_TIMEOUT_MS,
+  backupMs: PROVIDER_CATALOG_TIMEOUT_MS,
+  budgetMs: PROVIDER_CATALOG_FAILOVER_BUDGET_MS,
+};
 
 export async function testServerLatency(
   serverUrl: string,
@@ -231,16 +257,17 @@ async function fetchXtream<T>(
   creds: XtreamCredentials,
   extraParams: Record<string, string> = {},
   signal?: AbortSignal,
+  timeouts: ProviderTimeouts = DEFAULT_TIMEOUTS,
 ): Promise<T> {
   const urlsToTry = [creds.url, ...(creds.alternativeUrls || [])].filter(Boolean);
   const failoverStartedAt = Date.now();
 
   const failures: string[] = [];
   for (const [index, currentUrl] of urlsToTry.entries()) {
-    const remainingBudget = PROVIDER_FAILOVER_BUDGET_MS - (Date.now() - failoverStartedAt);
+    const remainingBudget = timeouts.budgetMs - (Date.now() - failoverStartedAt);
     if (remainingBudget <= 0) break;
     const timeoutMs = Math.min(
-      currentUrl === creds.url ? PROVIDER_PRIMARY_TIMEOUT_MS : 3_000,
+      currentUrl === creds.url ? timeouts.primaryMs : timeouts.backupMs,
       remainingBudget,
     );
     try {
@@ -326,7 +353,7 @@ export async function getVodStreams(
 ): Promise<XtreamVodStream[]> {
   const params: Record<string, string> = { action: 'get_vod_streams' };
   if (categoryId) params.category_id = categoryId;
-  return fetchXtream<XtreamVodStream[]>(creds, params, signal);
+  return fetchXtream<XtreamVodStream[]>(creds, params, signal, CATALOG_TIMEOUTS);
 }
 
 // 3b. Fetch VOD Info
@@ -410,7 +437,7 @@ export async function getSeries(
 ): Promise<XtreamSeries[]> {
   const params: Record<string, string> = { action: 'get_series' };
   if (categoryId) params.category_id = categoryId;
-  return fetchXtream<XtreamSeries[]>(creds, params, signal);
+  return fetchXtream<XtreamSeries[]>(creds, params, signal, CATALOG_TIMEOUTS);
 }
 
 // 5b. Fetch Series Info (Seasons and Episodes)
@@ -514,7 +541,7 @@ export async function getLiveStreams(
 ): Promise<XtreamLiveStream[]> {
   const params: Record<string, string> = { action: 'get_live_streams' };
   if (categoryId) params.category_id = categoryId;
-  return fetchXtream<XtreamLiveStream[]>(creds, params, signal);
+  return fetchXtream<XtreamLiveStream[]>(creds, params, signal, CATALOG_TIMEOUTS);
 }
 
 // 8. Fetch Short EPG
