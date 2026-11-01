@@ -5,6 +5,8 @@ import {
   getChannelEPG,
   getStreamUrl,
   getVodCategories,
+  getVodStreams,
+  PROVIDER_CATALOG_TIMEOUT_MS,
   PROVIDER_FAILOVER_BUDGET_MS,
   PROVIDER_PRIMARY_TIMEOUT_MS,
 } from '@/modules/sources/data/xtreamClient';
@@ -142,6 +144,37 @@ describe('Xtream API client', () => {
 
     await result;
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives whole-catalogue lists the longer catalogue timeout', async () => {
+    vi.useFakeTimers();
+    let resolveFetch: (response: Response) => void = () => {};
+    const fetchMock = vi.fn(
+      (_input: RequestInfo | URL, init?: RequestInit) =>
+        new Promise<Response>((resolve, reject) => {
+          resolveFetch = resolve;
+          init?.signal?.addEventListener('abort', () =>
+            reject(new DOMException('Aborted', 'AbortError')),
+          );
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = getVodStreams({ ...credentials, alternativeUrls: [] });
+    // Past the short provider timeout, a slow catalogue is still allowed to answer.
+    await vi.advanceTimersByTimeAsync(PROVIDER_PRIMARY_TIMEOUT_MS + 5_000);
+    resolveFetch(
+      new Response(JSON.stringify([{ stream_id: 1 }]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    await expect(request).resolves.toEqual([{ stream_id: 1 }]);
+
+    const hanging = getVodStreams({ ...credentials, alternativeUrls: [] });
+    const result = expect(hanging).rejects.toThrow('Provider request timed out after 30s');
+    await vi.advanceTimersByTimeAsync(PROVIDER_CATALOG_TIMEOUT_MS);
+    await result;
   });
 
   it('does not start or fail over a request whose signal was already aborted', async () => {
